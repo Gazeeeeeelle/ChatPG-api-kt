@@ -1,7 +1,13 @@
 package com.yourRPG.chatPG.validator
 
+/**
+ * TODO
+ */
 interface IValidatable<T> {
 
-    fun validate(t: T?)
+    /**
+     * TODO~
+     */
+    fun validate(t: T): T
 
 }

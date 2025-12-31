@@ -18,8 +18,9 @@ class AccountController {
     fun getAccount(
         @PathVariable accountName: String
     ): ResponseEntity<AccountDto> {
-        val account: AccountDto = accountService.getByName(accountName)
-        return ResponseEntity.ok(account)
+        return ResponseEntity.ok(
+            accountService.getDtoByName(accountName)
+        )
     }
 
     @PostMapping("/{accountId}/passwordMatches")
@@ -27,7 +28,9 @@ class AccountController {
         @PathVariable accountId: Long,
         @RequestBody password: String
     ): ResponseEntity<Boolean> {
-        return ResponseEntity.ok(accountService.checkPassword(accountId, password))
+        return ResponseEntity.ok(
+            accountService.checkPassword(accountId, password)
+        )
     }
 
 }

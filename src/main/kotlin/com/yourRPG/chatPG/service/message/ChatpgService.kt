@@ -7,8 +7,11 @@ import org.springframework.stereotype.Service
 @Service
 class ChatpgService {
 
-    private val aiPrefix: String = "[AI: ]"
+    private companion object val aiPrefix: String = "[AI: ]"
 
+    /**
+     * TODO
+     */
     fun treatMemoryForPrompt(msgList: MutableList<Message>): String {
         val stringBuilder = StringBuilder()
 
@@ -22,6 +25,9 @@ class ChatpgService {
         return stringBuilder.toString()
     }
 
+    /**
+     * TODO
+     */
     private fun getAccountPrefix(account: Account?): String {
         return "[USER(" + (account?.getName() ?: "!!! NO_NAME !!!") + "): ]"
     }

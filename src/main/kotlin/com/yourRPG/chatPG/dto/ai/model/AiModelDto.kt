@@ -1,4 +1,4 @@
-package com.yourRPG.chatPG.dto.chat
+package com.yourRPG.chatPG.dto.ai.model
 
 data class AiModelDto(
     val nickname: String

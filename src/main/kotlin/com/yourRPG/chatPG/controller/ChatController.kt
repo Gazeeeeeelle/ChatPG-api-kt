@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.controller
 
-import com.yourRPG.chatPG.dto.chat.AiModelDto
+import com.yourRPG.chatPG.dto.ai.model.AiModelDto
 import com.yourRPG.chatPG.dto.chat.ChatDto
 import com.yourRPG.chatPG.service.chat.ChatService
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,9 +23,9 @@ class ChatController {
     fun getChats(
         @PathVariable accountId: Long
     ): ResponseEntity<MutableList<ChatDto>> {
-        val chats: MutableList<ChatDto> = chatService.getChats(accountId)
-
-        return ResponseEntity.ok(chats)
+        return ResponseEntity.ok(
+            chatService.getChats(accountId)
+        )
     }
 
     @GetMapping("/byName/{chatName}")
@@ -33,12 +33,9 @@ class ChatController {
         @PathVariable accountId: Long,
         @PathVariable chatName: String
     ): ResponseEntity<ChatDto> {
-        val chat = chatService.getDtoByAccountIdAndChatName(
-            accountId,
-            chatName
+        return ResponseEntity.ok(
+            chatService.getDtoByAccountIdAndChatName(accountId, chatName)
         )
-
-        return ResponseEntity.ok(chat)
     }
 
     @PatchMapping("/{chatId}/chooseModel")
@@ -48,6 +45,7 @@ class ChatController {
         @RequestBody modelName: String
     ): ResponseEntity<Void> {
         chatService.chooseModelForChat(accountId, chatId, modelName)
+
         return ResponseEntity.status(204).build()
     }
 
@@ -56,8 +54,9 @@ class ChatController {
         @PathVariable accountId: Long,
         @PathVariable chatId: Long
     ): ResponseEntity<AiModelDto> {
-        val model: AiModelDto = chatService.getChosenModel(accountId, chatId)
-        return ResponseEntity.ok(model)
+        return ResponseEntity.ok(
+            chatService.getChosenModel(accountId, chatId)
+        )
     }
 
 

@@ -73,7 +73,7 @@ class Poll {
         return chat
     }
 
-    fun getSubject(): PollSubject? {
+    fun getSubject(): PollSubject {
         return subject
     }
 

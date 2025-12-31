@@ -16,37 +16,60 @@ import org.springframework.stereotype.Service
 @Service
 class PollService: IConvertible<Poll, PollDto> {
 
+    //Services
     @Autowired
     private lateinit var runner: PollCommandRunnerService
 
     @Autowired
     private lateinit var chatService: ChatService
 
-
+    //Repositories
     @Autowired
     private lateinit var pollRepo: PollRepository
 
-
-    override fun convert(c: Poll): PollDto {
+    //Conversion
+    override fun Poll.dto(): PollDto {
         return PollDto(
-            chatService.convert(c.getChat() ?: Chat()),
-            c.getSubject() ?: PollSubject.NONE,
-            c.getQuota() ?: -1,
-            c.getVotes().size
+            chatService.dto(c = this.getChat() ?: Chat()),
+            subject = this.getSubject(),
+            quota   = this.getQuota() ?: -1,
+            votes   = this.getVotes().size
         )
     }
 
-
+    /**
+     * Returns all polls active in the chat
+     *
+     * @param accountId
+     * @param chatId
+     *
+     * @return Mutable list of poll DTOs
+     *
+     * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
+     */
     fun all(accountId: Long, chatId: Long): MutableList<PollDto> {
         chatService.getByAccountIdAndId(accountId, chatId)
 
-        return convertList(pollRepo.findAllByChatId(chatId))
+        return pollRepo.findAllByChatId(chatId).dto()
     }
 
-
+    /**
+     * Starts a new poll on a chat.
+     * The subject given is used to determine what to do when the poll finishes successfully
+     *
+     * @param accountId
+     * @param chatId
+     *
+     * @return poll DTO
+     *
+     * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
+     * if [chatId] did not identify an existing chat
+     * or if the account identified by [accountId] did not have access to it
+     *
+     * @throws
+     */
     fun start(accountId: Long, chatId: Long, command: String): PollDto {
         val chat: Chat = chatService.getByAccountIdAndId(accountId, chatId)
-
 
         val subject: PollSubject = PollSubject.valueOf(command)
 
@@ -58,9 +81,12 @@ class PollService: IConvertible<Poll, PollDto> {
 
         pollRepo.save(poll)
 
-        return convert(poll)
+        return poll.dto()
     }
 
+    /**
+     * TODO
+     */
     fun vote(accountId: Long, chatId: Long, command: String): PollDto {
         val chat: Chat = chatService.getByAccountIdAndId(accountId, chatId)
 
@@ -77,7 +103,7 @@ class PollService: IConvertible<Poll, PollDto> {
             pollRepo.save(poll)
         }
 
-        return convert(poll)
+        return poll.dto()
     }
 
 

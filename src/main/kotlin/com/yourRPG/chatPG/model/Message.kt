@@ -12,7 +12,7 @@ class Message {
     private var id: Long? = null
 
     @Column(nullable = false, length = 20000)
-    private var content: String? = null
+    private var content: String = ""
 
     @ManyToOne
     private var chat: Chat? = null
@@ -23,7 +23,7 @@ class Message {
     @ManyToOne(fetch = FetchType.LAZY)
     private var account: Account? = null
 
-    constructor(content: String?, chat: Chat?, bot: Boolean, account: Account?) {
+    constructor(content: String, chat: Chat?, bot: Boolean, account: Account?) {
         this.content = content
         this.chat = chat
         this.bot = bot
@@ -36,7 +36,7 @@ class Message {
         return account
     }
 
-    fun getContent(): String? {
+    fun getContent(): String {
         return content
     }
 

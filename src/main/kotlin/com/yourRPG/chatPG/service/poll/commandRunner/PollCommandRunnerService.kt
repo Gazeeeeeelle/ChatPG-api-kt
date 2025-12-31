@@ -10,9 +10,13 @@ import org.springframework.stereotype.Service
 @Service
 class PollCommandRunnerService {
 
+    //Services
     @Autowired
     private lateinit var messageService: MessageService
 
+    /**
+     * TODO
+     */
     fun run(poll: Poll) {
         when (poll.getSubject()) {
             PollSubject.REQUEST_AI_MESSAGE -> messageService.generateResponse(

@@ -4,46 +4,66 @@ import com.yourRPG.chatPG.dto.account.AccountDto
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
 import com.yourRPG.chatPG.model.Account
 import com.yourRPG.chatPG.repository.AccountRepository
-import com.yourRPG.chatPG.service.ICanNotBeFound
 import com.yourRPG.chatPG.service.IConvertible
+import com.yourRPG.chatPG.validator.PresenceValidator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class AccountService: IConvertible<Account, AccountDto>, ICanNotBeFound {
+class AccountService: IConvertible<Account, AccountDto> {
 
+    //Repositories
     @Autowired
-    private lateinit var accountRepo: AccountRepository;
+    private lateinit var repository: AccountRepository
 
+    //Validators
+    private val presenceValidator = PresenceValidator<Account>(AccountNotFoundException("Account not found"))
 
-    override fun convert(c: Account): AccountDto {
-        return AccountDto(c)
+    //Conversion
+    override fun Account.dto(): AccountDto {
+        return AccountDto(this)
     }
 
-    override fun getNotFoundException(): RuntimeException {
-        return AccountNotFoundException("Account not found")
+    /**
+     * Returns [Account] by its id
+     *
+     * @param id
+     * @return [Account]
+     * @throws AccountNotFoundException
+     * if the id did not identify an account
+     */
+    fun getById(id: Long): Account {
+        return presenceValidator.validate(
+            t = repository.findById(id).orElse(null)
+        )
     }
 
+    /**
+     * Returns [AccountDto] by its respective [Account] name
+     *
+     * @param name
+     * @return [AccountDto]
+     * @throws AccountNotFoundException
+     * if no account was found under that name
+     */
+    fun getDtoByName(name: String): AccountDto {
+        val account = presenceValidator.validate(
+            t = repository.findByNameEquals(name)
+        )
 
-    fun getPureById(id: Long): Account {
-        return accountRepo.findById(id)
-            .orElseThrow { AccountNotFoundException("Account not found") }
+        return account.dto()
     }
 
-    fun getByName(name: String): AccountDto {
-        accountRepo.findByNameEquals(name)
-            ?.let {return AccountDto(it)}
-
-        throw AccountNotFoundException("Account not found")
-    }
-
-
-    /* @TODO: REFACTOR ME INTO A VALIDATOR */
+    /**
+     * Returns [Boolean] based on whether the account found via [accountId]'s password matches [password]
+     *
+     * @param accountId
+     * @param password
+     * @return [Boolean]
+     * @throws AccountNotFoundException
+     */
     fun checkPassword(accountId: Long, password: String): Boolean {
-        return getPureById(accountId).passwordMatches(password)
-    } /* !TODO: REFACTOR ME INTO A VALIDATOR */
-
-
-
+        return getById(accountId).passwordMatches(password)
+    }
 
 }

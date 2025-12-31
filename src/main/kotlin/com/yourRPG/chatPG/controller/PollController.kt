@@ -20,8 +20,9 @@ class PollController {
         @PathVariable chatId: Long,
         @RequestBody command: String
     ): ResponseEntity<PollDto> {
-        val dto = pollService.start(accountId, chatId, command)
-        return ResponseEntity.ok(dto)
+        return ResponseEntity.ok(
+            pollService.start(accountId, chatId, command)
+        )
     }
 
     @PostMapping("/vote")
@@ -30,9 +31,9 @@ class PollController {
         @PathVariable chatId: Long,
         @RequestBody command: String
     ): ResponseEntity<PollDto> {
-        val dto = pollService.vote(accountId, chatId, command)
-
-        return ResponseEntity.ok(dto)
+        return ResponseEntity.ok(
+            pollService.vote(accountId, chatId, command)
+        )
     }
 
     @GetMapping("/all")
@@ -40,9 +41,9 @@ class PollController {
         @PathVariable accountId: Long,
         @PathVariable chatId: Long
     ): ResponseEntity<MutableList<PollDto>> {
-        val dto: MutableList<PollDto> = pollService.all(accountId, chatId)
-
-        return ResponseEntity.ok(dto)
+        return ResponseEntity.ok(
+            pollService.all(accountId, chatId)
+        )
     }
 
 }

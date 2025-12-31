@@ -25,8 +25,9 @@ class MessageController {
         @PathVariable accountId: Long,
         @PathVariable chatId: Long
     ): ResponseEntity<MutableList<MessageDto>> {
-        val messages: MutableList<MessageDto> = messageService.getMessagesInChat(accountId, chatId)
-        return ResponseEntity.ok(messages)
+        return ResponseEntity.ok(
+            messageService.getMessagesInChat(accountId, chatId)
+        )
     }
 
     @PostMapping("/send")
@@ -35,12 +36,9 @@ class MessageController {
         @PathVariable chatId: Long,
         @RequestBody content: String
     ): ResponseEntity<MessageDto> {
-        val messageDto = messageService.sendMessage(
-            accountId,
-            chatId,
-            content
+        return ResponseEntity.status(201).body(
+            messageService.sendMessage(accountId, chatId, message = content)
         )
-        return ResponseEntity.status(201).body(messageDto)
     }
 
     @PostMapping("/generateResponse")
@@ -48,8 +46,9 @@ class MessageController {
         @PathVariable accountId: Long,
         @PathVariable chatId: Long
     ): ResponseEntity<MessageDto> {
-        val messageDto = messageService.generateResponse(accountId, chatId)
-        return ResponseEntity.status(201).body(messageDto)
+        return ResponseEntity.status(201).body(
+            messageService.generateResponse(accountId, chatId)
+        )
     }
 
     @Transactional
@@ -59,8 +58,9 @@ class MessageController {
         @PathVariable chatId: Long,
         @PathVariable id: Long
     ): ResponseEntity<Int> {
-        val amountDeleted = messageService.deleteMessage(accountId, chatId, id)
-        return ResponseEntity.status(201).body(amountDeleted)
+        messageService.deleteMessage(accountId, chatId, id)
+
+        return ResponseEntity.status(204).build()
     }
 
     @Transactional
@@ -70,9 +70,10 @@ class MessageController {
         @PathVariable chatId: Long,
         @PathVariable idStart: Long,
         @PathVariable idFinish: Long
-    ): ResponseEntity<Int> {
-        val amountDeleted = messageService.bulkDeleteMessages(accountId, chatId, idStart, idFinish)
-        return ResponseEntity.status(201).body(amountDeleted)
+    ): ResponseEntity<Void> {
+        messageService.bulkDeleteMessages(accountId, chatId, idStart, idFinish)
+
+        return ResponseEntity.status(204).build()
     }
 
 }

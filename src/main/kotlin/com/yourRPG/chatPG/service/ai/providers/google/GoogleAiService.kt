@@ -13,6 +13,9 @@ class GoogleAiService: IResponsive {
 
     private val client: Client = Client()
 
+    /**
+     * @see IResponsive.askAi
+     */
     override fun askAi(model: AiModel, prompt: String): String? {
         try {
             val response =

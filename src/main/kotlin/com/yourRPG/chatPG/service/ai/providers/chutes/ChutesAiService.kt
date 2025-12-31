@@ -4,9 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import com.yourRPG.chatPG.exception.ai.models.UnavailableAiException
+import com.yourRPG.chatPG.service.ai.AiService
 import com.yourRPG.chatPG.service.ai.IResponsive
 import com.yourRPG.chatPG.service.ai.providers.AiModel
 import com.yourRPG.chatPG.service.ai.providers.chutes.model.ChutesResponse
+import com.yourRPG.chatPG.service.http.HttpService
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.IOException
 import java.net.URI
@@ -17,21 +20,27 @@ import java.net.http.HttpResponse
 @Service
 class ChutesAiService: IResponsive {
 
-    private val client: HttpClient = HttpClient.newHttpClient() //FIXME
+    //Services
+    @Autowired
+    private lateinit var httpService: HttpService
 
-    private val objectMapper = ObjectMapper()
+    private companion object {
+        val objectMapper = ObjectMapper()
+        val apiKey: String = System.getenv("CHUTES_API_KEY")
+    }
 
-    private companion object val apiKey: String = System.getenv("CHUTES_API_KEY")
-
+    /**
+     * @see IResponsive.askAi
+     */
     override fun askAi(model: AiModel, prompt: String): String {
 
         val messageJson: String = getMessageJson(prompt)
 
-        val request: HttpRequest = requestFromLlm(model, messageJson)
+        val request: HttpRequest = buildRequestToLlm(model, messageJson)
 
         try {
             val response: String =
-                client.send(request, HttpResponse.BodyHandlers.ofString()).body()
+                httpService.send(request, HttpResponse.BodyHandlers.ofString()).body()
 
             val chutesResponse: ChutesResponse =
                 objectMapper.readValue(response, ChutesResponse::class.java)
@@ -61,7 +70,7 @@ class ChutesAiService: IResponsive {
         }
     }
 
-    private fun requestFromLlm(model: AiModel, messageJson: String): HttpRequest {
+    private fun buildRequestToLlm(model: AiModel, messageJson: String): HttpRequest {
         return HttpRequest.newBuilder()
             .uri(URI.create("https://llm.chutes.ai/v1/chat/completions"))
             .header("Authorization", "Bearer $apiKey")
