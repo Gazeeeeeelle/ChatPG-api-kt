@@ -11,10 +11,9 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/models")
-class AiModelController {
-
-    @Autowired
-    private lateinit var aiService: AiService
+class AiModelController(
+    private val aiService: AiService
+) {
 
     @GetMapping("/isModelAvailable/{modelName}")
     fun isModelAvailable(@PathVariable modelName: String): ResponseEntity<Boolean> {
@@ -24,7 +23,7 @@ class AiModelController {
     }
 
     @GetMapping("/all")
-    fun all(): ResponseEntity<MutableList<String>> {
+    fun all(): ResponseEntity<List<String>> {
         return ResponseEntity.ok(
             aiService.getModels()
         )

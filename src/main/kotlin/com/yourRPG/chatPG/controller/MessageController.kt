@@ -15,18 +15,29 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/accounts/{accountId}/chats/{chatId}/messages")
-class MessageController {
+class MessageController(
+    private val messageService: MessageService
+) {
 
-    @Autowired
-    private lateinit var messageService: MessageService;
-
-    @GetMapping("/all")
-    fun getMessages(
+    @GetMapping("/new/{referenceId}")
+    fun getNewMessages(
         @PathVariable accountId: Long,
-        @PathVariable chatId: Long
-    ): ResponseEntity<MutableList<MessageDto>> {
+        @PathVariable chatId: Long,
+        @PathVariable referenceId: Long,
+    ): ResponseEntity<List<MessageDto>> {
         return ResponseEntity.ok(
-            messageService.getMessagesInChat(accountId, chatId)
+            messageService.getNewMessagesInChat(accountId, chatId, referenceId)
+        )
+    }
+
+    @GetMapping("/old/{referenceId}")
+    fun getOldMessages(
+        @PathVariable accountId: Long,
+        @PathVariable chatId: Long,
+        @PathVariable referenceId: Long,
+    ): ResponseEntity<List<MessageDto>> {
+        return ResponseEntity.ok(
+            messageService.getOldMessagesInChat(accountId, chatId, referenceId)
         )
     }
 
@@ -64,14 +75,14 @@ class MessageController {
     }
 
     @Transactional
-    @DeleteMapping("/bulkDelete/{idStart}/{idFinish}")
+    @DeleteMapping("/bulkDelete/{bound1}/{bound2}")
     fun bulkDeleteMessages(
         @PathVariable accountId: Long,
         @PathVariable chatId: Long,
-        @PathVariable idStart: Long,
-        @PathVariable idFinish: Long
+        @PathVariable bound1: Long,
+        @PathVariable bound2: Long
     ): ResponseEntity<Void> {
-        messageService.bulkDeleteMessages(accountId, chatId, idStart, idFinish)
+        messageService.bulkDeleteMessages(accountId, chatId, bound1, bound2)
 
         return ResponseEntity.status(204).build()
     }

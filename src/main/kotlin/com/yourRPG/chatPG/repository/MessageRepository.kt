@@ -7,26 +7,61 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 
-
 interface MessageRepository: JpaRepository<Message, Long> {
 
-    @Query("SELECT m FROM Message m WHERE m.chat.id = :id")
-    fun qFindByChatId(id: Long?): MutableList<Message>
+    /**
+     * Fetches all messages from the [chat].
+     * FIXME: scalability problem
+     *
+     * @param chat from where the messages will be fetched
+     * @return [List] of [Message]s fetched
+     */
+    @Query("SELECT m FROM Message m WHERE m.chat = :chat GROUP BY m.id ORDER BY m.id ASC")
+    fun qFindAllMessagesFromChat(chat: Chat): List<Message>
 
-    @Query("SELECT m FROM Message m JOIN Chat c ON m.chat.name = c.name JOIN Account a ON a.name = :accountName")
-    fun qFindByChatNameAndAccountName(accountName: String?, chatName: String?): MutableList<Message>
+    /**
+     * Fetches 20 messages from the [Chat] identified with [chatId]. The messages are fetched by selecting the ids
+     *  lesser than the [reference] id, and therefore, 20 older messages than the reference.
+     *
+     * @param chatId chat identifier
+     * @param reference reference id for fetching
+     * @return [List] of [Message]s fetched
+     */
+    @Query("SELECT m FROM Message m WHERE m.chat.id = :chatId AND m.id < :reference GROUP BY m.id ORDER BY m.id DESC LIMIT 20")
+    fun qFindOldByChatIdAndReference(chatId: Long, reference: Long): List<Message>
 
-    @Query("SELECT m FROM Message m WHERE m.chat = :c")
-    fun qFindAllMessagesFromChat(c: Chat?): MutableList<Message>
+    /**
+     * Fetches 20 messages from the [Chat] identified with [chatId]. The messages are fetched by selecting the ids
+     *  greater than the [reference] id, and therefore, 20 newer messages than the reference.
+     *
+     * @param chatId chat identifier
+     * @param reference reference id for fetching
+     * @return [List] of [Message]s fetched
+     */
+    @Query("SELECT m FROM Message m WHERE m.chat.id = :chatId AND m.id > :reference GROUP BY m.id ORDER BY m.id DESC LIMIT 20")
+    fun qFindNewByChatIdAndReference(chatId: Long, reference: Long): List<Message>
 
-    @Query("SELECT m FROM Message m WHERE m.chat.id = :id")
-    fun qFindAllByChatId(id: Long?): MutableList<Message>
-
+    /**
+     * Deletes a single message, with id [messageId], in the chat identified by [chatId].
+     *
+     * @param chatId chat identifier.
+     * @param messageId message identifier.
+     * @return Integer amount of messages deleted. One if successful, zero if no message found for deletion.
+     */
     @Modifying
     @Transactional
-    @Query("DELETE FROM Message m WHERE m.chat.id = :chatId AND m.id = :id")
-    fun qDeleteByChatIdAndId(chatId: Long, id: Long): Int
+    @Query("DELETE FROM Message m WHERE m.chat.id = :chatId AND m.id = :messageId")
+    fun qDeleteByChatIdAndId(chatId: Long, messageId: Long): Int
 
+    /**
+     * Deletes a multiple messages within a chat. The chat is identified by [chatId]. The range of messages deleted are
+     *  the ones with id between and including [idStart] and [idFinish].
+     *
+     * @param chatId chat identifier.
+     * @param idStart lower bound of the ids range.
+     * @param idFinish upper bound of the ids range.
+     * @return Integer amount of messages deleted. Bigger than zero if successful, zero if no message found for deletion.
+     */
     @Modifying
     @Transactional
     @Query("DELETE FROM Message m WHERE m.chat.id = :chatId AND m.id BETWEEN :idStart AND :idFinish")

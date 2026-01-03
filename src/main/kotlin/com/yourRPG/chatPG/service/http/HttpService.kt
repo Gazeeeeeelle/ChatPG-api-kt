@@ -11,7 +11,16 @@ class HttpService {
     private val client: HttpClient = HttpClient.newHttpClient()
 
     /**
-     * TODO
+     * Wraps the [HttpClient]'s [send]
+     *
+     * @param request
+     * @param responseBodyHandler
+     * @return [HttpResponse]
+     * @throws java.io.IOException
+     * @throws InterruptedException
+     * @throws IllegalArgumentException
+     * @throws SecurityException
+     * @see HttpClient.send
      */
     fun <T> send(request: HttpRequest, responseBodyHandler: HttpResponse.BodyHandler<T>): HttpResponse<T> {
         return client.send(request, responseBodyHandler)

@@ -9,6 +9,6 @@ interface PollRepository: JpaRepository<Poll, Poll.CompositePrimaryKey> {
 
     fun existsByChatIdAndSubject(chatId: Long, subject: PollSubject): Boolean
 
-    fun findAllByChatId(chatId: Long): MutableList<Poll>
+    fun findAllByChatId(chatId: Long): List<Poll>
 
 }

@@ -4,15 +4,15 @@ import com.yourRPG.chatPG.exception.NotFoundException
 
 class PresenceValidator<T>: IValidatable<T?> {
 
-    private var ex = NotFoundException("Not found")
+    private var exception = NotFoundException("Not found")
 
-    constructor(ex: NotFoundException) {
-        this.ex = ex
+    constructor(exception: NotFoundException) {
+        this.exception = exception
     }
 
     override fun validate(t: T?): T {
         if (t === null) {
-            throw ex
+            throw exception
         }
 
         return t

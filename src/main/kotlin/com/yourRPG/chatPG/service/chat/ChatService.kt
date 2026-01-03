@@ -11,89 +11,129 @@ import com.yourRPG.chatPG.service.account.AccountService
 import com.yourRPG.chatPG.service.ai.AiService
 import com.yourRPG.chatPG.service.ai.providers.AiModel
 import com.yourRPG.chatPG.validator.PresenceValidator
-import org.springframework.beans.factory.annotation.Autowired
+import com.yourRPG.chatPG.validator.chat.AccountHasAccessToChatValidator
 import org.springframework.stereotype.Service
 
-
 @Service
-class ChatService: IConvertible<Chat, ChatDto> {
+class ChatService(
+    /* Services */
+    private val accountService: AccountService,
+    private val aiService: AiService,
 
-    //Services
-    @Autowired
-    private lateinit var accountService: AccountService;
+    /* Repositories */
+    private val repository: ChatRepository,
 
-    @Autowired
-    private lateinit var aiService: AiService;
+    /* Validators */
+    private val accessValidator: AccountHasAccessToChatValidator
 
-    //Repositories
-    @Autowired
-    private lateinit var repository: ChatRepository;
+): IConvertible<Chat, ChatDto> {
 
-    //Validators
-    private val presenceValidator = PresenceValidator<Chat>(ChatNotFoundException("Chat not found"))
+    /* Validators */
+    private val presenceValidator =
+        PresenceValidator<Chat>(exception = ChatNotFoundException("Chat not found"))
+    private val aiModelPresenceValidator =
+        PresenceValidator<AiModel>(exception = AiModelNotFoundException("AI model not found"))
 
-    private val aiModelPresenceValidator = PresenceValidator<AiModel>(AiModelNotFoundException("AI model not found"))
-
-    //Conversion
-    override fun Chat.dto(): ChatDto {
-        return ChatDto(this)
-    }
-
-    /**
-     * TODO
-     */
-    fun getByAccountId(id: Long): MutableList<ChatDto> {
-        return repository.qFindByAccountId(id).dto()
-    }
+    /* Conversion */
+    override fun dto(c: Chat): ChatDto = ChatDto(c)
 
     /**
-     * TODO
+     * Returns a [MutableList] of the [Chat]s the account found by [accountId] has access to.
+     *
+     * @param accountId
+     * @return [MutableList] of [ChatDto]
      */
-    fun getChats(accountId: Long): MutableList<ChatDto> {
+    fun getChatsByAccountId(accountId: Long): List<Chat> {
         accountService.getById(accountId)
 
-        return getByAccountId(accountId)
+        return repository.qFindByAccountId(accountId)
     }
 
     /**
-     * TODO
+     * The fetching of the objects from the database is delegated to [getChatsByAccountId] and then converted to DTO.
+     *
+     * @param accountId
+     * @return [MutableList] of [ChatDto]
+     * @see getChatsByAccountId
      */
-    fun getChosenModel(accountId: Long, chatId: Long): AiModelDto {
-        val chat: Chat = getByAccountIdAndId(accountId, chatId)
+    fun getChatsDtoByAccountId(accountId: Long): List<ChatDto> {
+        return getChatsByAccountId(accountId).toListDto()
+    }
+
+    /**
+     * Returns the [AiModelDto] of the [AiModel] active on the chat, specified by an [accountId] that identifies the account
+     *  requesting and checks if it has access to the chat identified by [chatId].
+     *
+     * @param accountId
+     * @param chatId
+     * @return [AiModelDto]
+     * @throws ChatNotFoundException
+     */
+    fun getModelDto(accountId: Long, chatId: Long): AiModelDto {
+        val chat: Chat = getByAccountIdAndChatId(accountId, chatId)
 
         return aiService.dto(chat.getModel())
     }
 
     /**
-     * TODO
+     * Returns a [Chat] based on whether the given [accountId] identifies an account that has access to such chat found
+     *  identified by [chatId].
+     *
+     * @param accountId
+     * @param chatId
+     * @return [Chat]
+     * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
+     * @throws ChatNotFoundException
+     * @throws com.yourRPG.chatPG.exception.chat.AccessToChatUnauthorizedException
+     * @see AccountHasAccessToChatValidator.validate
      */
-    fun getByAccountIdAndId(accountId: Long, chatId: Long): Chat {
-        val chat: Chat = presenceValidator.validate(
-            t = repository.qFindByAccountIdAndId(accountId, chatId)
-        )
+    fun getByAccountIdAndChatId(accountId: Long, chatId: Long): Chat {
+        accessValidator.validate(Pair(accountId, chatId))
 
-        return chat
+        return repository.qFindByAccountIdAndId(accountId, chatId)
+            ?: throw ChatNotFoundException("Chat with id $accountId not found")
     }
 
     /**
-     * TODO
+     * Similar to [getByAccountIdAndChatId], though, the chat is identified by its name.
+     *
+     * @param accountId
+     * @param chatName
+     * @return [Chat]
+     * @throws ChatNotFoundException
+     * @see getByAccountIdAndChatId
+     * @see PresenceValidator.validate
+     */
+    fun getByAccountIdAndChatName(accountId: Long, chatName: String): Chat {
+        val nullableChat: Chat? = repository.qFindByAccountIdAndChatName(accountId, chatName)
+
+        return presenceValidator.validate(t = nullableChat)
+    }
+
+    /**
+     * The fetching of the object is delegated to [getByAccountIdAndChatName] and then converted to DTO.
+     *
+     * @param accountId
+     * @param chatName
+     * @return [ChatDto]
+     * @throws ChatNotFoundException
      */
     fun getDtoByAccountIdAndChatName(accountId: Long, chatName: String): ChatDto {
-
-        accountService.getById(accountId)
-
-        val chat: Chat = presenceValidator.validate(
-            t = repository.qFindByAccountIdAndChatName(accountId, chatName)
-        )
-
-        return chat.dto()
+        return getByAccountIdAndChatName(accountId, chatName).toDto()
     }
 
     /**
-     * TODO
+     * Changes the model active on a given chat, identified by [accountId] and [chatId], to the model found via [modelNickname].
+     *
+     * @param accountId
+     * @param chatId
+     * @param modelNickname
+     * @throws AiModelNotFoundException if [AiModel.findByNickName] returned null, meaning the [modelNickname] did not correspond to any model supported.
+     * @see getByAccountIdAndChatId
+     * @see AiModel.findByNickName
      */
     fun chooseModelForChat(accountId: Long, chatId: Long, modelNickname: String) {
-        val chat: Chat = getByAccountIdAndId(accountId, chatId)
+        val chat: Chat = getByAccountIdAndChatId(accountId, chatId)
 
         val model :AiModel = aiModelPresenceValidator.validate(
             t = AiModel.findByNickName(modelNickname)
@@ -102,6 +142,21 @@ class ChatService: IConvertible<Chat, ChatDto> {
         chat.setModel(model)
 
         repository.save(chat)
+    }
+
+    /**
+     * This method is wrapper for [AccountHasAccessToChatValidator.validate]. Its main purpose is to enable the
+     *  validation of pair accountId and chatId without the need of using a method like [getByAccountIdAndChatId], which
+     *  fetches objects from the database. The existence of this method discards the need of wiring a
+     *  [AccountHasAccessToChatValidator] on many services.
+     *
+     * @param [pair] of (accountId, chatId)
+     * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
+     * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
+     * @throws com.yourRPG.chatPG.exception.chat.AccessToChatUnauthorizedException
+     */
+    fun validateAccess(pair: Pair<Long, Long>) {
+        accessValidator.validate(pair)
     }
 
 }

@@ -1,6 +1,7 @@
 package com.yourRPG.chatPG.service.poll
 
 import com.yourRPG.chatPG.dto.poll.PollDto
+import com.yourRPG.chatPG.exception.poll.AlreadyVotedInPollException
 import com.yourRPG.chatPG.exception.poll.PollAlreadyExistsException
 import com.yourRPG.chatPG.model.Chat
 import com.yourRPG.chatPG.model.Poll
@@ -14,28 +15,23 @@ import org.springframework.stereotype.Service
 
 
 @Service
-class PollService: IConvertible<Poll, PollDto> {
+class PollService(
+    /* Services */
+    private val runner: PollCommandRunnerService,
+    private val chatService: ChatService,
 
-    //Services
-    @Autowired
-    private lateinit var runner: PollCommandRunnerService
+    /* Repositories */
+    private val pollRepo: PollRepository
+): IConvertible<Poll, PollDto> {
 
-    @Autowired
-    private lateinit var chatService: ChatService
-
-    //Repositories
-    @Autowired
-    private lateinit var pollRepo: PollRepository
-
-    //Conversion
-    override fun Poll.dto(): PollDto {
-        return PollDto(
-            chatService.dto(c = this.getChat() ?: Chat()),
-            subject = this.getSubject(),
-            quota   = this.getQuota() ?: -1,
-            votes   = this.getVotes().size
+    /* Conversion */
+    override fun dto(c: Poll): PollDto =
+        PollDto(
+            chatService.dto(c = c.getChat() ?: Chat()),
+            subject = c.getSubject(),
+            quota   = c.getQuota(),
+            votes   = c.getVotes().size
         )
-    }
 
     /**
      * Returns all polls active in the chat
@@ -47,10 +43,10 @@ class PollService: IConvertible<Poll, PollDto> {
      *
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
      */
-    fun all(accountId: Long, chatId: Long): MutableList<PollDto> {
-        chatService.getByAccountIdAndId(accountId, chatId)
+    fun all(accountId: Long, chatId: Long): List<PollDto> {
+        chatService.getByAccountIdAndChatId(accountId, chatId)
 
-        return pollRepo.findAllByChatId(chatId).dto()
+        return pollRepo.findAllByChatId(chatId).toListDto()
     }
 
     /**
@@ -69,7 +65,7 @@ class PollService: IConvertible<Poll, PollDto> {
      * @throws
      */
     fun start(accountId: Long, chatId: Long, command: String): PollDto {
-        val chat: Chat = chatService.getByAccountIdAndId(accountId, chatId)
+        val chat: Chat = chatService.getByAccountIdAndChatId(accountId, chatId)
 
         val subject: PollSubject = PollSubject.valueOf(command)
 
@@ -81,30 +77,53 @@ class PollService: IConvertible<Poll, PollDto> {
 
         pollRepo.save(poll)
 
-        return poll.dto()
+        return poll.toDto()
     }
 
     /**
-     * TODO
+     * Adds a vote as [accountId] to the [Poll] active in [Chat] with subject of the [command], identifying a single object,
+     *  since [Chat] and [PollSubject] make up a primary key for [Poll].
+     *
+     * @param accountId
+     * @param chatId
+     * @param command
+     * @return [PollDto] of the [Poll] identified.
+     * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException if [accountId] did not identify an account.
+     * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException if [chatId] did not identify a chat.
+     * @throws com.yourRPG.chatPG.exception.chat.AccessToChatUnauthorizedException if the [com.yourRPG.chatPG.model.Account]
+     *  identified by [accountId] does not have access to the [Chat] found by [chatId].
+     * @throws AlreadyVotedInPollException if the [accountId] is already present on the list of votes of the [Poll].
      */
     fun vote(accountId: Long, chatId: Long, command: String): PollDto {
-        val chat: Chat = chatService.getByAccountIdAndId(accountId, chatId)
+        val chat: Chat = chatService.getByAccountIdAndChatId(accountId, chatId)
 
         val subject: PollSubject = PollSubject.valueOf(command)
 
         val poll: Poll = pollRepo.getReferenceById(CompositePrimaryKey(chat, subject))
 
-        poll.vote(accountId)
+        if (poll.getVotes().contains(accountId)) {
+            throw AlreadyVotedInPollException("That account has already voted in this poll")
+        }
 
-        if (poll.getVotes().size >= poll.getQuota()!!) {
+        poll.vote(accountId)
+        checkPollVotes(poll);
+
+        return poll.toDto()
+    }
+
+    /**
+     * Checks if the amount of votes reached the quota. If it did, then the subject's respective command runs and the
+     *  poll is deleted. Else the changes made to [poll] are persisted.
+     *
+     * @param poll
+     */
+    private fun checkPollVotes(poll: Poll) {
+        if (poll.getVotes().size >= poll.getQuota()) {
             runner.run(poll)
             pollRepo.delete(poll)
         } else {
             pollRepo.save(poll)
         }
-
-        return poll.dto()
     }
-
 
 }

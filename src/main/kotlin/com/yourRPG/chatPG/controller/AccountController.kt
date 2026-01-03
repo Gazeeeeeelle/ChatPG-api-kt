@@ -9,10 +9,9 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/accounts")
-class AccountController {
-
-    @Autowired
-    private lateinit var accountService: AccountService;
+class AccountController(
+    private val accountService: AccountService
+) {
 
     @GetMapping("/byName/{accountName}")
     fun getAccount(
@@ -28,9 +27,8 @@ class AccountController {
         @PathVariable accountId: Long,
         @RequestBody password: String
     ): ResponseEntity<Boolean> {
-        return ResponseEntity.ok(
-            accountService.checkPassword(accountId, password)
-        )
+        accountService.checkPassword(accountId, password)
+        return ResponseEntity.ok(true)
     }
 
 }

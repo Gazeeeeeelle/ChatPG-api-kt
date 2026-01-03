@@ -13,9 +13,14 @@ data class MessageDto(
 
     constructor(message: Message): this(
         id      = message.getId() ?: -1,
-        content = message.getContent() ?: "!!! NO_MESSAGE !!!",
-        bot     = message.isBot() ?: false,
-        account = AccountDto( message.getAccount() ?: Account("!!! NO_NAME !!!") )
+        content = message.getContent(),
+        bot     = message.isBot(),
+        account =
+            if (message.getAccount() != null) {
+                AccountDto(message.getAccount()!!)
+            } else {
+                null
+            }
     )
 
 }

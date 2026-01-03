@@ -1,3 +1,5 @@
 package com.yourRPG.chatPG.exception.ai.models
 
-class UnavailableAiException(message: String): RuntimeException(message)
+import com.yourRPG.chatPG.exception.ServiceUnavailableException
+
+class UnavailableAiException(message: String): ServiceUnavailableException(message)

@@ -1,6 +1,7 @@
 package com.yourRPG.chatPG.service.account
 
 import com.yourRPG.chatPG.dto.account.AccountDto
+import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
 import com.yourRPG.chatPG.model.Account
 import com.yourRPG.chatPG.repository.AccountRepository
@@ -10,22 +11,22 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class AccountService: IConvertible<Account, AccountDto> {
+class AccountService(
+    /* Repositories */
+    private val repository: AccountRepository
 
-    //Repositories
-    @Autowired
-    private lateinit var repository: AccountRepository
+): IConvertible<Account, AccountDto> {
 
-    //Validators
     private val presenceValidator = PresenceValidator<Account>(AccountNotFoundException("Account not found"))
 
-    //Conversion
-    override fun Account.dto(): AccountDto {
-        return AccountDto(this)
-    }
+    /**
+     * Conversion.
+     * @see IConvertible
+     */
+    override fun dto(c: Account): AccountDto = AccountDto(c)
 
     /**
-     * Returns [Account] by its id
+     * Returns an [Account] by its id.
      *
      * @param id
      * @return [Account]
@@ -39,31 +40,32 @@ class AccountService: IConvertible<Account, AccountDto> {
     }
 
     /**
-     * Returns [AccountDto] by its respective [Account] name
+     * Returns [AccountDto] by its respective [Account] name.
      *
      * @param name
-     * @return [AccountDto]
-     * @throws AccountNotFoundException
-     * if no account was found under that name
+     * @return [AccountDto] of the [Account] with name [name]
+     * @throws AccountNotFoundException if no account was found under that name.
      */
     fun getDtoByName(name: String): AccountDto {
         val account = presenceValidator.validate(
             t = repository.findByNameEquals(name)
         )
 
-        return account.dto()
+        return account.toDto()
     }
 
     /**
-     * Returns [Boolean] based on whether the account found via [accountId]'s password matches [password]
+     * If password matches return, else throw.
      *
      * @param accountId
      * @param password
      * @return [Boolean]
      * @throws AccountNotFoundException
      */
-    fun checkPassword(accountId: Long, password: String): Boolean {
-        return getById(accountId).passwordMatches(password)
+    fun checkPassword(accountId: Long, password: String) {
+        if (!getById(accountId).passwordMatches(password)) {
+            throw AccessToAccountUnauthorizedException("Wrong password")
+        }
     }
 
 }

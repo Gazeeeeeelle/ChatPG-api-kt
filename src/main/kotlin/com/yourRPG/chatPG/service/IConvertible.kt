@@ -3,33 +3,29 @@ package com.yourRPG.chatPG.service
 /**
  * TODO
  */
-interface IConvertible<C, D> {
+interface IConvertible<in C, out D> {
 
     /**
      * TODO
      */
-    fun (C).dto(): D
+    fun dto(c: C): D
 
     /**
      * TODO
      */
-    fun dto(c: C): D {
-        return c.dto()
+    fun (C).toDto(): D = dto(this)
+
+
+    /**
+     * TODO
+     */
+    fun listDto(c: Iterable<C>): List<D> {
+        return c.map { c: C -> c.toDto() }
     }
 
     /**
      * TODO
      */
-    fun (MutableList<C>).dto(): MutableList<D> {
-        return this
-            .map { c: C -> c.dto() }
-            .toMutableList()
-    }
-
-//    fun convertList(c: MutableList<C>): MutableList<D> {
-//        return c
-//            .map { c: C -> c.dto() }
-//            .toMutableList()
-//    }
+    fun (Iterable<C>).toListDto(): List<D> = listDto(this)
 
 }

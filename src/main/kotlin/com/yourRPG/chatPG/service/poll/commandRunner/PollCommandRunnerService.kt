@@ -8,11 +8,10 @@ import org.springframework.stereotype.Service
 
 
 @Service
-class PollCommandRunnerService {
-
+class PollCommandRunnerService(
     //Services
-    @Autowired
-    private lateinit var messageService: MessageService
+    private val messageService: MessageService
+) {
 
     /**
      * TODO

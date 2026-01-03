@@ -4,25 +4,23 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import com.yourRPG.chatPG.exception.ai.models.UnavailableAiException
-import com.yourRPG.chatPG.service.ai.AiService
 import com.yourRPG.chatPG.service.ai.IResponsive
 import com.yourRPG.chatPG.service.ai.providers.AiModel
+import com.yourRPG.chatPG.service.ai.providers.AiProvider
 import com.yourRPG.chatPG.service.ai.providers.chutes.model.ChutesResponse
 import com.yourRPG.chatPG.service.http.HttpService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.io.IOException
 import java.net.URI
-import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
 @Service
-class ChutesAiService: IResponsive {
+class ChutesAiService(
+    private val httpService: HttpService
+): IResponsive {
 
-    //Services
-    @Autowired
-    private lateinit var httpService: HttpService
+    override fun getProvider(): AiProvider = AiProvider.CHUTES
 
     private companion object {
         val objectMapper = ObjectMapper()
@@ -47,13 +45,7 @@ class ChutesAiService: IResponsive {
 
             return chutesResponse.choices[0].message.content
         } catch (ex: MismatchedInputException) {
-            throw UnavailableAiException(
-                "An error occurred with the model ${model.getNickName()}: ${ex.message}"
-            )
-        } catch (e: IOException) {
-            throw java.lang.RuntimeException(e)
-        } catch (e: InterruptedException) {
-            throw java.lang.RuntimeException(e)
+            throw UnavailableAiException("The model ${model.getNickName()} is unavailable.")
         }
 
     }

@@ -25,11 +25,11 @@ class Poll {
     @Enumerated(EnumType.STRING)
     private var subject: PollSubject = PollSubject.NONE
 
-    private var quota: Int? = null
+    private var quota: Int = 1
 
-    private var voteIds: MutableList<Long?> = ArrayList<Long?>()
+    private var voteIds: MutableSet<Long> = HashSet()
 
-    constructor(chat: Chat?, subject: PollSubject, quota: Int?) {
+    constructor(chat: Chat?, subject: PollSubject, quota: Int) {
         this.chat = chat
         this.subject = subject
         this.quota = quota
@@ -77,22 +77,15 @@ class Poll {
         return subject
     }
 
-    fun getQuota(): Int? {
+    fun getQuota(): Int {
         return quota
     }
 
-    fun getVotes(): MutableList<Long?> {
+    fun getVotes(): MutableSet<Long> {
         return voteIds
     }
 
-    fun vote(accountId: Long?) {
-
-        //TODO maybe putting this in a validator too should be good
-        //FIXME might be better to refactor this into PollService.kt, since it is a contract
-        if (voteIds.contains(accountId)) {
-            throw AlreadyVotedInPollException("That account has already voted in this poll")
-        }
-
+    fun vote(accountId: Long) {
         voteIds.add(accountId)
     }
 

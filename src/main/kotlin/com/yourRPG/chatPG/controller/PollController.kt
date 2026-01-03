@@ -9,10 +9,9 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/accounts/{accountId}/chats/{chatId}/polls")
-class PollController {
-
-    @Autowired
-    private lateinit var pollService: PollService
+class PollController(
+    private val pollService: PollService
+) {
 
     @PostMapping("/start")
     fun start(
@@ -40,7 +39,7 @@ class PollController {
     fun vote(
         @PathVariable accountId: Long,
         @PathVariable chatId: Long
-    ): ResponseEntity<MutableList<PollDto>> {
+    ): ResponseEntity<List<PollDto>> {
         return ResponseEntity.ok(
             pollService.all(accountId, chatId)
         )

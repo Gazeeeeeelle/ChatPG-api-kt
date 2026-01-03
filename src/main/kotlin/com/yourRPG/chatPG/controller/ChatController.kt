@@ -14,17 +14,16 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/accounts/{accountId}/chats")
-class ChatController {
-
-    @Autowired
-    private lateinit var chatService: ChatService
+class ChatController(
+    private val service: ChatService
+) {
 
     @GetMapping("/all")
     fun getChats(
         @PathVariable accountId: Long
-    ): ResponseEntity<MutableList<ChatDto>> {
+    ): ResponseEntity<List<ChatDto>> {
         return ResponseEntity.ok(
-            chatService.getChats(accountId)
+            service.getChatsDtoByAccountId(accountId)
         )
     }
 
@@ -34,7 +33,7 @@ class ChatController {
         @PathVariable chatName: String
     ): ResponseEntity<ChatDto> {
         return ResponseEntity.ok(
-            chatService.getDtoByAccountIdAndChatName(accountId, chatName)
+            service.getDtoByAccountIdAndChatName(accountId, chatName)
         )
     }
 
@@ -44,7 +43,7 @@ class ChatController {
         @PathVariable chatId: Long,
         @RequestBody modelName: String
     ): ResponseEntity<Void> {
-        chatService.chooseModelForChat(accountId, chatId, modelName)
+        service.chooseModelForChat(accountId, chatId, modelName)
 
         return ResponseEntity.status(204).build()
     }
@@ -55,7 +54,7 @@ class ChatController {
         @PathVariable chatId: Long
     ): ResponseEntity<AiModelDto> {
         return ResponseEntity.ok(
-            chatService.getChosenModel(accountId, chatId)
+            service.getModelDto(accountId, chatId)
         )
     }
 

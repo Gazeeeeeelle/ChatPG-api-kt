@@ -23,7 +23,7 @@ class Message {
     @ManyToOne(fetch = FetchType.LAZY)
     private var account: Account? = null
 
-    constructor(content: String, chat: Chat?, bot: Boolean, account: Account?) {
+    constructor(account: Account?, chat: Chat, content: String, bot: Boolean) {
         this.content = content
         this.chat = chat
         this.bot = bot
