@@ -7,7 +7,6 @@ import com.yourRPG.chatPG.exception.chat.ChatNotFoundException
 import com.yourRPG.chatPG.model.Chat
 import com.yourRPG.chatPG.repository.ChatRepository
 import com.yourRPG.chatPG.service.IConvertible
-import com.yourRPG.chatPG.service.account.AccountService
 import com.yourRPG.chatPG.service.ai.AiService
 import com.yourRPG.chatPG.service.ai.providers.AiModel
 import com.yourRPG.chatPG.validator.PresenceValidator
@@ -24,7 +23,6 @@ class ChatService(
 
     /* Validators */
     private val accessValidator: AccountHasAccessToChatValidator
-
 ): IConvertible<Chat, ChatDto> {
 
     /* Conversion */
@@ -75,7 +73,7 @@ class ChatService(
      * @return [Chat]
      * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
      * @throws ChatNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.AccessToChatUnauthorizedException
+     * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
      * @see AccountHasAccessToChatValidator.validate
      */
     fun getByAccountIdAndChatId(accountId: Long, chatId: Long): Chat {
@@ -125,9 +123,9 @@ class ChatService(
      * @see AiModel.findByNickName
      */
     fun chooseModelForChat(accountId: Long, chatId: Long, modelNickname: String) {
-        val chat: Chat = getByAccountIdAndChatId(accountId, chatId)
+        val chat = getByAccountIdAndChatId(accountId, chatId)
 
-        val model :AiModel = AiModel.findByNickName(modelNickname)
+        val model = AiModel.findByNickName(modelNickname)
             ?: throw AiModelNotFoundException("AI model not found")
 
         chat.model = model
@@ -144,7 +142,7 @@ class ChatService(
      * @param [pair] of (accountId, chatId)
      * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.AccessToChatUnauthorizedException
+     * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
      */
     fun validateAccess(pair: Pair<Long, Long>) {
         accessValidator.validate(pair)
