@@ -9,7 +9,6 @@ import com.yourRPG.chatPG.service.ai.providers.AiModel
 import com.yourRPG.chatPG.service.ai.providers.AiProvider
 import com.yourRPG.chatPG.service.ai.providers.chutes.model.ChutesResponse
 import com.yourRPG.chatPG.service.http.HttpService
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.net.URI
 import java.net.http.HttpRequest
@@ -44,8 +43,8 @@ class ChutesAiService(
                 objectMapper.readValue(response, ChutesResponse::class.java)
 
             return chutesResponse.choices[0].message.content
-        } catch (ex: MismatchedInputException) {
-            throw UnavailableAiException("The model ${model.getNickName()} is unavailable.")
+        } catch (_: MismatchedInputException) {
+            throw UnavailableAiException("The model ${model.nickname} is unavailable.")
         }
 
     }
@@ -74,7 +73,7 @@ class ChutesAiService(
     private fun getRequestJson(model: AiModel, messageJson: String): String {
         return  """
                 {
-                    "model": "${model.getModelName()}",
+                    "model": "${model.modelName}",
                     "messages": [
                         $messageJson
                     ],

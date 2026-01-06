@@ -1,26 +1,31 @@
 package com.yourRPG.chatPG.dto.message
 
 import com.yourRPG.chatPG.dto.account.AccountDto
-import com.yourRPG.chatPG.model.Account
 import com.yourRPG.chatPG.model.Message
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 
 data class MessageDto(
-    val id: Long,
+
+    @field: NotNull
+    val id: Long?,
+
+    @field:NotBlank
     val content: String,
+
+    @field: NotNull
     val bot: Boolean,
+
+    @field: NotNull
     val account: AccountDto?
+
 ) {
 
     constructor(message: Message): this(
-        id      = message.id ?: -1,
+        id      = message.id,
         content = message.content,
         bot     = message.bot,
-        account =
-            if (message.account != null) {
-                AccountDto(message.account!!)
-            } else {
-                null
-            }
+        account = message.account?.let { AccountDto(it) }
     )
 
 }

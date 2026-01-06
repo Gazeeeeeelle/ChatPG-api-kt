@@ -38,11 +38,11 @@ open class Chat {
         joinColumns = [JoinColumn(name = "account_id")],
         inverseJoinColumns = [JoinColumn(name = "chat_id")]
     )
-    var accounts: MutableSet<Account?> = HashSet<Account?>()
+    var accounts: MutableSet<Account> = HashSet<Account>()
         protected set
 
     @OneToMany(mappedBy = "chat")
-    var messages: MutableList<Message?>? = null
+    var messages: MutableList<Message>? = null
         protected set
 
     @Enumerated(EnumType.STRING)
@@ -63,7 +63,7 @@ open class Chat {
         this.accounts.addAll(listOf(*accounts))
     }
 
-    constructor()
+    protected constructor()
 
     /**
      * TODO:

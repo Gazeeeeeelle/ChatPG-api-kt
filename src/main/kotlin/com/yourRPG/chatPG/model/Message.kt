@@ -35,6 +35,5 @@ open class Message {
         this.account = account
     }
 
-    constructor()
-
+    protected constructor()
 }

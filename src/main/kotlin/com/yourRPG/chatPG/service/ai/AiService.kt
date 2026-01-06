@@ -18,7 +18,7 @@ class AiService(
      * Conversion.
      * @see IConvertible
      */
-    override fun dto(c: AiModel): AiModelDto = AiModelDto(c)
+    override fun dtoOf(c: AiModel): AiModelDto = AiModelDto(c)
 
     /**
      * Directs a request to an AI model based on [AiModel] and such request has content [prompt].
@@ -32,13 +32,13 @@ class AiService(
      * if the AI's response could not fit the expected object, likely because the response was an error object, and therefore it is judged as an Internal Server Error from the provider's end.
      */
     fun askAi(model: AiModel, prompt: String): String? {
-        if (model.getProvider() == AiProvider.NONE) {
+        if (model.provider == AiProvider.NONE) {
             throw BadRequestException("Chat's model cannot be \"none\" to request ai message.")
         }
 
-        return providers.find {it.getProvider() == model.getProvider()}
+        return providers.find {it.getProvider() == model.provider}
             ?.askAi(model, prompt)
-            ?: throw UnavailableAiException("Provider ${model.getProvider()} not implemented.")
+            ?: throw UnavailableAiException("Provider ${model.provider} not implemented.")
     }
 
     /**
@@ -58,7 +58,7 @@ class AiService(
      */
     fun getModels(): List<String> {
         return AiModel.entries
-            .map { it.getNickName() }
+            .map { it.nickname }
     }
 
 }
