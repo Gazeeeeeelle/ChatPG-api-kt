@@ -2,7 +2,6 @@ package com.yourRPG.chatPG.controller
 
 import com.yourRPG.chatPG.dto.account.AccountDto
 import com.yourRPG.chatPG.service.account.AccountService
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 

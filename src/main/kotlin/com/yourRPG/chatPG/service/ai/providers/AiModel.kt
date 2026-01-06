@@ -12,46 +12,27 @@ enum class AiModel {
 
     GEMMA_3_4B_IT(AiProvider.CHUTES, "unsloth/gemma-3-4b-it", "gemma-3");
 
-    private var provider: AiProvider
+    var provider: AiProvider
+        protected set
 
-    private var modelName: String
+    var modelName: String
+        protected set
 
-    private var nickName: String
+    var nickname: String
+        protected set
 
     constructor(provider: AiProvider, modelName: String, nickName: String) {
         this.provider = provider
         this.modelName = modelName
-        this.nickName = nickName
-    }
-
-    fun getModelName(): String {
-        return this.modelName
-    }
-
-    fun getNickName(): String {
-        return this.nickName
-    }
-
-    fun getProvider(): AiProvider {
-        return this.provider
+        this.nickname = nickName
     }
 
     companion object {
-        fun findByModelName(modelName: String): AiModel? {
-            AiModel.valueOf(modelName)
-
-            return try {
-                AiModel.valueOf(modelName)
-            } catch (ex: IllegalArgumentException) {
-                null
-            }
-        }
-
-
 
         fun findByNickName(nickName: String): AiModel? {
-            return AiModel.entries.find { it.nickName == nickName }
+            return AiModel.entries.find { it.nickname == nickName }
         }
+
     }
 
 }

@@ -17,6 +17,7 @@ class MessageContentValidator: IValidatable<String?> {
      * @throws MessageContentBlankException if the [String] was blank
      */
     override fun validate(t: String?): String {
+
         t ?: throw MessageContentNotFoundException("Message content cannot be null")
 
         t.trim().ifBlank { throw MessageContentBlankException("Message content cannot be blank") }

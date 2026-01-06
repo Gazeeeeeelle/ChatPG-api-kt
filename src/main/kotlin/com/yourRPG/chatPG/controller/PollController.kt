@@ -2,7 +2,6 @@ package com.yourRPG.chatPG.controller
 
 import com.yourRPG.chatPG.dto.poll.PollDto
 import com.yourRPG.chatPG.service.poll.PollService
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 

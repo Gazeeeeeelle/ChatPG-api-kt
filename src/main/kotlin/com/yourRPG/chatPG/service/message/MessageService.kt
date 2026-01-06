@@ -15,10 +15,8 @@ import com.yourRPG.chatPG.service.chat.ChatService
 import com.yourRPG.chatPG.validator.message.MessageContentValidator
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
-import java.io.File
 import kotlin.math.max
 import kotlin.math.min
-
 
 @Service
 class MessageService(
@@ -41,7 +39,7 @@ class MessageService(
      *
      * @see IConvertible
      */
-    override fun dto(c: Message): MessageDto = MessageDto(c)
+    override fun dtoOf(c: Message): MessageDto = MessageDto(c)
 
     /**
      * Fetches 20 messages in the [Chat] identified with [accountId] and [chatId]. The messages are fetched by selecting

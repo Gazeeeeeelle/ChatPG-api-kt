@@ -1,6 +1,7 @@
 package com.yourRPG.chatPG.service.poll
 
 import com.yourRPG.chatPG.dto.poll.PollDto
+import com.yourRPG.chatPG.exception.chat.ChatNotFoundException
 import com.yourRPG.chatPG.exception.poll.AlreadyVotedInPollException
 import com.yourRPG.chatPG.exception.poll.PollAlreadyExistsException
 import com.yourRPG.chatPG.model.Chat
@@ -10,7 +11,6 @@ import com.yourRPG.chatPG.repository.PollRepository
 import com.yourRPG.chatPG.service.IConvertible
 import com.yourRPG.chatPG.service.chat.ChatService
 import com.yourRPG.chatPG.service.poll.commandRunner.PollCommandRunnerService
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 
@@ -25,12 +25,13 @@ class PollService(
 ): IConvertible<Poll, PollDto> {
 
     /* Conversion */
-    override fun dto(c: Poll): PollDto =
+    override fun dtoOf(c: Poll): PollDto =
         PollDto(
-            chatService.dto(c = c.chat ?: Chat()),
+            chat = chatService.dtoOf(c = c.chat
+                ?: throw ChatNotFoundException("Absence of chat made conversion to DTO impossible")),
             subject = c.subject,
-            quota   = c.quota,
-            votes   = c.votes.size
+            quota = c.quota,
+            votes = c.votes.size
         )
 
     /**
@@ -106,7 +107,7 @@ class PollService(
         }
 
         poll.vote(accountId)
-        checkPollVotes(poll);
+        checkPollVotes(poll)
 
         return poll.toDto()
     }

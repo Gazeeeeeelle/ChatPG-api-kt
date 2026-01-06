@@ -37,7 +37,7 @@ class AccountHasAccessToChatValidator(
             throw AccessToChatUnauthorizedException("Account with id ${t.first} cannot access chat with id ${t.first}")
         }
 
-        return Pair(t.first, t.second)
+        return t
     }
 
 }

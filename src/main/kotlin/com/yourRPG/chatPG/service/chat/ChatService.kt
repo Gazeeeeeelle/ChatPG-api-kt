@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service
 @Service
 class ChatService(
     /* Services */
-    private val accountService: AccountService,
     private val aiService: AiService,
 
     /* Repositories */
@@ -28,14 +27,8 @@ class ChatService(
 
 ): IConvertible<Chat, ChatDto> {
 
-    /* Validators */
-    private val presenceValidator =
-        PresenceValidator<Chat>(exception = ChatNotFoundException("Chat not found"))
-    private val aiModelPresenceValidator =
-        PresenceValidator<AiModel>(exception = AiModelNotFoundException("AI model not found"))
-
     /* Conversion */
-    override fun dto(c: Chat): ChatDto = ChatDto(c)
+    override fun dtoOf(c: Chat): ChatDto = ChatDto(c)
 
     /**
      * Returns a [MutableList] of the [Chat]s the account found by [accountId] has access to.
@@ -44,8 +37,6 @@ class ChatService(
      * @return [MutableList] of [ChatDto]
      */
     fun getChatsByAccountId(accountId: Long): List<Chat> {
-        accountService.getById(accountId)
-
         return repository.qFindByAccountId(accountId)
     }
 
@@ -72,7 +63,7 @@ class ChatService(
     fun getModelDto(accountId: Long, chatId: Long): AiModelDto {
         val chat: Chat = getByAccountIdAndChatId(accountId, chatId)
 
-        return aiService.dto(chat.model)
+        return aiService.dtoOf(chat.model)
     }
 
     /**
@@ -105,9 +96,10 @@ class ChatService(
      * @see PresenceValidator.validate
      */
     fun getByAccountIdAndChatName(accountId: Long, chatName: String): Chat {
-        val nullableChat: Chat? = repository.qFindByAccountIdAndChatName(accountId, chatName)
+        val chat: Chat? = repository.qFindByAccountIdAndChatName(accountId, chatName)
 
-        return presenceValidator.validate(t = nullableChat)
+        return chat
+            ?: throw ChatNotFoundException("Chat not found with id: $accountId")
     }
 
     /**
@@ -135,9 +127,8 @@ class ChatService(
     fun chooseModelForChat(accountId: Long, chatId: Long, modelNickname: String) {
         val chat: Chat = getByAccountIdAndChatId(accountId, chatId)
 
-        val model :AiModel = aiModelPresenceValidator.validate(
-            t = AiModel.findByNickName(modelNickname)
-        )
+        val model :AiModel = AiModel.findByNickName(modelNickname)
+            ?: throw AiModelNotFoundException("AI model not found")
 
         chat.model = model
 

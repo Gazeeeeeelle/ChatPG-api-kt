@@ -25,14 +25,10 @@ open class Account {
         protected set
 
     @OneToMany(mappedBy = "account")
-    var messages: MutableList<Message?>? = null
+    var messages: MutableList<Message>? = null
         protected set
 
-    constructor(name: String?) {
-        this.name = name
-    }
-
-    constructor()
+    protected constructor()
 
     fun passwordMatches(password: String?): Boolean {
         return this.password == password

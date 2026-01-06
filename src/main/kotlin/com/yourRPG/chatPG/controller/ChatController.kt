@@ -3,14 +3,8 @@ package com.yourRPG.chatPG.controller
 import com.yourRPG.chatPG.dto.ai.model.AiModelDto
 import com.yourRPG.chatPG.dto.chat.ChatDto
 import com.yourRPG.chatPG.service.chat.ChatService
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/accounts/{accountId}/chats")

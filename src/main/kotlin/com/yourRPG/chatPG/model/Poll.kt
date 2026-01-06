@@ -32,7 +32,7 @@ open class Poll {
         this.quota = quota
     }
 
-    constructor()
+    protected constructor()
 
     class CompositePrimaryKey : Serializable {
         private var chat: Chat? = null
@@ -51,10 +51,7 @@ open class Poll {
 
             other as CompositePrimaryKey
 
-            if (chat != other.chat) return false
-            if (subject != other.subject) return false
-
-            return true
+            return !(chat != other.chat || subject != other.subject)
         }
 
         override fun hashCode(): Int {

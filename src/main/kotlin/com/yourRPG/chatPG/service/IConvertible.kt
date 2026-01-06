@@ -8,24 +8,24 @@ interface IConvertible<in C, out D> {
     /**
      * TODO
      */
-    fun dto(c: C): D
+    fun dtoOf(c: C): D
 
     /**
      * TODO
      */
-    fun (C).toDto(): D = dto(this)
+    fun (C).toDto(): D = dtoOf(this)
 
 
     /**
      * TODO
      */
-    fun listDto(c: Iterable<C>): List<D> {
+    fun listOfDto(c: Iterable<C>): List<D> {
         return c.map { c: C -> c.toDto() }
     }
 
     /**
      * TODO
      */
-    fun (Iterable<C>).toListDto(): List<D> = listDto(this)
+    fun (Iterable<C>).toListDto(): List<D> = listOfDto(this)
 
 }

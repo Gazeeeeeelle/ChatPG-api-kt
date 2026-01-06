@@ -7,7 +7,6 @@ import com.yourRPG.chatPG.model.Account
 import com.yourRPG.chatPG.repository.AccountRepository
 import com.yourRPG.chatPG.service.IConvertible
 import com.yourRPG.chatPG.validator.PresenceValidator
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
@@ -23,7 +22,7 @@ class AccountService(
      * Conversion.
      * @see IConvertible
      */
-    override fun dto(c: Account): AccountDto = AccountDto(c)
+    override fun dtoOf(c: Account): AccountDto = AccountDto(c)
 
     /**
      * Returns an [Account] by its id.
