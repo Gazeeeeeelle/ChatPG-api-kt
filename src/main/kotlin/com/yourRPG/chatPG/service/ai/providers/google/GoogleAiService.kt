@@ -8,7 +8,6 @@ import com.yourRPG.chatPG.service.ai.providers.AiModel
 import com.yourRPG.chatPG.service.ai.providers.AiProvider
 import org.springframework.stereotype.Service
 
-
 @Service
 class GoogleAiService: IResponsive {
 
@@ -27,13 +26,13 @@ class GoogleAiService: IResponsive {
         try {
             val response =
                 client.models.generateContent(
-                    model.getModelName(),
+                    model.modelName,
                     prompt,
                     null
                 )
             return response.text()
-        } catch (ex: ServerException) {
-            throw UnavailableAiException("The model ${model.getNickName()} is temporarily unavailable.")
+        } catch (_: ServerException) {
+            throw UnavailableAiException("The model ${model.nickname} is temporarily unavailable.")
         }
     }
 
