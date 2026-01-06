@@ -31,7 +31,6 @@ class MessageService(
 
     /* Validators */
     private val contentValidator: MessageContentValidator
-
 ): IConvertible<Message, MessageDto> {
 
     /**
@@ -54,7 +53,7 @@ class MessageService(
      * @return [List] of [MessageDto]s fetched
      * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.AccessToChatUnauthorizedException
+     * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
      * @see ChatService.validateAccess
      * @see MessageRepository.qFindOldByChatIdAndReference
      */
@@ -80,7 +79,7 @@ class MessageService(
      * @param referenceId reference for fetching.
      * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.AccessToChatUnauthorizedException
+     * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
      * @see ChatService.validateAccess
      * @see MessageRepository.qFindNewByChatIdAndReference
      */
@@ -103,7 +102,7 @@ class MessageService(
      * @return [MessageDto] of the message created.
      * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.AccessToChatUnauthorizedException
+     * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
      * @see createMessage
      */
     fun sendMessage(accountId: Long, chatId: Long, message: String): MessageDto {
@@ -142,7 +141,7 @@ class MessageService(
      * @param chatId chat identifier
      * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.AccessToChatUnauthorizedException
+     * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
      * @see createAIMessage
      */
     fun generateResponse(accountId: Long, chatId: Long): MessageDto {
@@ -166,7 +165,7 @@ class MessageService(
      * @see createMessage
      */
     private fun createAIMessage(chat: Chat): MessageDto {
-        val previousMessages: List<Message> = repository.qFindAllMessagesFromChat(chat)
+        val previousMessages = repository.qFindAllMessagesFromChat(chat)
 
         val memoryPrompt: String = chatPGService.treatMemoryForPrompt(previousMessages)
 
@@ -186,16 +185,16 @@ class MessageService(
      * @param messageId message identifier
      * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.AccessToChatUnauthorizedException
+     * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
      * @throws MessageNotFoundException if no messages where deleted
      */
     @Transactional
     fun deleteMessage(accountId: Long, chatId: Long, messageId: Long) {
         chatService.validateAccess(Pair(accountId, chatId))
 
-        if (repository.qDeleteByChatIdAndId(chatId, messageId) == 0) {
+        if (repository.qDeleteByChatIdAndId(chatId, messageId) == 0)
             throw MessageNotFoundException("No messages deleted")
-        }
+
     }
 
     /**
@@ -210,7 +209,7 @@ class MessageService(
      * @param bound2 another of the range's bounds
      * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.AccessToChatUnauthorizedException
+     * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
      * @throws MessageNotFoundException if no messages where deleted
      */
     @Transactional
@@ -220,9 +219,9 @@ class MessageService(
         val idStart = min(bound1, bound2)
         val idFinish = max(bound1, bound2)
 
-        if (repository.qBulkDeleteByChatIdFromIdToId(chatId, idStart, idFinish) == 0) {
+        if (repository.qBulkDeleteByChatIdFromIdToId(chatId, idStart, idFinish) == 0)
             throw MessageNotFoundException("No messages deleted")
-        }
+
     }
 
 }

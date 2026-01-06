@@ -20,4 +20,6 @@ class CorsConfiguration: WebMvcConfigurer {
             .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD", "TRACE", "CONNECT")
     }
 
+    //TODO look further into API versioning.
+
 }

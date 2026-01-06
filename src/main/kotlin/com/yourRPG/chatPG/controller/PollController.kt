@@ -6,7 +6,6 @@ import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
-
 @RestController
 @RequestMapping("/api/accounts/{accountId}/chats/{chatId}/polls")
 class PollController(

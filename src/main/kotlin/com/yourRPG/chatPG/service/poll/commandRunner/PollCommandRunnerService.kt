@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class PollCommandRunnerService(
-    //Services
+    /* Services */
     private val messageService: MessageService
 ) {
 

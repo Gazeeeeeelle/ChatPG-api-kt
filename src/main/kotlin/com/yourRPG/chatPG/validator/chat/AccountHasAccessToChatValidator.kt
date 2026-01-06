@@ -1,7 +1,7 @@
 package com.yourRPG.chatPG.validator.chat
 
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
-import com.yourRPG.chatPG.exception.chat.AccessToChatUnauthorizedException
+import com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
 import com.yourRPG.chatPG.exception.chat.ChatNotFoundException
 import com.yourRPG.chatPG.repository.AccountRepository
 import com.yourRPG.chatPG.repository.ChatRepository
@@ -10,8 +10,11 @@ import org.springframework.stereotype.Component
 
 @Component
 class AccountHasAccessToChatValidator(
+    /* Repositories */
     private val accountRepository: AccountRepository,
+
     private val chatRepository: ChatRepository
+
 ): IValidatable<Pair<Long, Long>> {
 
     /**
@@ -22,7 +25,7 @@ class AccountHasAccessToChatValidator(
      * @return [Pair] given.
      * @throws AccountNotFoundException
      * @throws ChatNotFoundException
-     * @throws AccessToChatUnauthorizedException
+     * @throws UnauthorizedAccessToChatException
      */
     override fun validate(t: Pair<Long, Long>): Pair<Long, Long> {
         require(accountRepository.existsById(t.first)) {
@@ -34,7 +37,7 @@ class AccountHasAccessToChatValidator(
         }
 
         require(chatRepository.qExistsByAccountIdAndId(t.first, t.second)) {
-            throw AccessToChatUnauthorizedException("Account with id ${t.first} cannot access chat with id ${t.first}")
+            throw UnauthorizedAccessToChatException("Account with id ${t.first} cannot access chat with id ${t.first}")
         }
 
         return t
