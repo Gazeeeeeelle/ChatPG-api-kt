@@ -72,7 +72,7 @@ class ChatService(
     fun getModelDto(accountId: Long, chatId: Long): AiModelDto {
         val chat: Chat = getByAccountIdAndChatId(accountId, chatId)
 
-        return aiService.dto(chat.getModel())
+        return aiService.dto(chat.model)
     }
 
     /**
@@ -139,7 +139,7 @@ class ChatService(
             t = AiModel.findByNickName(modelNickname)
         )
 
-        chat.setModel(model)
+        chat.model = model
 
         repository.save(chat)
     }

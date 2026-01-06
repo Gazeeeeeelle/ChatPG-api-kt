@@ -12,12 +12,12 @@ data class MessageDto(
 ) {
 
     constructor(message: Message): this(
-        id      = message.getId() ?: -1,
-        content = message.getContent(),
-        bot     = message.isBot(),
+        id      = message.id ?: -1,
+        content = message.content,
+        bot     = message.bot,
         account =
-            if (message.getAccount() != null) {
-                AccountDto(message.getAccount()!!)
+            if (message.account != null) {
+                AccountDto(message.account!!)
             } else {
                 null
             }

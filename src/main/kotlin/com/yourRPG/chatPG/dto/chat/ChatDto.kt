@@ -8,8 +8,8 @@ data class ChatDto (
 ){
 
     constructor(chat: Chat): this(
-        id   = chat.getId() ?: -1,
-        name = chat.getName() ?: "!!! NO_NAME !!!"
+        id   = chat.id ?: -1,
+        name = chat.name ?: "!!! NO_NAME !!!"
     )
 
 }

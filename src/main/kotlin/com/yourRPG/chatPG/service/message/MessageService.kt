@@ -172,8 +172,8 @@ class MessageService(
 
         val memoryPrompt: String = chatPGService.treatMemoryForPrompt(previousMessages)
 
-        val aiResponse: String = aiService.askAi(chat.getModel(), memoryPrompt)
-            ?: throw NullAiResponse("Response from ${chat.getModel()} was null")
+        val aiResponse: String = aiService.askAi(chat.model, memoryPrompt)
+            ?: throw NullAiResponse("Response from ${chat.model} was null")
 
         return createMessage(account = null, chat, message = aiResponse, true).toDto()
     }

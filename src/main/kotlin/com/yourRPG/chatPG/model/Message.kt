@@ -5,23 +5,28 @@ import jakarta.persistence.*
 
 @Entity
 @Table(name = "message")
-class Message {
+open class Message {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private var id: Long? = null
+    var id: Long? = null
+        protected set
 
     @Column(nullable = false, length = 20000)
-    private var content: String = ""
+    var content: String = ""
+        protected set
 
     @ManyToOne
-    private var chat: Chat? = null
+    var chat: Chat? = null
+        protected set
 
     @Column(nullable = false)
-    private var bot: Boolean = false
+    var bot: Boolean = false
+        protected set
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private var account: Account? = null
+    var account: Account? = null
+        protected set
 
     constructor(account: Account?, chat: Chat, content: String, bot: Boolean) {
         this.content = content
@@ -31,25 +36,5 @@ class Message {
     }
 
     constructor()
-
-    fun getAccount(): Account? {
-        return account
-    }
-
-    fun getContent(): String {
-        return content
-    }
-
-    fun getId(): Long? {
-        return id
-    }
-
-    fun getChat(): Chat? {
-        return chat
-    }
-
-    fun isBot(): Boolean {
-        return bot
-    }
 
 }
