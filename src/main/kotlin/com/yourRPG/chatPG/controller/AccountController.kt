@@ -2,6 +2,7 @@ package com.yourRPG.chatPG.controller
 
 import com.yourRPG.chatPG.dto.account.AccountDto
 import com.yourRPG.chatPG.service.account.AccountService
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -24,7 +25,7 @@ class AccountController(
     @PostMapping("/{accountId}/passwordMatches")
     fun passwordMatches(
         @PathVariable accountId: Long,
-        @RequestBody password: String
+        @Valid @RequestBody password: String
     ): ResponseEntity<Boolean> {
         accountService.checkPassword(accountId, password)
         return ResponseEntity.ok(true)
