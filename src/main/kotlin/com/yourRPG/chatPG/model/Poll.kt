@@ -1,33 +1,30 @@
 package com.yourRPG.chatPG.model
 
-import com.yourRPG.chatPG.exception.poll.AlreadyVotedInPollException
 import com.yourRPG.chatPG.service.poll.PollSubject
-import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.Id
-import jakarta.persistence.IdClass
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import java.io.Serializable
-
 
 @Entity
 @Table(name = "poll")
 @IdClass(value = Poll.CompositePrimaryKey::class)
-class Poll {
+open class Poll {
 
     @Id
     @ManyToOne
-    private var chat: Chat? = null
+    var chat: Chat? = null
+        protected set
 
     @Id
     @Enumerated(EnumType.STRING)
-    private var subject: PollSubject = PollSubject.NONE
+    var subject: PollSubject = PollSubject.NONE
+        protected set
 
-    private var quota: Int = 1
+    var quota: Int = 1
+        protected set
 
-    private var voteIds: MutableSet<Long> = HashSet()
+    var votes: MutableSet<Long> = HashSet()
+        protected set
+
 
     constructor(chat: Chat?, subject: PollSubject, quota: Int) {
         this.chat = chat
@@ -66,27 +63,10 @@ class Poll {
             return result
         }
 
-
-    }
-
-    fun getChat(): Chat? {
-        return chat
-    }
-
-    fun getSubject(): PollSubject {
-        return subject
-    }
-
-    fun getQuota(): Int {
-        return quota
-    }
-
-    fun getVotes(): MutableSet<Long> {
-        return voteIds
     }
 
     fun vote(accountId: Long) {
-        voteIds.add(accountId)
+        votes.add(accountId)
     }
 
 }

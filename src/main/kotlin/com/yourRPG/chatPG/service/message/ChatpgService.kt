@@ -31,8 +31,8 @@ class ChatpgService {
 
         messages.forEach(action = {
             m: Message -> stringBuilder
-                .append(if (m.isBot()) AI_PREFIX else getAccountPrefix(m.getAccount()))
-                .append(m.getContent()).append("\n")
+                .append(if (m.bot) AI_PREFIX else getAccountPrefix(m.account))
+                .append(m.content).append("\n")
         })
 
 
@@ -48,7 +48,7 @@ class ChatpgService {
      * @throws AccountNotFoundException
      */
     private fun getAccountPrefix(account: Account?): String {
-        return "[USER(${(account?.getName() ?: throw AccountNotFoundException())}):]"
+        return "[USER(${(account?.name ?: throw AccountNotFoundException())}):]"
     }
 
 }

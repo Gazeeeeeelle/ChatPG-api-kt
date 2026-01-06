@@ -27,10 +27,10 @@ class PollService(
     /* Conversion */
     override fun dto(c: Poll): PollDto =
         PollDto(
-            chatService.dto(c = c.getChat() ?: Chat()),
-            subject = c.getSubject(),
-            quota   = c.getQuota(),
-            votes   = c.getVotes().size
+            chatService.dto(c = c.chat ?: Chat()),
+            subject = c.subject,
+            quota   = c.quota,
+            votes   = c.votes.size
         )
 
     /**
@@ -101,7 +101,7 @@ class PollService(
 
         val poll: Poll = pollRepo.getReferenceById(CompositePrimaryKey(chat, subject))
 
-        if (poll.getVotes().contains(accountId)) {
+        if (poll.votes.contains(accountId)) {
             throw AlreadyVotedInPollException("That account has already voted in this poll")
         }
 
@@ -118,7 +118,7 @@ class PollService(
      * @param poll
      */
     private fun checkPollVotes(poll: Poll) {
-        if (poll.getVotes().size >= poll.getQuota()) {
+        if (poll.votes.size >= poll.quota) {
             runner.run(poll)
             pollRepo.delete(poll)
         } else {

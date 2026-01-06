@@ -17,10 +17,10 @@ class PollCommandRunnerService(
      * TODO
      */
     fun run(poll: Poll) {
-        when (poll.getSubject()) {
+        when (poll.subject) {
             PollSubject.REQUEST_AI_MESSAGE -> messageService.generateResponse(
-                accountId = poll.getChat()?.getOwnerId() ?: -1,
-                chatId    = poll.getChat()?.getId()      ?: -1
+                accountId = poll.chat?.ownerId ?: -1,
+                chatId    = poll.chat?.id      ?: -1
             )
 
             else -> throw IllegalStateException("Unexpected value")

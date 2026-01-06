@@ -9,6 +9,6 @@ data class AccountDto(
     var name: String? = null,
 ) {
 
-    constructor(account: Account): this(account.getId(), account.getName())
+    constructor(account: Account): this(account.id, account.name)
 
 }

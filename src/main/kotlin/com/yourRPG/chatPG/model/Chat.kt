@@ -15,20 +15,22 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import java.util.*
 
-
 @Entity
 @Table(name = "chat")
-class Chat {
+open class Chat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private val id: Long? = null
+    var id: Long? = null
+        protected set
 
     @Column(nullable = false)
-    private var name: String? = null
+    var name: String? = null
+        protected set
 
     @Column(name = "owner_id")
-    private var ownerId: Long? = null
+    var ownerId: Long? = null
+        protected set
 
     @ManyToMany
     @JoinTable(
@@ -36,61 +38,38 @@ class Chat {
         joinColumns = [JoinColumn(name = "account_id")],
         inverseJoinColumns = [JoinColumn(name = "chat_id")]
     )
-    private var accounts: MutableSet<Account?> = HashSet<Account?>()
+    var accounts: MutableSet<Account?> = HashSet<Account?>()
+        protected set
 
     @OneToMany(mappedBy = "chat")
-    private var messages: MutableList<Message?>? = null
+    var messages: MutableList<Message?>? = null
+        protected set
 
     @Enumerated(EnumType.STRING)
-    private var model: AiModel = AiModel.NONE
+    var model: AiModel = AiModel.NONE
 
     @OneToMany(mappedBy = "chat")
-    private var polls: MutableList<Poll?>? = null
+    var polls: MutableList<Poll?>? = null
+        protected set
 
-    constructor(name: String?, model: AiModel, vararg accounts: Account?) {
+    constructor(name: String, model: AiModel, vararg accounts: Account) {
         this.name = name
         this.model = model
-        this.accounts.addAll(Arrays.asList<Account?>(*accounts))
+        this.accounts.addAll(listOf(*accounts))
     }
 
-    constructor(name: String?, vararg accounts: Account?) {
+    constructor(name: String, vararg accounts: Account) {
         this.name = name
-        this.accounts.addAll(Arrays.asList<Account?>(*accounts))
+        this.accounts.addAll(listOf(*accounts))
     }
 
     constructor()
 
-    fun getName(): String? {
-        return name
-    }
-
-    fun setName(name: String?): Chat {
-        this.name = name
-        return this
-    }
-
-    fun getOwnerId(): Long? {
-        return ownerId
-    }
-
-    fun setOwnerId(ownerId: Long?): Chat {
-        this.ownerId = ownerId
-        return this
-    }
-
-    fun getId(): Long? {
-        return id
-    }
-
-    fun getModel(): AiModel {
-        return model
-    }
-
-    fun setModel(model: AiModel): Chat {
-        this.model = model
-        return this
-    }
-
+    /**
+     * TODO:
+     * Since @ManyToMany results on implied LAZY fetching, then we shall check if getting size of such
+     * MutableList does not force all objects to be fetched from database, which could result in a small performance loss.
+     */
     fun getAmountOfAccounts(): Int {
         return accounts.size
     }
