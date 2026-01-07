@@ -12,9 +12,7 @@ import org.springframework.stereotype.Component
 class AccountHasAccessToChatValidator(
     /* Repositories */
     private val accountRepository: AccountRepository,
-
     private val chatRepository: ChatRepository
-
 ): IValidatable<Pair<Long, Long>> {
 
     /**
