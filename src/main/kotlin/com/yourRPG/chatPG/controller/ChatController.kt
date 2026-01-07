@@ -3,7 +3,6 @@ package com.yourRPG.chatPG.controller
 import com.yourRPG.chatPG.dto.ai.model.AiModelDto
 import com.yourRPG.chatPG.dto.chat.ChatDto
 import com.yourRPG.chatPG.service.chat.ChatService
-import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -36,7 +35,7 @@ class ChatController(
     fun chooseModel(
         @PathVariable accountId: Long,
         @PathVariable chatId: Long,
-        @Valid @RequestBody modelName: String
+        @RequestBody modelName: String
     ): ResponseEntity<Void> {
         service.chooseModelForChat(accountId, chatId, modelName)
 

@@ -2,7 +2,6 @@ package com.yourRPG.chatPG.controller
 
 import com.yourRPG.chatPG.dto.poll.PollDto
 import com.yourRPG.chatPG.service.poll.PollService
-import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -16,7 +15,7 @@ class PollController(
     fun start(
         @PathVariable accountId: Long,
         @PathVariable chatId: Long,
-        @Valid @RequestBody command: String
+        @RequestBody command: String
     ): ResponseEntity<PollDto> {
         return ResponseEntity.ok(
             pollService.start(accountId, chatId, command)
@@ -27,7 +26,7 @@ class PollController(
     fun vote(
         @PathVariable accountId: Long,
         @PathVariable chatId: Long,
-        @Valid @RequestBody command: String
+        @RequestBody command: String
     ): ResponseEntity<PollDto> {
         return ResponseEntity.ok(
             pollService.vote(accountId, chatId, command)

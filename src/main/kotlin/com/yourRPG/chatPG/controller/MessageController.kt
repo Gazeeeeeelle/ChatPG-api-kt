@@ -3,7 +3,6 @@ package com.yourRPG.chatPG.controller
 import com.yourRPG.chatPG.dto.message.MessageDto
 import com.yourRPG.chatPG.service.message.MessageService
 import jakarta.transaction.Transactional
-import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -39,7 +38,7 @@ class MessageController(
     fun sendMessage(
         @PathVariable accountId: Long,
         @PathVariable chatId: Long,
-        @Valid @RequestBody content: String
+        @RequestBody content: String
     ): ResponseEntity<MessageDto> {
         return ResponseEntity.status(201).body(
             messageService.sendMessage(accountId, chatId, message = content)
