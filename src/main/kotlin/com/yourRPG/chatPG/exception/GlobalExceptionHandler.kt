@@ -29,4 +29,9 @@ class GlobalExceptionHandler {
         return ResponseEntity.status(409).body(ex.message)
     }
 
+    @ExceptionHandler(UnauthorizedException::class)
+    fun unauthorized(ex: UnauthorizedException): ResponseEntity<String> {
+        return ResponseEntity.status(409).body(ex.message)
+    }
+
 }

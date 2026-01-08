@@ -50,18 +50,6 @@ class TokenService(
             .sign(algorithm)
     }
 
-    fun getSubject(token: String): String? {
-        try {
-            return JWT.require(algorithm)
-                .withIssuer(issuer)
-                .build()
-                .verify(token)
-                .subject
-        } catch (ex: JWTVerificationException) {
-            throw InvalidTokenException(ex.message ?: "Token invalid")
-        }
-    }
-
     fun getClaim(token: String, claim: String): Claim {
         try {
             return JWT.require(algorithm)

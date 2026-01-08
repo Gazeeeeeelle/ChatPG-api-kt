@@ -101,19 +101,6 @@ class ChatService(
     }
 
     /**
-     * The fetching of the object is delegated to [getByAuthAndChatName] and then converted to DTO.
-     *
-     * @param auth
-     * @param chatName
-     * @return [ChatDto]
-     * @throws ChatNotFoundException
-     * @see getByAuthAndChatName
-     */
-    fun getDtoByAccountIdAndChatName(accountId: Long, chatName: String): ChatDto {
-        return getByAccountIdAndChatName(accountId, chatName).toDto()
-    }
-
-    /**
      * Changes the model active on a given chat, identified by [accountId] and [chatId], to the model found via [modelNickname].
      *
      * @param accountId
@@ -140,7 +127,8 @@ class ChatService(
      *  fetches objects from the database. The existence of this method discards the need of wiring a
      *  [AccountHasAccessToChatValidator] on many services.
      *
-     * @param [pair] of (accountId, chatId)
+     * @param [accountId]
+     * @param [chatId]
      * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
      * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
