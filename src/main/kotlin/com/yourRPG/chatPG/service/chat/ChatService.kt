@@ -77,7 +77,7 @@ class ChatService(
      * @see AccountHasAccessToChatValidator.validate
      */
     fun getByAccountIdAndChatId(accountId: Long, chatId: Long): Chat {
-        accessValidator.validate(Pair(accountId, chatId))
+        validateAccess(accountId, chatId)
 
         return repository.qFindByAccountIdAndId(accountId, chatId)
             ?: throw ChatNotFoundException("Chat with id $accountId not found")
@@ -94,19 +94,20 @@ class ChatService(
      * @see PresenceValidator.validate
      */
     fun getByAccountIdAndChatName(accountId: Long, chatName: String): Chat {
-        val chat: Chat? = repository.qFindByAccountIdAndChatName(accountId, chatName)
+        val chat: Chat? = repository.qFindByAccountNameAndName(accountId, chatName)
 
         return chat
-            ?: throw ChatNotFoundException("Chat not found with id: $accountId")
+            ?: throw ChatNotFoundException("Chat '$chatName' not found")
     }
 
     /**
-     * The fetching of the object is delegated to [getByAccountIdAndChatName] and then converted to DTO.
+     * The fetching of the object is delegated to [getByAuthAndChatName] and then converted to DTO.
      *
-     * @param accountId
+     * @param auth
      * @param chatName
      * @return [ChatDto]
      * @throws ChatNotFoundException
+     * @see getByAuthAndChatName
      */
     fun getDtoByAccountIdAndChatName(accountId: Long, chatName: String): ChatDto {
         return getByAccountIdAndChatName(accountId, chatName).toDto()
@@ -144,8 +145,12 @@ class ChatService(
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
      * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
      */
-    fun validateAccess(pair: Pair<Long, Long>) {
-        accessValidator.validate(pair)
+    fun validateAccess(accountId: Long, chatId: Long) {
+        accessValidator.validate(accountId to chatId)
+    }
+
+    fun getDtoByAccountIdAndChatId(accountId: Long, chatName: String): ChatDto? {
+        return getByAccountIdAndChatName(accountId, chatName).toDto()
     }
 
 }

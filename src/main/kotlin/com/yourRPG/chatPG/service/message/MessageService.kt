@@ -58,7 +58,7 @@ class MessageService(
      * @see MessageRepository.qFindOldByChatIdAndReference
      */
     fun getOldMessagesInChat(accountId: Long, chatId: Long, referenceId: Long): List<MessageDto> {
-        chatService.validateAccess(Pair(accountId, chatId))
+        chatService.validateAccess(accountId, chatId)
 
         return if (referenceId >= 0L) {
             repository.qFindOldByChatIdAndReference(chatId, referenceId).toListDto()
@@ -84,7 +84,7 @@ class MessageService(
      * @see MessageRepository.qFindNewByChatIdAndReference
      */
     fun getNewMessagesInChat(accountId: Long, chatId: Long, referenceId: Long): List<MessageDto> {
-        chatService.validateAccess(Pair(accountId, chatId))
+        chatService.validateAccess(accountId, chatId)
 
         if (referenceId < 0) {
             throw InvalidMessageReferenceIdException("Valid reference required. Reference given: $referenceId")
@@ -190,7 +190,7 @@ class MessageService(
      */
     @Transactional
     fun deleteMessage(accountId: Long, chatId: Long, messageId: Long) {
-        chatService.validateAccess(Pair(accountId, chatId))
+        chatService.validateAccess(accountId, chatId)
 
         if (repository.qDeleteByChatIdAndId(chatId, messageId) == 0)
             throw MessageNotFoundException("No messages deleted")
@@ -214,7 +214,7 @@ class MessageService(
      */
     @Transactional
     fun bulkDeleteMessages(accountId: Long, chatId: Long, bound1: Long, bound2: Long) {
-        chatService.validateAccess(Pair(accountId, chatId))
+        chatService.validateAccess(accountId, chatId)
 
         val idStart = min(bound1, bound2)
         val idFinish = max(bound1, bound2)
@@ -222,6 +222,13 @@ class MessageService(
         if (repository.qBulkDeleteByChatIdFromIdToId(chatId, idStart, idFinish) == 0)
             throw MessageNotFoundException("No messages deleted")
 
+    }
+
+    fun getMessage(accountId: Long, chatId: Long, id: Long): MessageDto {
+        chatService.validateAccess(accountId, chatId)
+
+        return repository.qFindByIdAndChat(id, chatId)?.toDto()
+            ?: throw MessageNotFoundException("Message not found")
     }
 
 }

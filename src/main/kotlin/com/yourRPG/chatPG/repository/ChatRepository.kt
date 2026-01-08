@@ -32,11 +32,11 @@ interface ChatRepository: JpaRepository<Chat, Long> {
      *  returns null.
      *
      * @param accountId account identifier
-     * @param chatName chat name
+     * @param chatName
      * @return nullable [Chat]
      */
     @Query("SELECT c FROM Chat c JOIN c.accounts a ON a.id = :accountId AND c.name = :chatName")
-    fun qFindByAccountIdAndChatName(accountId: Long, chatName: String): Chat?
+    fun qFindByAccountNameAndName(accountId: Long, chatName: String): Chat?
 
     /**
      * Returns [Boolean] based on whether a [Chat] is found in the chats that the [com.yourRPG.chatPG.model.Account] has
@@ -47,6 +47,6 @@ interface ChatRepository: JpaRepository<Chat, Long> {
      * @return [Boolean] based on whether such chat exists for the account or not.
      */
     @Query("SELECT CASE WHEN (COUNT(c) > 0) THEN true ELSE false END FROM Chat c JOIN c.accounts a ON a.id = :accountId AND c.id = :id")
-    fun qExistsByAccountIdAndId(accountId: Long, id: Long): Boolean
+    fun qExistsByAccountNameAndId(accountId: Long, id: Long): Boolean
 
 }

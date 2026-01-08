@@ -1,8 +1,8 @@
 package com.yourRPG.chatPG.validator.chat
 
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
-import com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
 import com.yourRPG.chatPG.exception.chat.ChatNotFoundException
+import com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
 import com.yourRPG.chatPG.repository.AccountRepository
 import com.yourRPG.chatPG.repository.ChatRepository
 import com.yourRPG.chatPG.validator.IValidatable
@@ -34,7 +34,7 @@ class AccountHasAccessToChatValidator(
             throw ChatNotFoundException("Chat with id ${t.first} not found")
         }
 
-        require(chatRepository.qExistsByAccountIdAndId(t.first, t.second)) {
+        require(chatRepository.qExistsByAccountNameAndId(t.first, t.second)) {
             throw UnauthorizedAccessToChatException("Account with id ${t.first} cannot access chat with id ${t.first}")
         }
 
