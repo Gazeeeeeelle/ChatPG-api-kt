@@ -1,0 +1,47 @@
+server:
+  address: 127.0.0.1
+  port: 8080
+  error:
+    include-stacktrace: never
+  servlet:
+    context-path: /api
+
+spring:
+  config:
+    import: application.yaml
+    name: chatPG
+  datasource:
+    url: ${CHATPG_DB}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  ai:
+    google:
+      genai:
+        project-id: ${GOOGLE_CLOUD_PROJECT}
+        location: southamerica-east1
+
+hibernate:
+  dialect: org.hibernate.dialect.HSQLDialect
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: WARN
+        type.descriptor.sql.BasicBinder: WARN
+      springframework:
+        web:
+          servlet:
+            handler:
+              AbstractHandlerExceptionResolver: ERROR
+            mvc:
+              method:
+                annotation:
+                  ExceptionHandlerExceptionResolver: ERROR
+
+api.security.token.secret: ${API_SECURITY_KEY_SECRET}

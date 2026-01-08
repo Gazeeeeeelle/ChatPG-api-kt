@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 class CorsConfiguration: WebMvcConfigurer {
 
     @Value("\${server.address}")
-    private lateinit var address: String;
+    private lateinit var address: String
 
     override fun addCorsMappings(registry: CorsRegistry) {
         registry.addMapping("/**")

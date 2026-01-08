@@ -3,17 +3,18 @@ package com.yourRPG.chatPG.controller
 import com.yourRPG.chatPG.dto.poll.PollDto
 import com.yourRPG.chatPG.service.poll.PollService
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/accounts/{accountId}/chats/{chatId}/polls")
+@RequestMapping("/chats/{chatId}/polls")
 class PollController(
     private val pollService: PollService
 ) {
 
     @PostMapping("/start")
     fun start(
-        @PathVariable accountId: Long,
+        @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         @RequestBody command: String
     ): ResponseEntity<PollDto> {
@@ -24,7 +25,7 @@ class PollController(
 
     @PostMapping("/vote")
     fun vote(
-        @PathVariable accountId: Long,
+        @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         @RequestBody command: String
     ): ResponseEntity<PollDto> {
@@ -35,7 +36,7 @@ class PollController(
 
     @GetMapping("/all")
     fun vote(
-        @PathVariable accountId: Long,
+        @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long
     ): ResponseEntity<List<PollDto>> {
         return ResponseEntity.ok(

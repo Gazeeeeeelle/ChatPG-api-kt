@@ -77,7 +77,7 @@ class ChatService(
      * @see AccountHasAccessToChatValidator.validate
      */
     fun getByAccountIdAndChatId(accountId: Long, chatId: Long): Chat {
-        accessValidator.validate(Pair(accountId, chatId))
+        validateAccess(accountId, chatId)
 
         return repository.qFindByAccountIdAndId(accountId, chatId)
             ?: throw ChatNotFoundException("Chat with id $accountId not found")
@@ -94,22 +94,10 @@ class ChatService(
      * @see PresenceValidator.validate
      */
     fun getByAccountIdAndChatName(accountId: Long, chatName: String): Chat {
-        val chat: Chat? = repository.qFindByAccountIdAndChatName(accountId, chatName)
+        val chat: Chat? = repository.qFindByAccountNameAndName(accountId, chatName)
 
         return chat
-            ?: throw ChatNotFoundException("Chat not found with id: $accountId")
-    }
-
-    /**
-     * The fetching of the object is delegated to [getByAccountIdAndChatName] and then converted to DTO.
-     *
-     * @param accountId
-     * @param chatName
-     * @return [ChatDto]
-     * @throws ChatNotFoundException
-     */
-    fun getDtoByAccountIdAndChatName(accountId: Long, chatName: String): ChatDto {
-        return getByAccountIdAndChatName(accountId, chatName).toDto()
+            ?: throw ChatNotFoundException("Chat '$chatName' not found")
     }
 
     /**
@@ -139,13 +127,18 @@ class ChatService(
      *  fetches objects from the database. The existence of this method discards the need of wiring a
      *  [AccountHasAccessToChatValidator] on many services.
      *
-     * @param [pair] of (accountId, chatId)
+     * @param [accountId]
+     * @param [chatId]
      * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
      * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
      */
-    fun validateAccess(pair: Pair<Long, Long>) {
-        accessValidator.validate(pair)
+    fun validateAccess(accountId: Long, chatId: Long) {
+        accessValidator.validate(accountId to chatId)
+    }
+
+    fun getDtoByAccountIdAndChatId(accountId: Long, chatName: String): ChatDto? {
+        return getByAccountIdAndChatName(accountId, chatName).toDto()
     }
 
 }

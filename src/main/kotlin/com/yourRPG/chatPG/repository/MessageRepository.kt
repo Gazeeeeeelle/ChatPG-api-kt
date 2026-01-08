@@ -67,4 +67,7 @@ interface MessageRepository: JpaRepository<Message, Long> {
     @Query("DELETE FROM Message m WHERE m.chat.id = :chatId AND m.id BETWEEN :idStart AND :idFinish")
     fun qBulkDeleteByChatIdFromIdToId(chatId: Long, idStart: Long, idFinish: Long): Int
 
+    @Query("SELECT m FROM Message m WHERE m.id = :messageId AND m.chat.id = :chatId")
+    fun qFindByIdAndChat(messageId: Long, chatId: Long): Message?
+
 }

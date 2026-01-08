@@ -37,7 +37,7 @@ class AccountHasAccessToChatValidatorTest {
         given(chatRepository.existsById(t.second))
             .willReturn(true)
 
-        given(chatRepository.qExistsByAccountIdAndId(t.first, t.second))
+        given(chatRepository.qExistsByAccountNameAndId(t.first, t.second))
             .willReturn(true)
 
         //ACT + ASSERT
@@ -82,7 +82,7 @@ class AccountHasAccessToChatValidatorTest {
         given(chatRepository.existsById(t.second))
             .willReturn(true)
 
-        given(chatRepository.qExistsByAccountIdAndId(t.first, t.second))
+        given(chatRepository.qExistsByAccountNameAndId(t.first, t.second))
             .willReturn(false)
 
         //ACT + ASSERT

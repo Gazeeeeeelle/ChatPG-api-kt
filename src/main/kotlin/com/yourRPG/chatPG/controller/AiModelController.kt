@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController
 
 
 @RestController
-@RequestMapping("/api/models")
+@RequestMapping("/models")
 class AiModelController(
     private val aiService: AiService
 ) {

@@ -1,11 +1,14 @@
 package com.yourRPG.chatPG.model
 
 import jakarta.persistence.*
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.userdetails.UserDetails
 import javax.validation.constraints.NotNull
 
 @Entity
 @Table(name = "account")
-open class Account {
+open class Account: UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -17,8 +20,8 @@ open class Account {
         protected set
 
     @NotNull
-    var password: String? = null
-        protected set
+    @Column(name = "password")
+    var accountPassword: String? = null
 
     @ManyToMany(mappedBy = "accounts")
     var chats: MutableList<Chat>? = null
@@ -30,8 +33,16 @@ open class Account {
 
     protected constructor()
 
-    fun passwordMatches(password: String?): Boolean {
-        return this.password == password
+    override fun getAuthorities(): Collection<GrantedAuthority>? {
+        return listOf(SimpleGrantedAuthority("ROLE_USER"))
+    }
+
+    override fun getPassword(): String? {
+        return accountPassword
+    }
+
+    override fun getUsername(): String? {
+        return name
     }
 
 }
