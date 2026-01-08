@@ -33,7 +33,7 @@ open class Account: UserDetails {
 
     protected constructor()
 
-    override fun getAuthorities(): Collection<GrantedAuthority>? {
+    override fun getAuthorities(): Collection<GrantedAuthority> {
         return listOf(SimpleGrantedAuthority("ROLE_USER"))
     }
 

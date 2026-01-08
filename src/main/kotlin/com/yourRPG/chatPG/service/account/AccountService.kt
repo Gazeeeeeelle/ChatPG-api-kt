@@ -39,4 +39,8 @@ class AccountService(
         return getById(accountId).toDto()
     }
 
+    fun existsByName(accountName: String): Boolean? {
+        return repository.existsByNameEquals(accountName)
+    }
+
 }

@@ -7,4 +7,6 @@ interface AccountRepository: JpaRepository<Account, Long> {
 
     fun findByNameEquals(name: String): Account?
 
+    fun existsByNameEquals(accountName: String): Boolean
+
 }

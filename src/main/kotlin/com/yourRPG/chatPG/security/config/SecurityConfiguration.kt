@@ -1,6 +1,7 @@
 package com.yourRPG.chatPG.security.config
 
 import com.yourRPG.chatPG.security.filters.TokenFilter
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -13,6 +14,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableWebSecurity
@@ -23,6 +27,7 @@ class SecurityConfiguration(
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         return http
+            .cors { it.configurationSource(corsConfigurationSource()) }
             .csrf {
                 it.disable()
             }
@@ -31,10 +36,37 @@ class SecurityConfiguration(
             }
             .authorizeHttpRequests {
                 it.requestMatchers(HttpMethod.POST, "/login").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/accounts/exists").permitAll()
                     .anyRequest().authenticated()
             }
             .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
+    }
+
+    @Value("\${server.address}")
+    private lateinit var address: String
+
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource {
+        val configuration = CorsConfiguration()
+        configuration.allowedOrigins = listOf(
+            "http://$address:5500",
+            "http://26.17.132.72:8081",
+            "http://127.0.0.1:5500",
+            "http://26.17.132.72:5500"
+        )
+
+        configuration.allowedMethods =
+            listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD", "TRACE", "CONNECT")
+
+        configuration.allowedHeaders =
+            listOf("Authorization", "Content-Type")
+
+        val source = UrlBasedCorsConfigurationSource()
+
+        source.registerCorsConfiguration("/**", configuration)
+
+        return source
     }
 
     @Bean
