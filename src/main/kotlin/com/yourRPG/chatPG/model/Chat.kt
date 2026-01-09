@@ -15,9 +15,15 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import java.util.*
 
+/**
+ * Since the IDE does not check if the account is implicitly open because of @Entity decorator, we shall suppress the
+ * misleading warning.
+ */
+@Suppress("ProtectedInFinal")
+
 @Entity
 @Table(name = "chat")
-open class Chat {
+class Chat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

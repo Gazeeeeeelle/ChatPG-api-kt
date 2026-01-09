@@ -4,10 +4,16 @@ import com.yourRPG.chatPG.service.poll.PollSubject
 import jakarta.persistence.*
 import java.io.Serializable
 
+/**
+ * Since the IDE does not check if the account is implicitly open because of @Entity decorator, we shall suppress the
+ * misleading warning.
+ */
+@Suppress("ProtectedInFinal")
+
 @Entity
 @Table(name = "poll")
 @IdClass(value = Poll.CompositePrimaryKey::class)
-open class Poll {
+class Poll {
 
     @Id
     @ManyToOne

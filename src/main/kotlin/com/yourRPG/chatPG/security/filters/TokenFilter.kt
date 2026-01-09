@@ -1,6 +1,9 @@
 package com.yourRPG.chatPG.security.filters
 
 import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
+import com.yourRPG.chatPG.exception.account.AccountNotFoundException
+import com.yourRPG.chatPG.model.Account
+import com.yourRPG.chatPG.repository.AccountRepository
 import com.yourRPG.chatPG.security.token.TokenService
 import jakarta.servlet.Filter
 import jakarta.servlet.FilterChain
@@ -14,8 +17,12 @@ import org.springframework.stereotype.Component
 
 @Component
 class TokenFilter(
-    private val tokenService: TokenService
+    private val tokenService: TokenService,
+    private val accountRepository: AccountRepository
 ): Filter {
+
+    private val ignoredPaths: List<String> =
+        listOf("/login", "/accounts/exists")
 
     override fun doFilter(
         request: ServletRequest,
@@ -24,7 +31,7 @@ class TokenFilter(
     ) {
         (request as HttpServletRequest)
 
-        if (request.servletPath == "/login") {
+        if (ignoredPaths.contains(request.servletPath)) {
             filterChain.doFilter(request, response)
             return
         }
@@ -35,8 +42,11 @@ class TokenFilter(
             val id = tokenService.getClaim(token, "id")
                 .asLong()
 
+            val account: Account = accountRepository.findById(id)
+                .orElse(null) ?: throw AccountNotFoundException("Account not found")
+
             val authentication =
-                UsernamePasswordAuthenticationToken(id, null, emptyList())
+                UsernamePasswordAuthenticationToken(id, null, account.authorities)
 
             SecurityContextHolder.getContext().authentication = authentication
 

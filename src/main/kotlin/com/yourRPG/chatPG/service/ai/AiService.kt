@@ -33,7 +33,7 @@ class AiService(
      */
     fun askAi(model: AiModel, prompt: String): String? {
         if (model.provider == AiProvider.NONE) {
-            throw BadRequestException("Chat's model cannot be \"none\" to request ai message.")
+            throw BadRequestException("Model cannot be \"none\" to request ai message.")
         }
 
         return providers.find {it.getProvider() == model.provider}

@@ -26,17 +26,16 @@ class AccountHasAccessToChatValidator(
      * @throws UnauthorizedAccessToChatException
      */
     override fun validate(t: Pair<Long, Long>): Pair<Long, Long> {
-        require(accountRepository.existsById(t.first)) {
-            throw AccountNotFoundException("Account with id ${t.first} not found")
-        }
+        val (accountId, chatId) = t
 
-        require(chatRepository.existsById(t.second)) {
-            throw ChatNotFoundException("Chat with id ${t.first} not found")
-        }
+        if (!accountRepository.existsById(accountId))
+            throw AccountNotFoundException("Account $accountId not found")
 
-        require(chatRepository.qExistsByAccountNameAndId(t.first, t.second)) {
-            throw UnauthorizedAccessToChatException("Account with id ${t.first} cannot access chat with id ${t.first}")
-        }
+        if (!chatRepository.existsById(chatId))
+            throw ChatNotFoundException("Chat $chatId not found")
+
+        if (!chatRepository.qExistsByAccountNameAndId(accountId, chatId))
+            throw UnauthorizedAccessToChatException("Account $accountId cannot access chat $chatId")
 
         return t
     }

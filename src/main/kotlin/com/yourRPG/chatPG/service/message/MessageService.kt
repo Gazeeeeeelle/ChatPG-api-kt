@@ -224,11 +224,4 @@ class MessageService(
 
     }
 
-    fun getMessage(accountId: Long, chatId: Long, id: Long): MessageDto {
-        chatService.validateAccess(accountId, chatId)
-
-        return repository.qFindByIdAndChat(id, chatId)?.toDto()
-            ?: throw MessageNotFoundException("Message not found")
-    }
-
 }

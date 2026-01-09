@@ -2,10 +2,15 @@ package com.yourRPG.chatPG.model
 
 import jakarta.persistence.*
 
+/**
+ * Since the IDE does not check if the account is implicitly open because of @Entity decorator, we shall suppress the
+ * misleading warning.
+ */
+@Suppress("ProtectedInFinal")
 
 @Entity
 @Table(name = "message")
-open class Message {
+class Message {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

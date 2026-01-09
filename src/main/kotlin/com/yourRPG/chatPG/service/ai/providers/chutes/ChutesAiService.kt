@@ -1,8 +1,6 @@
 package com.yourRPG.chatPG.service.ai.providers.chutes
 
-import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import com.yourRPG.chatPG.exception.ai.models.UnavailableAiException
 import com.yourRPG.chatPG.service.ai.IResponsive
 import com.yourRPG.chatPG.service.ai.providers.AiModel
@@ -31,21 +29,18 @@ class ChutesAiService(
      */
     override fun askAi(model: AiModel, prompt: String): String {
 
-        val messageJson: String = getMessageJson(prompt)
+        val messageJson = getMessageJson(prompt)
 
-        val request: HttpRequest = buildRequestToLlm(model, messageJson)
-
-        try {
-            val response: String =
-                httpService.send(request, HttpResponse.BodyHandlers.ofString()).body()
-
-            val chutesResponse: ChutesResponse =
-                objectMapper.readValue(response, ChutesResponse::class.java)
-
-            return chutesResponse.choices[0].message.content
-        } catch (_: MismatchedInputException) {
-            throw UnavailableAiException("The model ${model.nickname} is unavailable.")
+        val response = buildRequestToLlm(model, messageJson).let { request ->
+            httpService.send(request, HttpResponse.BodyHandlers.ofString()).body()
         }
+
+        return runCatching {
+            objectMapper.readValue(response, ChutesResponse::class.java)
+        }.getOrElse {
+            throw UnavailableAiException("The model ${model.nickname} is unavailable")
+        }.choices.firstOrNull()?.message?.content
+            ?: throw UnavailableAiException("Model ${model.nickname}'s response was empty")
 
     }
 
@@ -54,11 +49,7 @@ class ChutesAiService(
         map["role"] = "system"
         map["content"] = prompt
 
-        try {
-            return objectMapper.writeValueAsString(map)
-        } catch (ex: JsonProcessingException) {
-            throw RuntimeException(ex)
-        }
+        return objectMapper.writeValueAsString(map)
     }
 
     private fun buildRequestToLlm(model: AiModel, messageJson: String): HttpRequest {

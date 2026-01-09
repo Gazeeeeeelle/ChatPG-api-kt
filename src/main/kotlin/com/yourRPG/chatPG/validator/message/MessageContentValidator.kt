@@ -18,11 +18,10 @@ class MessageContentValidator: IValidatable<String?> {
      */
     override fun validate(t: String?): String {
 
-        t ?: throw MessageContentNotFoundException("Message content cannot be null")
+        return ( t ?: throw MessageContentNotFoundException("Message content not found") )
+            .takeIf { it.isNotBlank() }
+            ?: throw MessageContentBlankException("Message content cannot be blank")
 
-        t.trim().ifBlank { throw MessageContentBlankException("Message content cannot be blank") }
-
-        return t
     }
 
 }

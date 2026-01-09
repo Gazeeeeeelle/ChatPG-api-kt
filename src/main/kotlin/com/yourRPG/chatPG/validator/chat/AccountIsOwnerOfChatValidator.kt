@@ -9,8 +9,9 @@ import org.springframework.stereotype.Component
 class AccountIsOwnerOfChatValidator: IValidatable<Pair<Long, Chat>> {
 
     override fun validate(t: Pair<Long, Chat>): Pair<Long, Chat> {
+        val (accountId, chat) = t
 
-        if (t.first != t.second.ownerId)
+        if (accountId != chat.ownerId)
             throw UnauthorizedAccountException("This account does not attend to the requirements to realize such action")
 
         return t

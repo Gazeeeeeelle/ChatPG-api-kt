@@ -36,17 +36,6 @@ class MessageController(
         )
     }
 
-    @GetMapping("/{id}")
-    fun getMessage(
-        @AuthenticationPrincipal accountId: Long,
-        @PathVariable chatId: Long,
-        @PathVariable id: Long,
-    ): ResponseEntity<MessageDto> {
-        return ResponseEntity.ok(
-            messageService.getMessage(accountId, chatId, id)
-        )
-    }
-
     @PostMapping("/send")
     fun sendMessage(
         @AuthenticationPrincipal accountId: Long,

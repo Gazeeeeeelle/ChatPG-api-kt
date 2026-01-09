@@ -46,7 +46,7 @@ interface MessageRepository: JpaRepository<Message, Long> {
      *
      * @param chatId chat identifier.
      * @param messageId message identifier.
-     * @return Integer amount of messages deleted. One if successful, zero if no message found for deletion.
+     * @return Integer amount of messages deleted. One if successful, zero if no message were found for deletion.
      */
     @Modifying
     @Transactional
@@ -66,8 +66,5 @@ interface MessageRepository: JpaRepository<Message, Long> {
     @Transactional
     @Query("DELETE FROM Message m WHERE m.chat.id = :chatId AND m.id BETWEEN :idStart AND :idFinish")
     fun qBulkDeleteByChatIdFromIdToId(chatId: Long, idStart: Long, idFinish: Long): Int
-
-    @Query("SELECT m FROM Message m WHERE m.id = :messageId AND m.chat.id = :chatId")
-    fun qFindByIdAndChat(messageId: Long, chatId: Long): Message?
 
 }

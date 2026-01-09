@@ -35,8 +35,20 @@ class AccountService(
             ?: throw notFoundException
     }
 
+    /**
+     * Delegates fetching of Account to [getById] and then converts it to DTO.
+     *
+     * @param accountId
+     * @return [AccountDto] of the identified [Account]
+     *
+     * @see getById
+     */
     fun getDtoById(accountId: Long): AccountDto {
         return getById(accountId).toDto()
+    }
+
+    fun existsByName(accountName: String): Boolean? {
+        return repository.existsByNameEquals(accountName)
     }
 
 }

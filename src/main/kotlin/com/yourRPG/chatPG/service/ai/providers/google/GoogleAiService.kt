@@ -23,17 +23,17 @@ class GoogleAiService: IResponsive {
      *  the [ServerException] is caught to then throw the usual [UnavailableAiException].
      */
     override fun askAi(model: AiModel, prompt: String): String? {
-        try {
-            val response =
-                client.models.generateContent(
-                    model.modelName,
-                    prompt,
-                    null
-                )
-            return response.text()
-        } catch (_: ServerException) {
+
+        return runCatching {
+            client.models.generateContent(
+                model.modelName,
+                prompt,
+                null
+            ).text()
+        }.getOrElse {
             throw UnavailableAiException("The model ${model.nickname} is temporarily unavailable.")
         }
+
     }
 
 }
