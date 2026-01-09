@@ -1,7 +1,8 @@
-<h2> Concept </h2>
+<h1> Concept </h1>
 Offer a unified chat experience, allowing users to chat with friends alongside an integrated AI assistant for real-time support, brainstorming, roleplaying and whatever you are looking for.
 
-<h2> Features </h2>
+<h1> Features & Data Structure</h1>
+
 
 <h2> Code & Performance </h2>
 <p>
@@ -15,21 +16,21 @@ Offer a unified chat experience, allowing users to chat with friends alongside a
 </p>
 
 <p> 
-  Though, while running 100 Virtual Users at a time from Postman, requesting tokens and fetching messages, the results were stable, but clearly increased the CPU overhead.
+  While running 100 virtual users simultaneously via Postman, requesting tokens and fetching messages, the results were just as stable.
 </p>
 <img width="80%" alt="PostmanGraphParallel" src="https://github.com/user-attachments/assets/3148a57a-23f4-4c81-ab8d-d2be6acf261f" />
 <img width="80%" alt="VisualVMGraphParallel" src="https://github.com/user-attachments/assets/555de369-3fca-4ec9-8b25-d5cb34424e2b" />
 
 
 
-<h2> Automated Tests</h2>
+<h1> Automated Tests</h1>
 
 To ensure reliability, the RESTful API features tests using JUnit and Mockito, covering all the core validations.
 <img width="80%" alt="tests" src="https://github.com/user-attachments/assets/ac9e933c-e6e1-4c05-9cd3-dbd3c1c2da84" />
 
 
 
-<h2> Documentation </h2>
+<h1> Documentation </h1>
 
 Dokka is used for documentation, making it both readable and simple to write.
 The documentation always follows the pattern:
@@ -43,7 +44,7 @@ The documentation always follows the pattern:
 
 
 
-<h2> Evolution & Post-Mortem </h2>
+<h1> Evolution & Post-Mortem </h1>
 <p>
   When I first idealized the project, it was meant to be entirely written in Java (JDK 17), and for a good time it was, until I considered Kotlin. Searching further, I found out <i> why </i> Kotlin. After around 16 hours of active work, I have rewritten the whole code into this modern, robust and honestly, beautiful language.
 </p>
