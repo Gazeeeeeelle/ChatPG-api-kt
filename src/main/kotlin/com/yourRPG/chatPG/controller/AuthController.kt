@@ -16,6 +16,9 @@ class AuthController(
     private val authService: AuthService
 ) {
 
+    /**
+     * @see AuthService.login
+     */
     @PostMapping
     fun login(
         @Valid @RequestBody credentials: LoginCredentials

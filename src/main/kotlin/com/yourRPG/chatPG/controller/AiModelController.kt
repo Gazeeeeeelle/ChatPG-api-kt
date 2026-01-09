@@ -14,6 +14,9 @@ class AiModelController(
     private val aiService: AiService
 ) {
 
+    /**
+     * @see isModelAvailable
+     */
     @GetMapping("/isModelAvailable/{modelName}")
     fun isModelAvailable(@PathVariable modelName: String): ResponseEntity<Boolean> {
         return ResponseEntity.ok(
@@ -21,6 +24,9 @@ class AiModelController(
         )
     }
 
+    /**
+     * @see AiService.getModels
+     */
     @GetMapping("/all")
     fun all(): ResponseEntity<List<String>> {
         return ResponseEntity.ok(

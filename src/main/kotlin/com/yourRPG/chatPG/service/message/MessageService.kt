@@ -51,9 +51,6 @@ class MessageService(
      * @param chatId identifier of chat
      * @param referenceId reference for fetching
      * @return [List] of [MessageDto]s fetched
-     * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
      * @see ChatService.validateAccess
      * @see MessageRepository.qFindOldByChatIdAndReference
      */
@@ -73,13 +70,9 @@ class MessageService(
      * Fetches 20 messages in the [Chat] identified with [accountId] and [chatId]. The messages are fetched by selecting
      *  the ids greater than the [referenceId], and therefore, newer messages than the reference.
      *
-     * @param accountId identifier of account, used to assure that the [Account] requesting the messages has access to
-     *  the chat.
+     * @param accountId identifier of account
      * @param chatId identifier of chat.
      * @param referenceId reference for fetching.
-     * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
      * @see ChatService.validateAccess
      * @see MessageRepository.qFindNewByChatIdAndReference
      */
@@ -91,6 +84,26 @@ class MessageService(
         }
 
         return repository.qFindNewByChatIdAndReference(chatId, referenceId).toListDto()
+    }
+
+    /**
+     * Fetches a message with id [messageId] in the [Chat] identified with [chatId].
+     *
+     * @param accountId account identifier
+     * @return [Message] found
+     * @throws MessageNotFoundException if no message with id [messageId] was found in the chat with id [chatId]
+     * @see ChatService.validateAccess
+     * @see MessageRepository.findByChatIdAndId
+     */
+    fun getByChatIdAndId(accountId: Long, chatId: Long, messageId: Long): Message {
+        chatService.validateAccess(accountId, chatId)
+
+        return repository.findByChatIdAndId(chatId, messageId)
+            ?: throw MessageNotFoundException("Unable to find message with id: $messageId")
+    }
+
+    fun getDtoByChatIdAndId(accountId: Long, chatId: Long, messageId: Long): MessageDto {
+        return getByChatIdAndId(accountId, chatId, messageId).toDto()
     }
 
     /**
@@ -139,9 +152,7 @@ class MessageService(
      *
      * @param accountId account identifier for access validation
      * @param chatId chat identifier
-     * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
+     * @see ChatService.getByAccountIdAndChatId
      * @see createAIMessage
      */
     fun generateResponse(accountId: Long, chatId: Long): MessageDto {
@@ -158,7 +169,8 @@ class MessageService(
      * @param chat
      * @return [MessageDto] of message created
      * @throws NullAiResponse if response from the request of text generation was null.
-     * @throws com.yourRPG.chatPG.exception.ai.models.UnavailableAiException
+     * @throws com.yourRPG.chatPG.exception.ai.models.UnavailableAiException if there was a problem with the response
+     *  given by the provider's side
      * @see MessageRepository.qFindAllMessagesFromChat
      * @see ChatpgService.treatMemoryForPrompt
      * @see AiService.askAi
@@ -183,9 +195,7 @@ class MessageService(
      * @param accountId account identifier
      * @param chatId chat identifier
      * @param messageId message identifier
-     * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
+     * @see ChatService.validateAccess
      * @throws MessageNotFoundException if no messages where deleted
      */
     @Transactional
@@ -207,10 +217,8 @@ class MessageService(
      * @param chatId chat identifier
      * @param bound1 one of the range's bounds
      * @param bound2 another of the range's bounds
-     * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
      * @throws MessageNotFoundException if no messages where deleted
+     * @see ChatService.validateAccess
      */
     @Transactional
     fun bulkDeleteMessages(accountId: Long, chatId: Long, bound1: Long, bound2: Long) {
