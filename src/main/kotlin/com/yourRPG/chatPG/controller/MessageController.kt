@@ -14,6 +14,9 @@ class MessageController(
     private val messageService: MessageService
 ) {
 
+    /**
+     * @see MessageService.getNewMessagesInChat
+     */
     @GetMapping("/new/{referenceId}")
     fun getNewMessages(
         @AuthenticationPrincipal accountId: Long,
@@ -25,6 +28,9 @@ class MessageController(
         )
     }
 
+    /**
+     * @see MessageService.getOldMessagesInChat
+     */
     @GetMapping("/old/{referenceId}")
     fun getOldMessages(
         @AuthenticationPrincipal accountId: Long,
@@ -36,6 +42,23 @@ class MessageController(
         )
     }
 
+    /**
+     * @see MessageService.getDtoByChatIdAndId
+     */
+    @GetMapping("/{messageId}")
+    fun getMessage(
+        @AuthenticationPrincipal accountId: Long,
+        @PathVariable chatId: Long,
+        @PathVariable messageId: Long,
+    ): ResponseEntity<MessageDto> {
+        return ResponseEntity.ok(
+            messageService.getDtoByChatIdAndId(accountId, chatId, messageId)
+        )
+    }
+
+    /**
+     * @see MessageService.sendMessage
+     */
     @PostMapping("/send")
     fun sendMessage(
         @AuthenticationPrincipal accountId: Long,
@@ -46,13 +69,16 @@ class MessageController(
         val dto: MessageDto = messageService.sendMessage(accountId, chatId, message = content)
 
         val uri = ucb
-            .path("/api/accounts/${accountId}/chats/${chatId}/messages/${dto.id}")
+            .path("/chats/${chatId}/messages/${dto.id}")
             .build()
             .toUri()
 
         return ResponseEntity.created(uri).body(dto)
     }
 
+    /**
+     * @see MessageService.generateResponse
+     */
     @PostMapping("/generateResponse")
     fun generateResponse(
         @AuthenticationPrincipal accountId: Long,
@@ -62,13 +88,16 @@ class MessageController(
         val dto: MessageDto = messageService.generateResponse(accountId, chatId)
 
         val uri = ucb
-            .path("/api/accounts/${accountId}/chats/{chatId}/messages/${dto.id}")
+            .path("/chats/${chatId}/messages/${dto.id}")
             .build()
             .toUri()
 
         return ResponseEntity.created(uri).body(dto)
     }
 
+    /**
+     * @see MessageService.deleteMessage
+     */
     @Transactional
     @DeleteMapping("/delete/{id}")
     fun deleteMessage(
@@ -81,6 +110,9 @@ class MessageController(
         return ResponseEntity.noContent().build()
     }
 
+    /**
+     * @see MessageService.bulkDeleteMessages
+     */
     @Transactional
     @DeleteMapping("/bulkDelete/{bound1}/{bound2}")
     fun bulkDeleteMessages(

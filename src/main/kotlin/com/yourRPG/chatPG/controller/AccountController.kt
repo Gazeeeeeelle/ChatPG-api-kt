@@ -16,6 +16,9 @@ class AccountController(
     private val accountService: AccountService
 ) {
 
+    /**
+     * @see AccountService.getDtoById
+     */
     @GetMapping("/current")
     fun getAccount(
         @AuthenticationPrincipal accountId: Long,
@@ -23,6 +26,9 @@ class AccountController(
         return ResponseEntity.ok(accountService.getDtoById(accountId))
     }
 
+    /**
+     * @see AccountService.existsByName
+     */
     @PostMapping("/exists")
     fun accountExists(
         @RequestBody accountName: String

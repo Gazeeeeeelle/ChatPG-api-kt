@@ -42,6 +42,16 @@ interface MessageRepository: JpaRepository<Message, Long> {
     fun qFindNewByChatIdAndReference(chatId: Long, reference: Long): List<Message>
 
     /**
+     * Fetches one message from the [Chat] identified with [chatId], such that the message's id = [messageId].
+     *
+     * @param chatId chat identifier
+     * @param messageId message identifier
+     * @return [Message] found or else null
+     */
+    @Query("SELECT m FROM Message m WHERE m.chat.id = :chatId AND m.id = :messageId")
+    fun findByChatIdAndId(chatId: Long, messageId: Long): Message?
+
+    /**
      * Deletes a single message, with id [messageId], in the chat identified by [chatId].
      *
      * @param chatId chat identifier.

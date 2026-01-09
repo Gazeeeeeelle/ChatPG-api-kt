@@ -12,6 +12,9 @@ class PollController(
     private val pollService: PollService
 ) {
 
+    /**
+     * @see PollService.start
+     */
     @PostMapping("/start")
     fun start(
         @AuthenticationPrincipal accountId: Long,
@@ -23,6 +26,9 @@ class PollController(
         )
     }
 
+    /**
+     * @see PollService.vote
+     */
     @PostMapping("/vote")
     fun vote(
         @AuthenticationPrincipal accountId: Long,
@@ -34,8 +40,11 @@ class PollController(
         )
     }
 
+    /**
+     * @see PollService.all
+     */
     @GetMapping("/all")
-    fun vote(
+    fun getPolls(
         @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long
     ): ResponseEntity<List<PollDto>> {

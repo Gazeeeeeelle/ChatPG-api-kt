@@ -13,6 +13,10 @@ class ChatController(
     private val service: ChatService
 ) {
 
+    /**
+     * @see ChatService.getChatsDtoByAccountId
+     * FIXME: scalability issue
+     */
     @GetMapping("/all")
     fun getChats(
         @AuthenticationPrincipal accountId: Long
@@ -22,6 +26,9 @@ class ChatController(
         )
     }
 
+    /**
+     * @see ChatService.getDtoByAccountIdAndChatId
+     */
     @GetMapping("/byName/{chatName}")
     fun getChat(
         @AuthenticationPrincipal accountId: Long,
@@ -32,6 +39,9 @@ class ChatController(
         )
     }
 
+    /**
+     * @see ChatService.chooseModelForChat
+     */
     @PatchMapping("/{chatId}/chooseModel")
     fun chooseModel(
         @AuthenticationPrincipal accountId: Long,
@@ -43,6 +53,9 @@ class ChatController(
         return ResponseEntity.noContent().build()
     }
 
+    /**
+     * @see ChatService.getModelDto
+     */
     @GetMapping("/{chatId}/chosenModel")
     fun getChosenModel(
         @AuthenticationPrincipal accountId: Long,
