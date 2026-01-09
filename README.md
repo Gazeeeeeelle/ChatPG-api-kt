@@ -1,56 +1,45 @@
-<h1> Concept </h1>
-Offer a unified chat experience, allowing users to chat with friends alongside an integrated AI assistant for real-time support, brainstorming, roleplaying and whatever you are looking for.
+# Concept
+Offer a **unified chat experience**, allowing users to chat with friends alongside an integrated AI assistant for real-time support, brainstorming, roleplaying, and more.
 
-<h1> Features & Data Structure</h1>
+# Features & Data Structure
+*(List your specific features and entities here)*
 
+# Code & Performance
+When using Postman to generate requests **sequentially**, **VisualVM** was used to analyze the performance of the **RESTful API**. While alternating between the creation of **bearer tokens** and the **fetching** of 20 messages from a chat, the results were:
 
-<h2> Code & Performance </h2>
 <p>
-  When using Postman to generate requests sequentially, VisualVM was used to analyze the performance of the <i>RESTful API</i>. While alternating between the creation of <i>bearer tokens</i> and fetching of 20 messages from a chat, the results were:
+  <img width="80%" alt="Non-parallel" src="https://github.com/user-attachments/assets/fcca11cc-fba1-4ab6-ad10-ceef4c62b6ed" />
 </p>
 
-<img width="80%" alt="Non-parallel" src="https://github.com/user-attachments/assets/fcca11cc-fba1-4ab6-ad10-ceef4c62b6ed" />
+The system maintained a **consistent memory footprint** and minimal CPU overhead, showing no signs of memory leakage.
 
-<p> 
-  We can see it maintained a consistent memory footprint and minimal CPU overhead. It did not present signs of memory leakage, as well. 
-</p>
+While running **100 virtual users** simultaneously via Postman to request tokens and fetch messages, the results remained just as stable.
 
-<p> 
-  While running 100 virtual users simultaneously via Postman, requesting tokens and fetching messages, the results were just as stable.
-</p>
-<img width="80%" alt="PostmanGraphParallel" src="https://github.com/user-attachments/assets/3148a57a-23f4-4c81-ab8d-d2be6acf261f" />
-<img width="80%" alt="VisualVMGraphParallel" src="https://github.com/user-attachments/assets/555de369-3fca-4ec9-8b25-d5cb34424e2b" />
-
-
-
-<h1> Automated Tests</h1>
-
-To ensure reliability, the RESTful API features tests using JUnit and Mockito, covering all the core validations.
-<img width="80%" alt="tests" src="https://github.com/user-attachments/assets/ac9e933c-e6e1-4c05-9cd3-dbd3c1c2da84" />
-
-
-
-<h1> Documentation </h1>
-
-Dokka is used for documentation, making it both readable and simple to write.
-The documentation always follows the pattern:
-
-
-<p> → What this does and why it needs the parameters received. </p>
-<p> → Parameters: Further attention to parameters purpose (usually longer when more complex) not to bloat the first section </p>
-<p> → Returns: Mentions the type returned alongside what exactly it returns. </p>
-<p> → Throws: Exceptions the method can throw both on misusage and/or as warning. </p>
-
-
-
-
-<h1> Evolution & Post-Mortem </h1>
 <p>
-  When I first idealized the project, it was meant to be entirely written in Java (JDK 17), and for a good time it was, until I considered Kotlin. Searching further, I found out <i> why </i> Kotlin. After around 16 hours of active work, I have rewritten the whole code into this modern, robust and honestly, beautiful language.
+  <img width="80%" alt="PostmanGraphParallel" src="https://github.com/user-attachments/assets/3148a57a-23f4-4c81-ab8d-d2be6acf261f" />
+  <img width="80%" alt="VisualVMGraphParallel" src="https://github.com/user-attachments/assets/555de369-3fca-4ec9-8b25-d5cb34424e2b" />
 </p>
+
+# Automated Tests
+To ensure reliability, the RESTful API features unit and integration tests using **JUnit** and **Mockito**, covering all core business logic and validations.
+
 <p>
-  Kotlin offers you the possibility of writing much more concise, clean (and therefore readable), straight forward code. 
+  <img width="80%" alt="tests" src="https://github.com/user-attachments/assets/ac9e933c-e6e1-4c05-9cd3-dbd3c1c2da84" />
 </p>
 
-<img width="80%" alt="doc" src="https://github.com/user-attachments/assets/56eea3c1-b7a7-421e-bf3e-c904b11d2716" />
+# Documentation
+**Dokka**, the Kotlin standard, is used for documentation to ensure it is both readable and maintainable. All method documentation follows a strict 4-part pattern:
 
+* **Intent**: What the method does and the rationale for its required parameters.
+* **Parameters (@param)**: Detailed explanation of the parameters' purpose (expanded for complex objects) to avoid bloating the initial summary.
+* **Returns (@return)**: Specifies the return type and exactly what data is returned.
+* **Throws (@throws)**: Lists exceptions the method can throw, covering both misusage and warnings.
+
+# Evolution & Post-Mortem
+
+## Language Choice
+When I first **conceptualized** this project, it was to be written entirely in **Java (JDK 17)**. After researching the advantages of **Kotlin**, I spent approximately 16 hours refactoring the entire codebase. This transition allowed for more **concise**, robust, and readable code, leveraging Kotlin's modern syntax to reduce boilerplate and improve maintainability.
+
+<p>
+  <img width="80%" alt="doc" src="https://github.com/user-attachments/assets/56eea3c1-b7a7-421e-bf3e-c904b11d2716" />
+</p>
