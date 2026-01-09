@@ -2,7 +2,7 @@
 Offer a **unified chat experience**, allowing users to chat with friends alongside an integrated AI assistant for real-time support, brainstorming, roleplaying, and more.
 
 # Features & Data Structure
-*(List your specific features and entities here)*
+
 
 # Code & Performance
 When using Postman to generate requests **sequentially**, **VisualVM** was used to analyze the performance of the **RESTful API**. While alternating between the creation of **bearer tokens** and the **fetching** of 20 messages from a chat, the results were:
