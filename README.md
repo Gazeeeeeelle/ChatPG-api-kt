@@ -46,10 +46,10 @@ To ensure reliability, the RESTful API features unit and integration tests using
 * **Returns (@return)**: Specifies the return type and exactly what data is returned.
 * **Throws (@throws)**: Lists exceptions the method can throw, covering both misusage and warnings.
 
+<img width="80%" alt="doc" src="https://github.com/user-attachments/assets/56eea3c1-b7a7-421e-bf3e-c904b11d2716" />
+
 ***
 # Evolution & Post-Mortem
 
 ## Language Choice
 When I first conceptualized this project, it was to be written entirely in *Java (JDK 17)*. After researching the advantages of **Kotlin**, I spent approximately 16 hours refactoring the entire codebase. This transition allowed for more concise, robust, and readable code, leveraging Kotlin's modern syntax to reduce boilerplate and improve maintainability.
-
-<img width="80%" alt="doc" src="https://github.com/user-attachments/assets/56eea3c1-b7a7-421e-bf3e-c904b11d2716" />
