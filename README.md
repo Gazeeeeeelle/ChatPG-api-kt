@@ -26,10 +26,12 @@ When using Postman to generate requests **sequentially**, **VisualVM** was used 
 
 The system maintained a **consistent memory footprint** and minimal CPU overhead, no signs of memory leakage were found.
 
-While running **100 virtual users** simultaneously via Postman to request tokens and fetch messages, **the results remained just as stable**.
+While running **100 virtual users** simultaneously via Postman to request tokens and fetch messages, **the results remained just as stable**. 
 
 <img width="80%" alt="PostmanGraphParallel" src="https://github.com/user-attachments/assets/3148a57a-23f4-4c81-ab8d-d2be6acf261f" />
 <img width="80%" alt="VisualVMGraphParallel" src="https://github.com/user-attachments/assets/555de369-3fca-4ec9-8b25-d5cb34424e2b" />
+
+On the shown graph, the heap usage behaves abnormally at around 23:00 because of memory profiling.
 
 ***
 # Automated Tests
