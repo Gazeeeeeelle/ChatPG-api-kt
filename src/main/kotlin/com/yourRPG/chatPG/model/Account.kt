@@ -6,9 +6,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import javax.validation.constraints.NotNull
 
+@Suppress("ProtectedInFinal")
+
 @Entity
 @Table(name = "account")
-open class Account: UserDetails {
+class Account: UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
