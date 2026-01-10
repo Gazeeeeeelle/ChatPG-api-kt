@@ -11,7 +11,7 @@ import org.springframework.web.util.UriComponentsBuilder
 @RestController
 @RequestMapping("/chats/{chatId}/messages")
 class MessageController(
-    private val messageService: MessageService
+    private val service: MessageService
 ) {
 
     /**
@@ -22,11 +22,10 @@ class MessageController(
         @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         @PathVariable referenceId: Long,
-    ): ResponseEntity<List<MessageDto>> {
-        return ResponseEntity.ok(
-            messageService.getNewMessagesInChat(accountId, chatId, referenceId)
+    ): ResponseEntity<List<MessageDto>> =
+        ResponseEntity.ok(
+            service.getNewMessagesInChat(accountId, chatId, referenceId)
         )
-    }
 
     /**
      * @see MessageService.getOldMessagesInChat
@@ -36,11 +35,10 @@ class MessageController(
         @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         @PathVariable referenceId: Long,
-    ): ResponseEntity<List<MessageDto>> {
-        return ResponseEntity.ok(
-            messageService.getOldMessagesInChat(accountId, chatId, referenceId)
+    ): ResponseEntity<List<MessageDto>> =
+        ResponseEntity.ok(
+            service.getOldMessagesInChat(accountId, chatId, referenceId)
         )
-    }
 
     /**
      * @see MessageService.getDtoByChatIdAndId
@@ -50,11 +48,10 @@ class MessageController(
         @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         @PathVariable messageId: Long,
-    ): ResponseEntity<MessageDto> {
-        return ResponseEntity.ok(
-            messageService.getDtoByChatIdAndId(accountId, chatId, messageId)
+    ): ResponseEntity<MessageDto> =
+        ResponseEntity.ok(
+            service.getDtoByChatIdAndId(accountId, chatId, messageId)
         )
-    }
 
     /**
      * @see MessageService.sendMessage
@@ -65,16 +62,14 @@ class MessageController(
         @PathVariable chatId: Long,
         @RequestBody content: String,
         ucb: UriComponentsBuilder
-    ): ResponseEntity<MessageDto> {
-        val dto: MessageDto = messageService.sendMessage(accountId, chatId, message = content)
+    ): ResponseEntity<MessageDto> =
+        service.sendMessage(accountId, chatId, content).let { dto ->
 
-        val uri = ucb
-            .path("/chats/${chatId}/messages/${dto.id}")
-            .build()
-            .toUri()
+            val uri = ucb.path("/chats/$chatId/messages/${dto.id}")
+                .build().toUri()
 
-        return ResponseEntity.created(uri).body(dto)
-    }
+            ResponseEntity.created(uri).body(dto)
+        }
 
     /**
      * @see MessageService.generateResponse
@@ -84,16 +79,14 @@ class MessageController(
         @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         ucb: UriComponentsBuilder
-    ): ResponseEntity<MessageDto> {
-        val dto: MessageDto = messageService.generateResponse(accountId, chatId)
+    ): ResponseEntity<MessageDto> =
+        service.generateResponse(accountId, chatId).let { dto ->
 
-        val uri = ucb
-            .path("/chats/${chatId}/messages/${dto.id}")
-            .build()
-            .toUri()
+            val uri = ucb.path("/chats/${chatId}/messages/${dto.id}")
+                .build().toUri()
 
-        return ResponseEntity.created(uri).body(dto)
-    }
+            ResponseEntity.created(uri).body(dto)
+        }
 
     /**
      * @see MessageService.deleteMessage
@@ -104,11 +97,10 @@ class MessageController(
         @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         @PathVariable id: Long
-    ): ResponseEntity<Int> {
-        messageService.deleteMessage(accountId, chatId, id)
-
-        return ResponseEntity.noContent().build()
-    }
+    ): ResponseEntity<Int> =
+        service.deleteMessage(accountId, chatId, id).let {
+            ResponseEntity.noContent().build()
+        }
 
     /**
      * @see MessageService.bulkDeleteMessages
@@ -120,10 +112,9 @@ class MessageController(
         @PathVariable chatId: Long,
         @PathVariable bound1: Long,
         @PathVariable bound2: Long
-    ): ResponseEntity<Void> {
-        messageService.bulkDeleteMessages(accountId, chatId, bound1, bound2)
-
-        return ResponseEntity.noContent().build()
-    }
+    ): ResponseEntity<Void> =
+        service.bulkDeleteMessages(accountId, chatId, bound1, bound2).let {
+            ResponseEntity.noContent().build()
+        }
 
 }

@@ -7,6 +7,7 @@ import com.yourRPG.chatPG.service.ai.providers.AiModel
 import com.yourRPG.chatPG.service.ai.providers.AiProvider
 import com.yourRPG.chatPG.service.ai.providers.chutes.model.ChutesResponse
 import com.yourRPG.chatPG.service.http.HttpService
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.net.URI
 import java.net.http.HttpRequest
@@ -14,24 +15,27 @@ import java.net.http.HttpResponse
 
 @Service
 class ChutesAiService(
-    private val httpService: HttpService
+    /* Services */
+    private val httpService: HttpService,
+
+    /* Values */
+    @field:Value("\${spring.ai.chutes.llm.api-key}")
+    private val apiKey: String,
+
+    @field:Value("\${spring.ai.chutes.llm.url}")
+    private val llmUrl: String
 ): IResponsive {
 
     override fun getProvider(): AiProvider = AiProvider.CHUTES
 
-    private companion object {
-        val objectMapper = ObjectMapper()
-        val apiKey: String = System.getenv("CHUTES_API_KEY")
-    }
+    val objectMapper = ObjectMapper()
 
     /**
      * @see IResponsive.askAi
      */
     override fun askAi(model: AiModel, prompt: String): String {
 
-        val messageJson = getMessageJson(prompt)
-
-        val response = buildRequestToLlm(model, messageJson).let { request ->
+        val response = buildRequestToLlm(model, prompt).let { request ->
             httpService.send(request, HttpResponse.BodyHandlers.ofString()).body()
         }
 
@@ -44,35 +48,38 @@ class ChutesAiService(
 
     }
 
-    private fun getMessageJson(prompt: String): String {
-        val map = HashMap<String, String>()
-        map["role"] = "system"
-        map["content"] = prompt
-
-        return objectMapper.writeValueAsString(map)
-    }
-
-    private fun buildRequestToLlm(model: AiModel, messageJson: String): HttpRequest {
-        return HttpRequest.newBuilder()
-            .uri(URI.create("https://llm.chutes.ai/v1/chat/completions"))
+    /**
+     * Builds the **POST** [HttpRequest] inserting the *Authorization* and *Content-Type* headers, together with its
+     *  body.
+     *
+     * @param model LLM to request from.
+     * @param messageJson [String] *JSON* of the request body.
+     * @return Built [HttpRequest]
+     */
+    private fun buildRequestToLlm(model: AiModel, messageJson: String): HttpRequest =
+        HttpRequest.newBuilder()
+            .uri(URI.create(llmUrl))
             .header("Authorization", "Bearer $apiKey")
             .header("Content-Type", "Application/json")
             .POST(HttpRequest.BodyPublishers.ofString(getRequestJson(model, messageJson)))
             .build()
-    }
 
-    private fun getRequestJson(model: AiModel, messageJson: String): String {
-        return  """
-                {
-                    "model": "${model.modelName}",
-                    "messages": [
-                        $messageJson
-                    ],
-                    "stream": false,
-                    "max_tokens": 1024,
-                    "temperature": 0.7
-                }
-                """
-    }
+    /**
+     * Returns the *JSON* [String] containing all necessary information about
+     *
+     * @param model LLM to request from.
+     * @param prompt treated prompt that was given by the caller.
+     * @return [String] *JSON* of the request body.
+     */
+    private fun getRequestJson(model: AiModel, prompt: String): String =
+        mapOf(
+            "model" to model.modelName,
+            "messages" to listOf(
+                mapOf("role" to "system", "content" to prompt)
+            ),
+            "stream" to false,
+            "max_tokens" to 1024,
+            "temperature" to 0.7
+        ).let { raw -> objectMapper.writeValueAsString(raw) }
 
 }

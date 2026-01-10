@@ -19,19 +19,16 @@ class AuthService(
     private val passwordEncoder: PasswordEncoder
 ) {
 
-    fun login(credentials: LoginCredentials): TokenDto {
-
+    fun login(credentials: LoginCredentials): TokenDto = credentials.run {
         val userDetails: UserDetails = accountDetailsService
-            .loadUserByUsername(credentials.username)
+            .loadUserByUsername(username)
 
-        val passwordMatches: Boolean =
-            passwordEncoder.matches(credentials.password, userDetails.password)
+        passwordEncoder.matches(password, userDetails.password)
+            .takeIf { it }
+            ?: throw AccessToAccountUnauthorizedException("Wrong password")
 
-        if (passwordMatches) {
-            return TokenDto(tokenService.generateToken(userDetails))
-        }
+        return TokenDto(tokenService.generateToken(userDetails))
 
-        throw AccessToAccountUnauthorizedException("Wrong password")
     }
 
 }

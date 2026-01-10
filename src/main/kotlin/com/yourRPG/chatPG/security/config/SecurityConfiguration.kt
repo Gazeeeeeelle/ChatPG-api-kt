@@ -25,58 +25,49 @@ class SecurityConfiguration(
 ) {
 
     @Bean
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
-        return http
-            .cors { it.configurationSource(corsConfigurationSource()) }
-            .csrf {
-                it.disable()
-            }
-            .sessionManagement {
-                it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            }
-            .authorizeHttpRequests {
-                it.requestMatchers(HttpMethod.POST, "/login").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/accounts/exists").permitAll()
-                    .anyRequest().authenticated()
-            }
-            .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter::class.java)
-            .build()
+    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain = with(http) {
+        cors { it.configurationSource(corsConfigurationSource()) }
+        csrf {
+            it.disable()
+        }
+        sessionManagement {
+            it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        }
+        authorizeHttpRequests {
+            it.requestMatchers(HttpMethod.POST, "/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/accounts/exists").permitAll()
+                .anyRequest().authenticated()
+        }
+        addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter::class.java)
+        build()
     }
 
     @Value("\${server.address}")
     private lateinit var address: String
 
     @Bean
-    fun corsConfigurationSource(): CorsConfigurationSource {
-        val configuration = CorsConfiguration()
-        configuration.allowedOrigins = listOf(
-            "http://$address:5500",
-            "http://26.17.132.72:8081",
-            "http://127.0.0.1:5500",
-            "http://26.17.132.72:5500"
-        )
+    fun corsConfigurationSource(): CorsConfigurationSource = UrlBasedCorsConfigurationSource().apply {
+        val configuration = CorsConfiguration().apply {
+            allowedOrigins = listOf(
+                "http://$address:5500",
+                "http://26.17.132.72:8081",
+                "http://127.0.0.1:5500",
+                "http://26.17.132.72:5500"
+            )
+            allowedMethods =
+                listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD", "TRACE", "CONNECT")
+            allowedHeaders =
+                listOf("Authorization", "Content-Type")
+        }
 
-        configuration.allowedMethods =
-            listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD", "TRACE", "CONNECT")
-
-        configuration.allowedHeaders =
-            listOf("Authorization", "Content-Type")
-
-        val source = UrlBasedCorsConfigurationSource()
-
-        source.registerCorsConfiguration("/**", configuration)
-
-        return source
+        registerCorsConfiguration("/**", configuration)
     }
 
     @Bean
-    fun authenticationManager(configuration: AuthenticationConfiguration): AuthenticationManager {
-        return configuration.authenticationManager
-    }
+    fun authenticationManager(configuration: AuthenticationConfiguration): AuthenticationManager =
+        configuration.authenticationManager
 
     @Bean
-    fun passwordEncoder(): PasswordEncoder {
-        return BCryptPasswordEncoder()
-    }
+    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
 }

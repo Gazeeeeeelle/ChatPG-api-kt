@@ -26,18 +26,17 @@ class ChatpgService {
      * @throws AccountNotFoundException
      * @see getAccountPrefix
      */
-    fun treatMemoryForPrompt(messages: List<Message>): String {
-        val stringBuilder = StringBuilder()
-
-        messages.forEach(action = {
-            m: Message -> stringBuilder
-                .append(if (m.bot) AI_PREFIX else getAccountPrefix(m.account))
-                .append(m.content).append("\n")
-        })
-
-
-        return stringBuilder.toString()
-    }
+    fun treatMemoryForPrompt(messages: List<Message>): String =
+        buildString {
+            messages.forEach { m: Message ->
+                append(when {
+                    m.bot -> AI_PREFIX
+                    else -> getAccountPrefix(m.account)
+                })
+                append(m.content)
+                append("\n")
+            }
+        }
 
     /**
      * Given an [Account], it returns a [String] with the following pattern:
@@ -47,8 +46,7 @@ class ChatpgService {
      * @return [String] formatted to the pattern
      * @throws AccountNotFoundException
      */
-    private fun getAccountPrefix(account: Account?): String {
-        return "[USER(${(account?.name ?: throw AccountNotFoundException())}):]"
-    }
+    private fun getAccountPrefix(account: Account?): String =
+        "[USER(${account?.name ?: throw AccountNotFoundException()}):]"
 
 }
