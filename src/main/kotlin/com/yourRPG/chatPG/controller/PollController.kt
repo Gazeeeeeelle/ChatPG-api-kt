@@ -43,11 +43,10 @@ class PollController(
      */
     @GetMapping("/all")
     fun getPolls(
-        @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long
     ): ResponseEntity<List<PollDto>> =
          ResponseEntity.ok(
-            pollService.all(accountId, chatId)
+            pollService.all(chatId)
         )
 
 }

@@ -5,37 +5,26 @@ import com.yourRPG.chatPG.exception.account.AccountNotFoundException
 import com.yourRPG.chatPG.model.Account
 import com.yourRPG.chatPG.security.token.TokenService
 import com.yourRPG.chatPG.service.account.AccountService
-import jakarta.servlet.FilterChain
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.BDDMockito.given
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.MockedStatic
 import org.mockito.Mockito
+import org.mockito.Mockito.times
 import org.mockito.Spy
-import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
 
-@ExtendWith(MockitoExtension::class)
-class TokenFilterTest {
+class TokenFilterTest: FilterTest() {
 
     @Spy
     @InjectMocks
     lateinit var tokenFilter: TokenFilter
-
-    @Mock
-    lateinit var request: HttpServletRequest
-
-    @Mock
-    lateinit var response: HttpServletResponse
-
-    @Mock
-    lateinit var filterChain: FilterChain
 
     @Mock
     lateinit var tokenService: TokenService
@@ -52,7 +41,8 @@ class TokenFilterTest {
     @Mock
     lateinit var securityContext: SecurityContext
 
-    private val securityContextHolder = Mockito.mockStatic(SecurityContextHolder::class.java)
+    @Mock
+    lateinit var mockedSch: MockedStatic<SecurityContextHolder>
 
     @Test
     fun valid() {
@@ -69,7 +59,7 @@ class TokenFilterTest {
         given(accountService.getById(0L))
             .willReturn(account)
 
-        securityContextHolder
+        mockedSch
             .`when`<SecurityContext> { SecurityContextHolder.getContext() }
             .thenReturn(securityContext)
 
@@ -77,14 +67,13 @@ class TokenFilterTest {
         tokenFilter.doFilter(request, response, filterChain)
 
         //ASSERT
-        securityContextHolder
-            .verify { SecurityContextHolder.getContext() }
+        mockedSch.verify { SecurityContextHolder.getContext() }
     }
 
     @Test
     fun valid_ignored() {
         valid_ignoredPath("/login")
-        valid_ignoredPath("/accounts/exists")
+        valid_ignoredPath("/login/exists")
     }
 
     fun valid_ignoredPath(path: String) {
@@ -96,8 +85,8 @@ class TokenFilterTest {
         tokenFilter.doFilter(request, response, filterChain)
 
         //ASSERT
-        Mockito.verify(response)
-            .sendError(eq(HttpServletResponse.SC_UNAUTHORIZED), anyString())
+        Mockito.verify(request, times(0))
+            .getHeader("Authorization")
     }
 
     @Test
@@ -137,7 +126,7 @@ class TokenFilterTest {
 
         //ASSERT
         Mockito.verify(response)
-            .sendError(eq(HttpServletResponse.SC_UNAUTHORIZED), anyString())
+            .sendError(eq(HttpServletResponse.SC_UNAUTHORIZED), any())
     }
 
 }

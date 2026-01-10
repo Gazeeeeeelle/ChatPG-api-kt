@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.security
 
-import com.yourRPG.chatPG.dto.account.LoginCredentials
+import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
 import com.yourRPG.chatPG.security.token.TokenService

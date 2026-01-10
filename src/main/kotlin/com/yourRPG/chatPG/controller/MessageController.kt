@@ -19,12 +19,11 @@ class MessageController(
      */
     @GetMapping("/new/{referenceId}")
     fun getNewMessages(
-        @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         @PathVariable referenceId: Long,
     ): ResponseEntity<List<MessageDto>> =
         ResponseEntity.ok(
-            service.getNewMessagesInChat(accountId, chatId, referenceId)
+            service.getNewMessagesInChat(chatId, referenceId)
         )
 
     /**
@@ -32,12 +31,11 @@ class MessageController(
      */
     @GetMapping("/old/{referenceId}")
     fun getOldMessages(
-        @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         @PathVariable referenceId: Long,
     ): ResponseEntity<List<MessageDto>> =
         ResponseEntity.ok(
-            service.getOldMessagesInChat(accountId, chatId, referenceId)
+            service.getOldMessagesInChat(chatId, referenceId)
         )
 
     /**
@@ -45,12 +43,11 @@ class MessageController(
      */
     @GetMapping("/{messageId}")
     fun getMessage(
-        @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         @PathVariable messageId: Long,
     ): ResponseEntity<MessageDto> =
         ResponseEntity.ok(
-            service.getDtoByChatIdAndId(accountId, chatId, messageId)
+            service.getDtoByChatIdAndId(chatId, messageId)
         )
 
     /**
@@ -76,11 +73,10 @@ class MessageController(
      */
     @PostMapping("/generateResponse")
     fun generateResponse(
-        @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         ucb: UriComponentsBuilder
     ): ResponseEntity<MessageDto> =
-        service.generateResponse(accountId, chatId).let { dto ->
+        service.generateResponse(chatId).let { dto ->
 
             val uri = ucb.path("/chats/${chatId}/messages/${dto.id}")
                 .build().toUri()
@@ -94,11 +90,10 @@ class MessageController(
     @Transactional
     @DeleteMapping("/delete/{id}")
     fun deleteMessage(
-        @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         @PathVariable id: Long
     ): ResponseEntity<Int> =
-        service.deleteMessage(accountId, chatId, id).let {
+        service.deleteMessage(chatId, id).let {
             ResponseEntity.noContent().build()
         }
 
@@ -108,12 +103,11 @@ class MessageController(
     @Transactional
     @DeleteMapping("/bulkDelete/{bound1}/{bound2}")
     fun bulkDeleteMessages(
-        @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         @PathVariable bound1: Long,
         @PathVariable bound2: Long
     ): ResponseEntity<Void> =
-        service.bulkDeleteMessages(accountId, chatId, bound1, bound2).let {
+        service.bulkDeleteMessages(chatId, bound1, bound2).let {
             ResponseEntity.noContent().build()
         }
 

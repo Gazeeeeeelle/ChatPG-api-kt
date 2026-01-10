@@ -17,26 +17,13 @@ interface ChatRepository: JpaRepository<Chat, Long> {
     fun qFindByAccountId(accountId: Long): List<Chat>
 
     /**
-     * Returns a [Chat] with id of [id] that the account identified by [accountId] has access to. If not found
-     *  returns null.
+     * Returns an existing [Chat] by its name.
      *
-     * @param accountId account identifier
-     * @param id chat identifier
-     * @return nullable [Chat]
-     */
-    @Query("SELECT c FROM Chat c JOIN c.accounts a ON a.id = :accountId AND c.id = :id")
-    fun qFindByAccountIdAndId(accountId: Long, id: Long): Chat?
-
-    /**
-     * Returns a [Chat] with name [chatName] that the account identified by [accountId] has access to. If not found
-     *  returns null.
-     *
-     * @param accountId account identifier
      * @param chatName
      * @return nullable [Chat]
      */
-    @Query("SELECT c FROM Chat c JOIN c.accounts a ON a.id = :accountId AND c.name = :chatName")
-    fun qFindByAccountNameAndName(accountId: Long, chatName: String): Chat?
+    @Query("SELECT c FROM Chat c WHERE c.name = :chatName")
+    fun qFindByName(chatName: String): Chat?
 
     /**
      * Returns [Boolean] based on whether a [Chat] is found in the chats that the [com.yourRPG.chatPG.model.Account] has
