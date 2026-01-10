@@ -22,9 +22,10 @@ class AccountController(
     @GetMapping("/current")
     fun getAccount(
         @AuthenticationPrincipal accountId: Long,
-    ): ResponseEntity<AccountDto> {
-        return ResponseEntity.ok(accountService.getDtoById(accountId))
-    }
+    ): ResponseEntity<AccountDto> =
+        ResponseEntity.ok(
+            accountService.getDtoById(accountId)
+        )
 
     /**
      * @see AccountService.existsByName
@@ -32,8 +33,9 @@ class AccountController(
     @PostMapping("/exists")
     fun accountExists(
         @RequestBody accountName: String
-    ): ResponseEntity<Boolean> {
-        return ResponseEntity.ok(accountService.existsByName(accountName))
-    }
+    ): ResponseEntity<Boolean> =
+        ResponseEntity.ok(
+            accountService.existsByName(accountName)
+        )
 
 }

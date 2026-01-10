@@ -20,11 +20,10 @@ class ChatController(
     @GetMapping("/all")
     fun getChats(
         @AuthenticationPrincipal accountId: Long
-    ): ResponseEntity<List<ChatDto>> {
-        return ResponseEntity.ok(
+    ): ResponseEntity<List<ChatDto>> =
+        ResponseEntity.ok(
             service.getChatsDtoByAccountId(accountId)
         )
-    }
 
     /**
      * @see ChatService.getDtoByAccountIdAndChatId
@@ -33,11 +32,10 @@ class ChatController(
     fun getChat(
         @AuthenticationPrincipal accountId: Long,
         @PathVariable chatName: String
-    ): ResponseEntity<ChatDto> {
-        return ResponseEntity.ok(
+    ): ResponseEntity<ChatDto> =
+        ResponseEntity.ok(
             service.getDtoByAccountIdAndChatId(accountId, chatName)
         )
-    }
 
     /**
      * @see ChatService.chooseModelForChat
@@ -47,11 +45,10 @@ class ChatController(
         @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         @RequestBody modelName: String
-    ): ResponseEntity<Void> {
-        service.chooseModelForChat(accountId, chatId, modelName)
-
-        return ResponseEntity.noContent().build()
-    }
+    ): ResponseEntity<Void> =
+        service.chooseModelForChat(accountId, chatId, modelName).let {
+            ResponseEntity.noContent().build()
+        }
 
     /**
      * @see ChatService.getModelDto
@@ -60,10 +57,9 @@ class ChatController(
     fun getChosenModel(
         @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long
-    ): ResponseEntity<AiModelDto> {
-        return ResponseEntity.ok(
+    ): ResponseEntity<AiModelDto> =
+        ResponseEntity.ok(
             service.getModelDto(accountId, chatId)
         )
-    }
 
 }

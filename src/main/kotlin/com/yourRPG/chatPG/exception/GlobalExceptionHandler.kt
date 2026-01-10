@@ -14,8 +14,8 @@ class GlobalExceptionHandler {
         return ResponseEntity.status(404).body(ex.message)
     }
 
-    @ExceptionHandler(BadRequestException::class)
-    fun badRequestException(ex: BadRequestException): ResponseEntity<String> {
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun illegalArgumentException(ex: IllegalArgumentException): ResponseEntity<String> {
         return ResponseEntity.status(400).body(ex.message)
     }
 

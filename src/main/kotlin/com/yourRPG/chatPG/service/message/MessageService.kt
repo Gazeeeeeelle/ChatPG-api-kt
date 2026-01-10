@@ -54,17 +54,17 @@ class MessageService(
      * @see ChatService.validateAccess
      * @see MessageRepository.qFindOldByChatIdAndReference
      */
-    fun getOldMessagesInChat(accountId: Long, chatId: Long, referenceId: Long): List<MessageDto> {
-        chatService.validateAccess(accountId, chatId)
+    fun getOldMessagesInChat(accountId: Long, chatId: Long, referenceId: Long): List<MessageDto> =
+        chatService.validateAccess(accountId, chatId).run {
+            require(referenceId >= -1L) {
+                "reference id must be >= 0 or -1"
+            }
 
-        return if (referenceId >= 0L) {
-            repository.qFindOldByChatIdAndReference(chatId, referenceId).toListDto()
-        } else if (referenceId == -1L) {
-            repository.qFindOldByChatIdAndReference(chatId, reference = Long.MAX_VALUE).toListDto()
-        } else {
-            throw InvalidMessageReferenceIdException("Valid reference required. Reference given: $referenceId")
+            return when(referenceId) {
+                -1L -> repository.qFindOldByChatIdAndReference(chatId, reference = Long.MAX_VALUE).toListDto()
+                else -> repository.qFindOldByChatIdAndReference(chatId, referenceId).toListDto()
+            }
         }
-    }
 
     /**
      * Fetches 20 messages in the [Chat] identified with [accountId] and [chatId]. The messages are fetched by selecting
@@ -77,13 +77,13 @@ class MessageService(
      * @see MessageRepository.qFindNewByChatIdAndReference
      */
     fun getNewMessagesInChat(accountId: Long, chatId: Long, referenceId: Long): List<MessageDto> {
-        chatService.validateAccess(accountId, chatId)
+        chatService.validateAccess(accountId, chatId).run {
+            if (referenceId < 0) {
+                throw InvalidMessageReferenceIdException("Valid reference required. Reference given: $referenceId")
+            }
 
-        if (referenceId < 0) {
-            throw InvalidMessageReferenceIdException("Valid reference required. Reference given: $referenceId")
+            return repository.qFindNewByChatIdAndReference(chatId, referenceId).toListDto()
         }
-
-        return repository.qFindNewByChatIdAndReference(chatId, referenceId).toListDto()
     }
 
     /**
@@ -95,57 +95,47 @@ class MessageService(
      * @see ChatService.validateAccess
      * @see MessageRepository.findByChatIdAndId
      */
-    fun getByChatIdAndId(accountId: Long, chatId: Long, messageId: Long): Message {
-        chatService.validateAccess(accountId, chatId)
+    fun getByChatIdAndId(accountId: Long, chatId: Long, messageId: Long): Message =
+        chatService.validateAccess(accountId, chatId).run {
+            return repository.findByChatIdAndId(chatId, messageId)
+                ?: throw MessageNotFoundException("Unable to find message with id: $messageId")
+        }
 
-        return repository.findByChatIdAndId(chatId, messageId)
-            ?: throw MessageNotFoundException("Unable to find message with id: $messageId")
-    }
-
-    fun getDtoByChatIdAndId(accountId: Long, chatId: Long, messageId: Long): MessageDto {
-        return getByChatIdAndId(accountId, chatId, messageId).toDto()
-    }
+    fun getDtoByChatIdAndId(accountId: Long, chatId: Long, messageId: Long): MessageDto =
+        getByChatIdAndId(accountId, chatId, messageId).toDto()
 
     /**
-     * Creates a message as the account identified by [accountId] in the chat identified by [chatId] with content [message]
+     * Creates a message as the account identified by [accountId] in the chat identified by [chatId] with content [content]
      *
      * @param accountId account identifier.
      * @param chatId chat identifier.
-     * @param message content of the message.
+     * @param content content of the message.
      * @return [MessageDto] of the message created.
-     * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
-     * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
+     * @see AccountService.getById
+     * @see ChatService.getByAccountIdAndChatId
      * @see createMessage
      */
-    fun sendMessage(accountId: Long, chatId: Long, message: String): MessageDto {
-        val account = accountService.getById(accountId)
-
-        val chat = chatService.getByAccountIdAndChatId(accountId, chatId)
-
-        return createMessage(account, chat, message, false).toDto()
-    }
+    fun sendMessage(accountId: Long, chatId: Long, content: String): MessageDto =
+        createMessage(
+            accountService.getById(accountId),
+            chatService.getByAccountIdAndChatId(accountId, chatId),
+            content,
+            isBot = false
+        ).toDto()
 
     /**
-     * Receives nullable [Account], [Chat], message content ([String]) and [Boolean] based on whether it is a bot message.
+     * Validates content of message, constructs the [Message], then persists it.
      *
-     * @param account which can be null in case it is a bot message.
-     * @param chat is the chat where the message is gonna be assigned to under creation.
-     * @param message message content.
-     * @param isBot
-     * @throws com.yourRPG.chatPG.exception.message.MessageContentNotFoundException if the String was null.
-     * @throws com.yourRPG.chatPG.exception.message.MessageContentBlankException if the String was blank.
+     * @param account who sent the message (can be null if a bot).
+     * @param chat chat where the message is gonna be assigned to under creation.
+     * @param content message content.
+     * @param isBot whether the message was sent by a bot or not
      * @see MessageContentValidator.validate
      */
-    private fun createMessage(account: Account?, chat: Chat, message: String, isBot: Boolean): Message {
-        contentValidator.validate(t = message)
-
-        val msg = Message(account, chat, content = message, isBot)
-
-        repository.save(msg)
-
-        return msg
-    }
+    private fun createMessage(account: Account?, chat: Chat, content: String, isBot: Boolean): Message =
+        contentValidator.validate(t = content).run {
+            repository.save(Message(account, chat, content, isBot))
+        }
 
     /**
      * Generates an AI message on a chat identified by [chatId].
@@ -155,11 +145,10 @@ class MessageService(
      * @see ChatService.getByAccountIdAndChatId
      * @see createAIMessage
      */
-    fun generateResponse(accountId: Long, chatId: Long): MessageDto {
-        val chat: Chat = chatService.getByAccountIdAndChatId(accountId, chatId)
-
-        return createAIMessage(chat)
-    }
+    fun generateResponse(accountId: Long, chatId: Long): MessageDto =
+        createAIMessage(
+            chatService.getByAccountIdAndChatId(accountId, chatId)
+        )
 
     /**
      * Fetches previous messages present in the chat ([MessageRepository.qFindAllMessagesFromChat]), then treats them
@@ -177,14 +166,20 @@ class MessageService(
      * @see createMessage
      */
     private fun createAIMessage(chat: Chat): MessageDto {
-        val previousMessages = repository.qFindAllMessagesFromChat(chat)
 
-        val memoryPrompt: String = chatPGService.treatMemoryForPrompt(previousMessages)
+        val messages = repository.qFindAllMessagesFromChat(chat)
 
-        val aiResponse: String = aiService.askAi(chat.model, memoryPrompt)
-            ?: throw NullAiResponse("Response from ${chat.model} was null")
+        val prompt = chatPGService.treatMemoryForPrompt(messages)
 
-        return createMessage(account = null, chat, message = aiResponse, true).toDto()
+        val content = aiService.askAi(chat.model, prompt)
+            ?: throw NullAiResponse("Response from ${chat.model.nickname} was null")
+
+        return createMessage(
+            account = null,
+            chat,
+            content,
+            isBot = true
+        ).toDto()
     }
 
     /**
@@ -199,13 +194,11 @@ class MessageService(
      * @throws MessageNotFoundException if no messages where deleted
      */
     @Transactional
-    fun deleteMessage(accountId: Long, chatId: Long, messageId: Long) {
-        chatService.validateAccess(accountId, chatId)
-
-        if (repository.qDeleteByChatIdAndId(chatId, messageId) == 0)
-            throw MessageNotFoundException("No messages deleted")
-
-    }
+    fun deleteMessage(accountId: Long, chatId: Long, messageId: Long) =
+        chatService.validateAccess(accountId, chatId).run {
+            if (repository.qDeleteByChatIdAndId(chatId, messageId) == 0)
+                throw MessageNotFoundException("No messages deleted")
+        }
 
     /**
      * Deletes a multiple messages in the chat identified by [chatId] with validation of [ChatService.validateAccess] to
@@ -221,15 +214,14 @@ class MessageService(
      * @see ChatService.validateAccess
      */
     @Transactional
-    fun bulkDeleteMessages(accountId: Long, chatId: Long, bound1: Long, bound2: Long) {
-        chatService.validateAccess(accountId, chatId)
+    fun bulkDeleteMessages(accountId: Long, chatId: Long, bound1: Long, bound2: Long) =
+        chatService.validateAccess(accountId, chatId).run {
+            val idStart = min(bound1, bound2)
+            val idFinish = max(bound1, bound2)
 
-        val idStart = min(bound1, bound2)
-        val idFinish = max(bound1, bound2)
+            if (repository.qBulkDeleteByChatIdFromIdToId(chatId, idStart, idFinish) == 0)
+                throw MessageNotFoundException("No messages deleted")
 
-        if (repository.qBulkDeleteByChatIdFromIdToId(chatId, idStart, idFinish) == 0)
-            throw MessageNotFoundException("No messages deleted")
-
-    }
+        }
 
 }

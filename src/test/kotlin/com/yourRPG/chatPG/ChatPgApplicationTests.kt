@@ -8,6 +8,7 @@ class ChatPgApplicationTests {
 
 	@Test
 	fun contextLoads() {
+
 	}
 
 }

@@ -47,9 +47,8 @@ class AiService(
      * @param nickname
      * @return [Boolean] for if an [AiModel] was found with nickname [nickname]
      */
-    fun isModelAvailable(nickname: String): Boolean {
-        return AiModel.findByNickName(nickname) != null
-    }
+    fun isModelAvailable(nickname: String): Boolean =
+        AiModel.findByNickName(nickname) != null
 
     /**
      * Returns a [List] of [String]s containing all the available model's nicknames

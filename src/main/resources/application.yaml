@@ -24,6 +24,10 @@ spring:
       genai:
         project-id: ${GOOGLE_CLOUD_PROJECT}
         location: southamerica-east1
+    chutes:
+      llm:
+        url: https://llm.chutes.ai/v1/chat/completions
+        api-key: ${CHUTES_API_KEY}
 
 hibernate:
   dialect: org.hibernate.dialect.HSQLDialect

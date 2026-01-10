@@ -20,11 +20,10 @@ class PollController(
         @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         @RequestBody command: String
-    ): ResponseEntity<PollDto> {
-        return ResponseEntity.ok(
+    ): ResponseEntity<PollDto> =
+        ResponseEntity.ok(
             pollService.start(accountId, chatId, command)
         )
-    }
 
     /**
      * @see PollService.vote
@@ -34,11 +33,10 @@ class PollController(
         @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         @RequestBody command: String
-    ): ResponseEntity<PollDto> {
-        return ResponseEntity.ok(
+    ): ResponseEntity<PollDto> =
+        ResponseEntity.ok(
             pollService.vote(accountId, chatId, command)
         )
-    }
 
     /**
      * @see PollService.all
@@ -47,10 +45,9 @@ class PollController(
     fun getPolls(
         @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long
-    ): ResponseEntity<List<PollDto>> {
-        return ResponseEntity.ok(
+    ): ResponseEntity<List<PollDto>> =
+         ResponseEntity.ok(
             pollService.all(accountId, chatId)
         )
-    }
 
 }

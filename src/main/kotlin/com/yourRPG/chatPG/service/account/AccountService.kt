@@ -14,8 +14,6 @@ class AccountService(
 
 ): IConvertible<Account, AccountDto> {
 
-    private val notFoundException = AccountNotFoundException("Account not found")
-
     /**
      * Conversion.
      * @see IConvertible
@@ -30,10 +28,9 @@ class AccountService(
      * @throws AccountNotFoundException
      * if the id did not identify an account
      */
-    fun getById(id: Long): Account {
-        return repository.findById(id).orElse(null)
-            ?: throw notFoundException
-    }
+    fun getById(id: Long): Account =
+        repository.findById(id).orElse(null)
+            ?: throw AccountNotFoundException("Account not found with id $id")
 
     /**
      * Delegates fetching of Account to [getById] and then converts it to DTO.
@@ -43,12 +40,14 @@ class AccountService(
      *
      * @see getById
      */
-    fun getDtoById(accountId: Long): AccountDto {
-        return getById(accountId).toDto()
-    }
+    fun getDtoById(accountId: Long): AccountDto =
+        getById(accountId).toDto()
 
-    fun existsByName(accountName: String): Boolean? {
-        return repository.existsByNameEquals(accountName)
-    }
+    fun existsByName(accountName: String): Boolean =
+        repository.existsByNameEquals(accountName)
+
+    fun getByName(accountName: String): Account =
+        repository.findByNameEquals(accountName)
+            ?: throw AccountNotFoundException("Account not found with name $accountName")
 
 }

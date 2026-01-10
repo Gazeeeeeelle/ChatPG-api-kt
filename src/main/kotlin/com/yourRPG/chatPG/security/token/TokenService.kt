@@ -2,22 +2,20 @@ package com.yourRPG.chatPG.security.token
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.Claim
-import com.yourRPG.chatPG.exception.account.AccountNotFoundException
 import com.yourRPG.chatPG.exception.security.InvalidTokenException
-import com.yourRPG.chatPG.repository.AccountRepository
+import com.yourRPG.chatPG.service.account.AccountService
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
+import java.time.Duration
 import java.time.Instant
-import java.time.ZoneId
 
 @Service
 class TokenService(
-    /* Repositories */
-    private val accountRepository: AccountRepository,
+    /* Services */
+    private val accountService: AccountService,
 ) {
 
     @Value("\${api.security.token.secret}")
@@ -33,34 +31,30 @@ class TokenService(
     }
 
     fun generateToken(userDetails: UserDetails): String {
-
-        val account = accountRepository.findByNameEquals(userDetails.username)
-            ?: throw AccountNotFoundException("Account not found")
+        val account = accountService.getByName(userDetails.username)
 
         val now = Instant.now()
-            .atZone(ZoneId.systemDefault())
-            .toInstant()
+        val expiresAt = now.plus(Duration.ofMinutes(10))
 
-        return JWT.create()
-            .withIssuer(issuer)
-            .withIssuedAt(now)
-            .withExpiresAt(now.plusSeconds(600))
-            .withSubject(account.username)
-            .withClaim("id", account.id)
-            .sign(algorithm)
+        return JWT.create().apply {
+            withIssuer(issuer)
+            withIssuedAt(now)
+            withExpiresAt(expiresAt)
+            withSubject(account.username)
+            withClaim("id", account.id)
+        }.sign(algorithm)
     }
 
-    fun getClaim(token: String, claim: String): Claim {
-        try {
-            return JWT.require(algorithm)
+    fun getClaim(token: String, claim: String): Claim =
+        runCatching {
+            JWT.require(algorithm)
                 .withIssuer(issuer)
                 .build()
                 .verify(token)
                 .claims[claim]
                 ?: throw InvalidTokenException("Invalid claim")
-        } catch (ex: JWTVerificationException) {
+        }.getOrElse { ex ->
             throw InvalidTokenException(ex.message ?: "Token invalid")
         }
-    }
 
 }

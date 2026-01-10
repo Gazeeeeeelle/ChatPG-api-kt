@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/login")
 class AuthController(
-    private val authService: AuthService
+    private val service: AuthService
 ) {
 
     /**
@@ -22,8 +22,9 @@ class AuthController(
     @PostMapping
     fun login(
         @Valid @RequestBody credentials: LoginCredentials
-    ): ResponseEntity<TokenDto> {
-        return ResponseEntity.ok(authService.login(credentials))
-    }
+    ): ResponseEntity<TokenDto> =
+        ResponseEntity.ok(
+            service.login(credentials)
+        )
 
 }

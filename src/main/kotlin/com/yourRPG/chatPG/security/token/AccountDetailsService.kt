@@ -1,20 +1,18 @@
 package com.yourRPG.chatPG.security.token
 
-import com.yourRPG.chatPG.exception.account.AccountNotFoundException
-import com.yourRPG.chatPG.repository.AccountRepository
+import com.yourRPG.chatPG.service.account.AccountService
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.stereotype.Service
 
 @Service
 class AccountDetailsService(
-    /* Repositories */
-    private val accountRepository: AccountRepository
+    /* Services */
+    private val accountService: AccountService
 ): UserDetailsService {
 
     override fun loadUserByUsername(username: String): UserDetails {
-        return accountRepository.findByNameEquals(username)
-            ?: throw AccountNotFoundException("Account not found: $username")
+        return accountService.getByName(username)
     }
 
 }
