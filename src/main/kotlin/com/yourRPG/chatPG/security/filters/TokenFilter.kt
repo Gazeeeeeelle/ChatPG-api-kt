@@ -19,17 +19,15 @@ class TokenFilter(
     private val accountService: AccountService
 ): Filter {
 
-    private val ignoredPaths: List<String> =
-        listOf("/login", "/accounts/exists")
-
     override fun doFilter(
         request: ServletRequest,
         response: ServletResponse,
         filterChain: FilterChain
     ) {
-        (request as HttpServletRequest)
 
-        if (request.servletPath in ignoredPaths) {
+        if ((request as HttpServletRequest)
+                .servletPath.startsWith("/login")
+        ) {
             filterChain.doFilter(request, response)
             return
         }
@@ -54,6 +52,6 @@ class TokenFilter(
         return request.getHeader("Authorization")
             ?.replace("Bearer ", "")
             ?: throw AccessToAccountUnauthorizedException("Authorization header is missing")
-    }
+   }
 
 }

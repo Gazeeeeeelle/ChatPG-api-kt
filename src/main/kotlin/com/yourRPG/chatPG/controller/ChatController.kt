@@ -30,11 +30,10 @@ class ChatController(
      */
     @GetMapping("/byName/{chatName}")
     fun getChat(
-        @AuthenticationPrincipal accountId: Long,
         @PathVariable chatName: String
     ): ResponseEntity<ChatDto> =
         ResponseEntity.ok(
-            service.getDtoByAccountIdAndChatId(accountId, chatName)
+            service.getDtoByAccountIdAndChatId(chatName)
         )
 
     /**
@@ -42,24 +41,22 @@ class ChatController(
      */
     @PatchMapping("/{chatId}/chooseModel")
     fun chooseModel(
-        @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
         @RequestBody modelName: String
     ): ResponseEntity<Void> =
-        service.chooseModelForChat(accountId, chatId, modelName).let {
+        service.chooseModelForChat(chatId, modelName).let {
             ResponseEntity.noContent().build()
         }
 
     /**
      * @see ChatService.getModelDto
      */
-    @GetMapping("/{chatId}/chosenModel")
+    @GetMapping("/{chatId}/chosenModel") //TODO rename 'chosenModel' to simply 'model'
     fun getChosenModel(
-        @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long
     ): ResponseEntity<AiModelDto> =
         ResponseEntity.ok(
-            service.getModelDto(accountId, chatId)
+            service.getModelDto(chatId)
         )
 
 }

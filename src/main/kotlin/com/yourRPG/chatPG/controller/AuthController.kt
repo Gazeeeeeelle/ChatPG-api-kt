@@ -1,8 +1,9 @@
 package com.yourRPG.chatPG.controller
 
-import com.yourRPG.chatPG.dto.account.LoginCredentials
+import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.security.AuthService
+import com.yourRPG.chatPG.service.account.AccountService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -13,7 +14,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/login")
 class AuthController(
-    private val service: AuthService
+    private val service: AuthService,
+    private val accountService: AccountService
 ) {
 
     /**
@@ -25,6 +27,17 @@ class AuthController(
     ): ResponseEntity<TokenDto> =
         ResponseEntity.ok(
             service.login(credentials)
+        )
+
+    /**
+     * @see AccountService.existsByName
+     */
+    @PostMapping("/exists")
+    fun accountExists(
+        @RequestBody accountName: String
+    ): ResponseEntity<Boolean> =
+        ResponseEntity.ok(
+            accountService.existsByName(accountName)
         )
 
 }

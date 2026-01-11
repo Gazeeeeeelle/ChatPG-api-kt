@@ -37,24 +37,23 @@ class PollService(
         )
 
     /**
-     * Returns all polls active in the chat
+     * Returns all polls active in the chat.
      *
-     * @param accountId
      * @param chatId
      *
-     * @return Mutable list of poll DTOs
+     * @return Mutable list of poll DTOs.
      *
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
      */
-    fun all(accountId: Long, chatId: Long): List<PollDto> {
-        chatService.getByAccountIdAndChatId(accountId, chatId)
+    fun all(chatId: Long): List<PollDto> {
+        chatService.getByChatId(chatId)
 
         return pollRepository.findAllByChatId(chatId).toListDto()
     }
 
     /**
      * Starts a new poll on a chat.
-     * The subject given is used to determine what to do when the poll finishes successfully
+     * The subject given is used to determine what to do when the poll finishes successfully.
      *
      * @param accountId
      * @param chatId
@@ -64,12 +63,10 @@ class PollService(
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
      * if [chatId] did not identify an existing chat
      * or if the account identified by [accountId] did not have access to it
-     *
-     * @throws TODO
      */
     fun start(accountId: Long, chatId: Long, command: String): PollDto {
         
-        val chat = chatService.getByAccountIdAndChatId(accountId, chatId)
+        val chat = chatService.getByChatId(chatId)
         
         val subject = PollSubject.valueOf(command)
         
@@ -92,15 +89,11 @@ class PollService(
      * 
      * @return [PollDto] of the [Poll] identified.
      * 
-     * @throws com.yourRPG.chatPG.exception.account.AccountNotFoundException if [accountId] did not identify an account.
-     * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException if [chatId] did not identify a chat.
-     * @throws com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException if the [com.yourRPG.chatPG.model.Account]
-     *  identified by [accountId] does not have access to the [Chat] found by [chatId].
      * @throws AlreadyVotedInPollException if the [accountId] is already present on the list of votes of the [Poll].
      */
     fun vote(accountId: Long, chatId: Long, command: String): PollDto {
 
-        val chat = chatService.getByAccountIdAndChatId(accountId, chatId)
+        val chat = chatService.getByChatId(chatId)
 
         val subject = PollSubject.valueOf(command)
 

@@ -1,5 +1,6 @@
 package com.yourRPG.chatPG.security.config
 
+import com.yourRPG.chatPG.security.filters.AccessToChatFilter
 import com.yourRPG.chatPG.security.filters.TokenFilter
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -21,7 +22,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 class SecurityConfiguration(
-    private val tokenFilter: TokenFilter
+    private val tokenFilter: TokenFilter,
+    private val accessToChatFilter: AccessToChatFilter
 ) {
 
     @Bean
@@ -34,11 +36,11 @@ class SecurityConfiguration(
             it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         }
         authorizeHttpRequests {
-            it.requestMatchers(HttpMethod.POST, "/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/accounts/exists").permitAll()
+            it.requestMatchers(HttpMethod.POST, "/login/**").permitAll()
                 .anyRequest().authenticated()
         }
         addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter::class.java)
+        addFilterAfter(accessToChatFilter, UsernamePasswordAuthenticationFilter::class.java)
         build()
     }
 
