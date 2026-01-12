@@ -160,7 +160,6 @@ class MessageService(
         val prompt = chatPGService.treatMemoryForPrompt(messages)
 
         val content = aiService.askAi(chat.model, prompt)
-            ?: throw NullAiResponse("Response from ${chat.model.nickname} was null")
 
         return createMessage(
             account = null,

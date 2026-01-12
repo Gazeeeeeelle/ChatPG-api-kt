@@ -3,6 +3,7 @@ package com.yourRPG.chatPG.service.poll
 import com.yourRPG.chatPG.dto.poll.PollDto
 import com.yourRPG.chatPG.exception.BadRequestException
 import com.yourRPG.chatPG.exception.poll.AlreadyVotedInPollException
+import com.yourRPG.chatPG.exception.poll.PollNotFoundException
 import com.yourRPG.chatPG.model.Chat
 import com.yourRPG.chatPG.model.Poll
 import com.yourRPG.chatPG.model.Poll.CompositePrimaryKey
@@ -26,7 +27,10 @@ class PollService(
     private val pollValidators: PollValidators
 ): IConvertible<Poll, PollDto> {
 
-    /* Conversion */
+    /**
+     * Conversion.
+     * @see IConvertible
+     */
     override fun dtoOf(c: Poll): PollDto =
         PollDto(
             chat = chatService.dtoOf(c = c.chat),
@@ -34,6 +38,18 @@ class PollService(
             c.quota,
             votes = c.votes.size
         )
+
+    /**
+     * Returns poll of subject [subject] in chat [chat].
+     *
+     * @param chat where to look for such poll.
+     * @param subject specific matter the poll must address.
+     * @return [Poll] found.
+     * @throws PollNotFoundException if there is no such poll with that subject in that chat.
+     */
+    fun getById(chat: Chat, subject: PollSubject): Poll =
+        pollRepository.getReferenceById(CompositePrimaryKey(chat, subject))
+            ?: throw PollNotFoundException("No poll with subject \"${subject.name}\" in chat with id ${chat.id}")
 
     /**
      * Returns all polls active in the chat.
@@ -44,11 +60,8 @@ class PollService(
      *
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
      */
-    fun all(chatId: Long): List<PollDto> {
-        chatService.getByChatId(chatId)
-
-        return pollRepository.findAllByChatId(chatId).toListDto()
-    }
+    fun all(chatId: Long): List<PollDto> =
+        pollRepository.findAllByChatId(chatId).toListDto()
 
     /**
      * Starts a new poll on a chat.
@@ -66,8 +79,9 @@ class PollService(
     fun start(accountId: Long, chatId: Long, command: String): PollDto {
         
         val chat = chatService.getByChatId(chatId)
-        
-        val subject = PollSubject.valueOf(command)
+
+        val subject = runCatching { PollSubject.valueOf(command) }
+            .getOrElse { throw BadRequestException("Invalid command: $command") }
 
         val amountOfAccountsInChat = chatService.getAmountOfAccounts(chatId)
         
@@ -96,13 +110,10 @@ class PollService(
 
         val chat = chatService.getByChatId(chatId)
 
-        val subject = runCatching {
-            PollSubject.valueOf(command)
-        }.getOrElse {
-            throw BadRequestException("No such command: $command")
-        }
+        val subject = runCatching { PollSubject.valueOf(command) }
+            .getOrElse { throw BadRequestException("No such command: $command") }
 
-        val poll = pollRepository.getReferenceById(CompositePrimaryKey(chat, subject))
+        val poll = getById(chat, subject)
 
         pollValidators.validateVote(accountId, poll)
 

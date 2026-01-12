@@ -8,6 +8,7 @@ import javax.security.auth.login.AccountNotFoundException
 @Service
 class ChatpgService {
 
+    //Fixed prefix for AI message
     private companion object {
         const val AI_PREFIX: String = "[AI:]"
     }
