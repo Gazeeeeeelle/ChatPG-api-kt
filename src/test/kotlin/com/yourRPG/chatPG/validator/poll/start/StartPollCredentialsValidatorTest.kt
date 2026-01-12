@@ -47,6 +47,12 @@ class StartPollCredentialsValidatorTest {
         given(t.subject)
             .willReturn(PollSubject.NONE)
 
+        given(t.chat)
+            .willReturn(chat)
+
+        given(chat.id)
+            .willReturn(null)
+
         //ACT + ASSERT
         assertThrows<ChatNotFoundException> {
             validator.validate(t)

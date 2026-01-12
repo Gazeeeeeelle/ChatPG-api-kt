@@ -12,7 +12,7 @@
 	<artifactId>chatPG</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>chatPG</name>
-	<description>ChatBots in group with many friends!</description>
+	<description>Chat in group</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -103,6 +103,8 @@
 			<artifactId>java-jwt</artifactId>
 			<version>4.5.0</version>
 		</dependency>
+
+
 
 	</dependencies>
 	<dependencyManagement>
