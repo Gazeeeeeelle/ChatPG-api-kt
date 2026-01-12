@@ -2,6 +2,7 @@ package com.yourRPG.chatPG.model
 
 import com.yourRPG.chatPG.service.poll.PollSubject
 import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
 import java.io.Serializable
 
 /**
@@ -17,7 +18,9 @@ class Poll {
 
     @Id
     @ManyToOne
-    var chat: Chat? = null
+    @JoinColumn(name = "chat_id", nullable = false)
+    @NotNull
+    lateinit var chat: Chat
         protected set
 
     @Id
@@ -32,7 +35,7 @@ class Poll {
         protected set
 
 
-    constructor(chat: Chat?, subject: PollSubject, quota: Int) {
+    constructor(chat: Chat, subject: PollSubject, quota: Int) {
         this.chat = chat
         this.subject = subject
         this.quota = quota

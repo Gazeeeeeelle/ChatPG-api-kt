@@ -71,7 +71,7 @@ class TokenFilterTest: FilterTest() {
     }
 
     @Test
-    fun valid_ignored() {
+    fun `valid because such paths are not filtered`() {
         valid_ignoredPath("/login")
         valid_ignoredPath("/login/exists")
     }
@@ -90,7 +90,7 @@ class TokenFilterTest: FilterTest() {
     }
 
     @Test
-    fun invalid_token() {
+    fun `invalid because Authorization header is lacking`() {
         //ARRANGE
         given(request.servletPath)
             .willReturn("/somethingElse")
@@ -107,7 +107,7 @@ class TokenFilterTest: FilterTest() {
     }
 
     @Test
-    fun invalid_accountNotFound() {
+    fun `invalid because a token was given with a principal (Long id value) that did not identify an existing account`() {
         //ARRANGE
         given(request.servletPath)
             .willReturn("/somethingElse")

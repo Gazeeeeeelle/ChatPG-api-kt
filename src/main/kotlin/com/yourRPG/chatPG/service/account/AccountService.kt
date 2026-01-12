@@ -5,6 +5,7 @@ import com.yourRPG.chatPG.exception.account.AccountNotFoundException
 import com.yourRPG.chatPG.model.Account
 import com.yourRPG.chatPG.repository.AccountRepository
 import com.yourRPG.chatPG.service.IConvertible
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 @Service
@@ -26,10 +27,10 @@ class AccountService(
      * @param id
      * @return [Account]
      * @throws AccountNotFoundException
-     * if the id did not identify an account
+     *  if the id did not identify an account
      */
     fun getById(id: Long): Account =
-        repository.findById(id).orElse(null)
+        repository.findByIdOrNull(id)
             ?: throw AccountNotFoundException("Account not found with id $id")
 
     /**
@@ -43,9 +44,24 @@ class AccountService(
     fun getDtoById(accountId: Long): AccountDto =
         getById(accountId).toDto()
 
+    /**
+     * Returns a [Boolean] on whether an account was found with name [accountName]
+     *
+     * @param accountName
+     * @return [Boolean] based on if the account exists or not.
+     * @see AccountRepository.existsByNameEquals
+     */
     fun existsByName(accountName: String): Boolean =
         repository.existsByNameEquals(accountName)
 
+    /**
+     * Returns the [Account] found by its name [accountName]
+     *
+     * @param accountName name of the account being searched for
+     * @return [Account] found by name [accountName].
+     * @throws AccountNotFoundException
+     *  if the name did not identify an account
+     */
     fun getByName(accountName: String): Account =
         repository.findByNameEquals(accountName)
             ?: throw AccountNotFoundException("Account not found with name $accountName")

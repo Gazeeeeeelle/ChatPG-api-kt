@@ -1,5 +1,7 @@
-package com.yourRPG.chatPG.exception
+package com.yourRPG.chatPG.exception.handler
 
+import com.yourRPG.chatPG.exception.NotFoundException
+import com.yourRPG.chatPG.exception.UnauthorizedException
 import com.yourRPG.chatPG.exception.ai.models.UnavailableAiException
 import com.yourRPG.chatPG.exception.poll.PollAlreadyExistsException
 import org.springframework.http.ResponseEntity

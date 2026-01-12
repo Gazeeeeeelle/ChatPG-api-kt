@@ -14,12 +14,15 @@ class PollCommandRunnerService(
 ) {
 
     /**
-     * TODO
+     * Runs a command based on the [poll]'s subject.
+     *
+     * @param poll
+     * @throws IllegalStateException if the subject does not have a treatment
      */
     fun run(poll: Poll) {
         when (poll.subject) {
             PollSubject.REQUEST_AI_MESSAGE -> messageService.generateResponse(
-                chatId = poll.chat?.id
+                chatId = poll.chat.id
                     ?: throw ChatNotFoundException("Null chat id")
             )
 

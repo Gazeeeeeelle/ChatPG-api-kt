@@ -26,14 +26,14 @@ class ChatController(
         )
 
     /**
-     * @see ChatService.getDtoByAccountIdAndChatId
+     * @see ChatService.getDtoByChatName
      */
     @GetMapping("/byName/{chatName}")
     fun getChat(
         @PathVariable chatName: String
     ): ResponseEntity<ChatDto> =
         ResponseEntity.ok(
-            service.getDtoByAccountIdAndChatId(chatName)
+            service.getDtoByChatName(chatName)
         )
 
     /**
@@ -51,7 +51,7 @@ class ChatController(
     /**
      * @see ChatService.getModelDto
      */
-    @GetMapping("/{chatId}/chosenModel") //TODO rename 'chosenModel' to simply 'model'
+    @GetMapping("/{chatId}/model")
     fun getChosenModel(
         @PathVariable chatId: Long
     ): ResponseEntity<AiModelDto> =

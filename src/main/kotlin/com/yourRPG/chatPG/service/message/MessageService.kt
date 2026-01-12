@@ -68,7 +68,6 @@ class MessageService(
      * @see MessageRepository.qFindNewByChatIdAndReference
      */
     fun getNewMessagesInChat(chatId: Long, referenceId: Long): List<MessageDto> {
-
         require(referenceId >= -1L) { "Invalid reference ID: $referenceId" }
 
         return repository.qFindNewByChatIdAndReference(chatId, referenceId).toListDto()
@@ -196,8 +195,7 @@ class MessageService(
      */
     @Transactional
     fun bulkDeleteMessages(chatId: Long, bound1: Long, bound2: Long) {
-        val idStart = min(bound1, bound2)
-        val idFinish = max(bound1, bound2)
+        val (idStart, idFinish) = min(a = bound1, b = bound2) to max(a = bound1, b = bound2)
 
         repository.qBulkDeleteByChatIdFromIdToId(chatId, idStart, idFinish).let {
             if (it == 0) throw MessageNotFoundException("No messages deleted")

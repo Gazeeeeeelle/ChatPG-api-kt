@@ -1,7 +1,6 @@
 package com.yourRPG.chatPG.service.poll
 
 import com.yourRPG.chatPG.dto.poll.PollDto
-import com.yourRPG.chatPG.exception.chat.ChatNotFoundException
 import com.yourRPG.chatPG.exception.poll.AlreadyVotedInPollException
 import com.yourRPG.chatPG.model.Chat
 import com.yourRPG.chatPG.model.Poll
@@ -29,10 +28,9 @@ class PollService(
     /* Conversion */
     override fun dtoOf(c: Poll): PollDto =
         PollDto(
-            chat = chatService.dtoOf(c = c.chat
-                ?: throw ChatNotFoundException("Absence of chat made conversion to DTO impossible")),
-            subject = c.subject,
-            quota = c.quota,
+            chat = chatService.dtoOf(c = c.chat),
+            c.subject,
+            c.quota,
             votes = c.votes.size
         )
 
@@ -69,8 +67,10 @@ class PollService(
         val chat = chatService.getByChatId(chatId)
         
         val subject = PollSubject.valueOf(command)
+
+        val amountOfAccountsInChat = chatService.getAmountOfAccounts(chatId)
         
-        val poll = Poll(chat, subject, quota = (chat.getAmountOfAccounts() + 1) / 2)
+        val poll = Poll(chat, subject, quota = (amountOfAccountsInChat + 1) / 2)
 
         pollValidators.validateStart(accountId, chat, poll)
 
