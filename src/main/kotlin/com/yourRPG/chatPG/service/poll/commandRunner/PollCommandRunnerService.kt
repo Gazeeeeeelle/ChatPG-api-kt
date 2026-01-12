@@ -21,10 +21,7 @@ class PollCommandRunnerService(
      */
     fun run(poll: Poll) {
         when (poll.subject) {
-            PollSubject.REQUEST_AI_MESSAGE -> messageService.generateResponse(
-                chatId = poll.chat.id
-                    ?: throw ChatNotFoundException("Null chat id")
-            )
+            PollSubject.REQUEST_AI_MESSAGE -> messageService.createAIMessage(poll.chat)
 
             else -> throw IllegalStateException("Unexpected value")
         }

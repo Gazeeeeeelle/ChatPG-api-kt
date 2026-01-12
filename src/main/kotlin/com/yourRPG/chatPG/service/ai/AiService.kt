@@ -31,7 +31,7 @@ class AiService(
      * if the AI's response could not fit the expected object, likely because the response was an error object, and therefore it is judged as an Internal Server Error from the provider's end.
      */
     fun askAi(model: AiModel, prompt: String): String? {
-        require(model.provider == AiProvider.NONE) { "Model cannot be \"none\" to request ai message." }
+        require(model.provider != AiProvider.NONE) { "Model cannot be \"none\" to request ai message." }
 
         return providers.find {it.getProvider() == model.provider}
             ?.askAi(model, prompt)

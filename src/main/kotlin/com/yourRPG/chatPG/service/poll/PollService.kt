@@ -1,6 +1,7 @@
 package com.yourRPG.chatPG.service.poll
 
 import com.yourRPG.chatPG.dto.poll.PollDto
+import com.yourRPG.chatPG.exception.BadRequestException
 import com.yourRPG.chatPG.exception.poll.AlreadyVotedInPollException
 import com.yourRPG.chatPG.model.Chat
 import com.yourRPG.chatPG.model.Poll
@@ -95,7 +96,11 @@ class PollService(
 
         val chat = chatService.getByChatId(chatId)
 
-        val subject = PollSubject.valueOf(command)
+        val subject = runCatching {
+            PollSubject.valueOf(command)
+        }.getOrElse {
+            throw BadRequestException("No such command: $command")
+        }
 
         val poll = pollRepository.getReferenceById(CompositePrimaryKey(chat, subject))
 

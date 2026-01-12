@@ -153,7 +153,7 @@ class MessageService(
      * @see AiService.askAi
      * @see createMessage
      */
-    private fun createAIMessage(chat: Chat): MessageDto {
+    fun createAIMessage(chat: Chat): MessageDto {
 
         val messages = repository.qFindAllMessagesFromChat(chat)
 
