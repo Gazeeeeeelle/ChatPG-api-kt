@@ -45,14 +45,17 @@ class SecurityConfiguration(
     @Value("\${server.address}")
     private lateinit var address: String
 
+    @Value("\${server.radmin.address}")
+    private lateinit var radminAddress: String
+
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource = UrlBasedCorsConfigurationSource().apply {
         val configuration = CorsConfiguration().apply {
             allowedOrigins = listOf(
                 "http://$address:5500",
-                "http://26.17.132.72:8081",
+                "http://$radminAddress:8081",
                 "http://127.0.0.1:5500",
-                "http://26.17.132.72:5500"
+                "http://$radminAddress:5500"
             )
             allowedMethods =
                 listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD", "TRACE", "CONNECT")
