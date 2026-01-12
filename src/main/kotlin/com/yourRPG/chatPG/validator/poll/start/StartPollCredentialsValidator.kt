@@ -17,8 +17,8 @@ class StartPollCredentialsValidator(
     override fun validate(t: Poll): Poll {
 
         val alreadyExists: Boolean = pollRepository.existsByChatIdAndSubject(
-            chatId = t.chat?.id
-                ?: throw ChatNotFoundException("Chat id cannot be null"),
+            chatId = t.chat.id
+                ?: throw ChatNotFoundException("No chat id found"),
             subject = t.subject
         )
 

@@ -1,6 +1,5 @@
 package com.yourRPG.chatPG.service.poll.commandRunner
 
-import com.yourRPG.chatPG.exception.chat.ChatNotFoundException
 import com.yourRPG.chatPG.model.Poll
 import com.yourRPG.chatPG.service.message.MessageService
 import com.yourRPG.chatPG.service.poll.PollSubject
@@ -21,10 +20,7 @@ class PollCommandRunnerService(
      */
     fun run(poll: Poll) {
         when (poll.subject) {
-            PollSubject.REQUEST_AI_MESSAGE -> messageService.generateResponse(
-                chatId = poll.chat.id
-                    ?: throw ChatNotFoundException("Null chat id")
-            )
+            PollSubject.REQUEST_AI_MESSAGE -> messageService.createAIMessage(poll.chat)
 
             else -> throw IllegalStateException("Unexpected value")
         }

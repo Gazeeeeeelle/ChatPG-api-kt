@@ -22,9 +22,8 @@ class GoogleAiService: IResponsive {
      *  catching the [com.fasterxml.jackson.databind.exc.MismatchedInputException], like it's usually done,
      *  the [ServerException] is caught to then throw the usual [UnavailableAiException].
      */
-    override fun askAi(model: AiModel, prompt: String): String? {
-
-        return runCatching {
+    override fun askAi(model: AiModel, prompt: String): String? =
+        runCatching {
             client.models.generateContent(
                 model.modelName,
                 prompt,
@@ -33,7 +32,5 @@ class GoogleAiService: IResponsive {
         }.getOrElse {
             throw UnavailableAiException("The model ${model.nickname} is temporarily unavailable.")
         }
-
-    }
 
 }
