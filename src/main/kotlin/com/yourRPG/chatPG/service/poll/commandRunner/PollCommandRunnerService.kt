@@ -1,6 +1,5 @@
 package com.yourRPG.chatPG.service.poll.commandRunner
 
-import com.yourRPG.chatPG.exception.chat.ChatNotFoundException
 import com.yourRPG.chatPG.model.Poll
 import com.yourRPG.chatPG.service.message.MessageService
 import com.yourRPG.chatPG.service.poll.PollSubject
