@@ -1,6 +1,8 @@
 server:
   address: 127.0.0.1
   port: 8080
+  radmin:
+    address: ${RADMIN_ADDRESS}
   error:
     include-stacktrace: never
   servlet:
