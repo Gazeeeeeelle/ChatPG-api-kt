@@ -1,6 +1,5 @@
 package com.yourRPG.chatPG.repository
 
-import com.yourRPG.chatPG.model.Chat
 import com.yourRPG.chatPG.model.Poll
 import com.yourRPG.chatPG.service.poll.PollSubject
 import org.springframework.data.jpa.repository.JpaRepository
