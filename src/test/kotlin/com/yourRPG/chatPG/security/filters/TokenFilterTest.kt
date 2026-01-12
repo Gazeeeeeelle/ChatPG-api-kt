@@ -6,7 +6,9 @@ import com.yourRPG.chatPG.model.Account
 import com.yourRPG.chatPG.security.token.TokenService
 import com.yourRPG.chatPG.service.account.AccountService
 import jakarta.servlet.http.HttpServletResponse
+import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.ArgumentMatchers.eq
@@ -19,6 +21,7 @@ import org.mockito.Mockito.times
 import org.mockito.Spy
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
+import java.util.stream.Stream
 
 class TokenFilterTest: FilterTest() {
 
@@ -70,24 +73,24 @@ class TokenFilterTest: FilterTest() {
         mockedSch.verify { SecurityContextHolder.getContext() }
     }
 
-    @Test
-    fun `valid because such paths are not filtered`() {
-        valid_ignoredPath("/login")
-        valid_ignoredPath("/login/exists")
-    }
+    @TestFactory
+    fun `valid because such paths are not filtered`(): Stream<DynamicTest> =
+        Stream.of(
+            "/login", "/login/exists"
+        ).map { path ->
+            DynamicTest.dynamicTest("path: $path") {
+                //ARRANGE
+                given(request.servletPath)
+                    .willReturn(path)
 
-    fun valid_ignoredPath(path: String) {
-        //ARRANGE
-        given(request.servletPath)
-            .willReturn(path)
+                //ACT
+                tokenFilter.doFilter(request, response, filterChain)
 
-        //ACT
-        tokenFilter.doFilter(request, response, filterChain)
-
-        //ASSERT
-        Mockito.verify(request, times(0))
-            .getHeader("Authorization")
-    }
+                //ASSERT
+                Mockito.verify(request, times(0))
+                    .getHeader("Authorization")
+            }
+        }
 
     @Test
     fun `invalid because Authorization header is lacking`() {
