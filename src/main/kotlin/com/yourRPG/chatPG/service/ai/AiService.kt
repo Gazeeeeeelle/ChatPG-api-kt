@@ -1,7 +1,7 @@
 package com.yourRPG.chatPG.service.ai
 
 import com.yourRPG.chatPG.dto.ai.model.AiModelDto
-import com.yourRPG.chatPG.exception.ai.models.UnavailableAiException
+import com.yourRPG.chatPG.exception.ai.NullAiResponse
 import com.yourRPG.chatPG.service.IConvertible
 import com.yourRPG.chatPG.service.ai.providers.AiModel
 import com.yourRPG.chatPG.service.ai.providers.AiProvider
@@ -30,12 +30,12 @@ class AiService(
      * @throws com.yourRPG.chatPG.exception.ai.models.UnavailableAiException
      * if the AI's response could not fit the expected object, likely because the response was an error object, and therefore it is judged as an Internal Server Error from the provider's end.
      */
-    fun askAi(model: AiModel, prompt: String): String? {
+    fun askAi(model: AiModel, prompt: String): String {
         require(model.provider != AiProvider.NONE) { "Model cannot be \"none\" to request ai message." }
 
-        return providers.find {it.getProvider() == model.provider}
+        return providers.find { it.getProvider() == model.provider }
             ?.askAi(model, prompt)
-            ?: throw UnavailableAiException("Provider ${model.provider} not implemented.")
+            ?: throw NullAiResponse("Response from ${model.nickname} was null")
     }
 
     /**
