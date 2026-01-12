@@ -29,9 +29,8 @@ class ChatService(
      * @param accountId
      * @return [MutableList] of [ChatDto]
      */
-    fun getChatsByAccountId(accountId: Long): List<Chat> {
-        return repository.qFindByAccountId(accountId)
-    }
+    fun getChatsByAccountId(accountId: Long): List<Chat> =
+        repository.qFindByAccountId(accountId)
 
     /**
      * The fetching of the objects from the database is delegated to [getChatsByAccountId] and then converted to DTO.
@@ -40,9 +39,8 @@ class ChatService(
      * @return [MutableList] of [ChatDto]
      * @see getChatsByAccountId
      */
-    fun getChatsDtoByAccountId(accountId: Long): List<ChatDto> {
-        return getChatsByAccountId(accountId).toListDto()
-    }
+    fun getChatsDtoByAccountId(accountId: Long): List<ChatDto> =
+        getChatsByAccountId(accountId).toListDto()
 
     /**
      * Returns the [AiModelDto] of the [AiModel] active on the chat identified with [chatId].
@@ -51,11 +49,8 @@ class ChatService(
      * @return [AiModelDto]
      * @throws ChatNotFoundException
      */
-    fun getModelDto(chatId: Long): AiModelDto {
-        val chat: Chat = getByChatId(chatId)
-
-        return aiService.dtoOf(chat.model)
-    }
+    fun getModelDto(chatId: Long): AiModelDto =
+        aiService.dtoOf(getByChatId(chatId).model)
 
     /**
      * Returns a [Chat] identified by [chatId].
@@ -64,10 +59,9 @@ class ChatService(
      * @return [Chat]
      * @throws ChatNotFoundException
      */
-    fun getByChatId(chatId: Long): Chat {
-        return repository.findById(chatId).orElse(null)
+    fun getByChatId(chatId: Long): Chat =
+        repository.findById(chatId).orElse(null)
             ?: throw ChatNotFoundException("Chat with id $chatId not found")
-    }
 
     /**
      * Similar to [getByChatId], though, the chat is identified by its name.
@@ -76,10 +70,9 @@ class ChatService(
      * @return [Chat] found by [chatName].
      * @throws ChatNotFoundException
      */
-    fun getByChatName(chatName: String): Chat {
-        return repository.qFindByName(chatName)
+    fun getByChatName(chatName: String): Chat =
+        repository.qFindByName(chatName)
             ?: throw ChatNotFoundException("Chat '$chatName' not found")
-    }
 
     /**
      * Changes the model active on a given chat, identified by [chatId], to the model found via [modelNickname].
@@ -91,23 +84,31 @@ class ChatService(
      * @see AiModel.findByNickName
      */
     fun chooseModelForChat(chatId: Long, modelNickname: String) {
-        val chat = getByChatId(chatId)
+        getByChatId(chatId).run {
+            this.model = AiModel.findByNickName(modelNickname)
+                ?: throw AiModelNotFoundException("AI model not found")
 
-        val model = AiModel.findByNickName(modelNickname)
-            ?: throw AiModelNotFoundException("AI model not found")
-
-        chat.model = model
-
-        repository.save(chat)
+            repository.save(this)
+        }
     }
 
     /**
      * Delegates to [getByChatName], then converts to DTO.
      *
      * @param chatName
+     * @return [ChatDto] of chat found by name.
+     * @see getByChatName
      */
-    fun getDtoByAccountIdAndChatId(chatName: String): ChatDto? {
-        return getByChatName(chatName).toDto()
-    }
+    fun getDtoByChatName(chatName: String): ChatDto =
+        getByChatName(chatName).toDto()
+
+    /**
+     * Returns the amount of accounts with access to chat with id [chatId]
+     *
+     * @param chatId
+     * @see ChatRepository.countAccounts
+     */
+    fun getAmountOfAccounts(chatId: Long): Int =
+        repository.countAccounts(chatId)
 
 }

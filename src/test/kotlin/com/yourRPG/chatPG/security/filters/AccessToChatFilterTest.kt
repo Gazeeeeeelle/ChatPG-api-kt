@@ -34,7 +34,7 @@ class AccessToChatFilterTest: FilterTest() {
     fun valid() {
         //ARRANGE
         given(request.servletPath)
-            .willReturn("/chat/0/**")
+            .willReturn("/chats/0/**")
 
         mockedSch.`when`<SecurityContext> { SecurityContextHolder.getContext() }
             .thenReturn(securityContext)
@@ -44,6 +44,9 @@ class AccessToChatFilterTest: FilterTest() {
 
         given(authentication.principal)
             .willReturn(0L)
+
+        mockedSch.`when`<SecurityContext> { SecurityContextHolder.getContext() }
+            .thenReturn(securityContext)
 
         //ACT
         accessToChatFilter.doFilter(request, response, filterChain)
@@ -56,7 +59,7 @@ class AccessToChatFilterTest: FilterTest() {
     }
 
     @Test
-    fun valid_ignored_1() {
+    fun `valid - such path is not filtered`() {
         //ARRANGE
         given(request.servletPath)
             .willReturn("/chats/**")
@@ -70,7 +73,7 @@ class AccessToChatFilterTest: FilterTest() {
     }
 
     @Test
-    fun valid_ignored_2() {
+    fun `valid - such path is not filtered either`() {
         //ARRANGE
         given(request.servletPath)
             .willReturn("/account/current")
@@ -84,10 +87,10 @@ class AccessToChatFilterTest: FilterTest() {
     }
 
     @Test
-    fun invalid_accessDenied() {
+    fun `invalid - did not attend to the validation`() {
         //ARRANGE
         given(request.servletPath)
-            .willReturn("/chat/0/**")
+            .willReturn("/chats/0/**")
 
         mockedSch.`when`<SecurityContext> { SecurityContextHolder.getContext() }
             .thenReturn(securityContext)

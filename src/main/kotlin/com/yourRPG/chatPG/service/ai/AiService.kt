@@ -1,7 +1,6 @@
 package com.yourRPG.chatPG.service.ai
 
 import com.yourRPG.chatPG.dto.ai.model.AiModelDto
-import com.yourRPG.chatPG.exception.BadRequestException
 import com.yourRPG.chatPG.exception.ai.models.UnavailableAiException
 import com.yourRPG.chatPG.service.IConvertible
 import com.yourRPG.chatPG.service.ai.providers.AiModel
@@ -32,9 +31,7 @@ class AiService(
      * if the AI's response could not fit the expected object, likely because the response was an error object, and therefore it is judged as an Internal Server Error from the provider's end.
      */
     fun askAi(model: AiModel, prompt: String): String? {
-        if (model.provider == AiProvider.NONE) {
-            throw BadRequestException("Model cannot be \"none\" to request ai message.")
-        }
+        require(model.provider == AiProvider.NONE) { "Model cannot be \"none\" to request ai message." }
 
         return providers.find {it.getProvider() == model.provider}
             ?.askAi(model, prompt)
@@ -55,9 +52,7 @@ class AiService(
      *
      * @return [List] of [String]s with available model's nicknames
      */
-    fun getModels(): List<String> {
-        return AiModel.entries
-            .map { it.nickname }
-    }
+    fun getModels(): List<String> =
+        AiModel.entries.map { it.nickname }
 
 }

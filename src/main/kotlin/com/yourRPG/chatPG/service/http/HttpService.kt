@@ -22,8 +22,7 @@ class HttpService {
      * @throws SecurityException
      * @see HttpClient.send
      */
-    fun <T> send(request: HttpRequest, responseBodyHandler: HttpResponse.BodyHandler<T>): HttpResponse<T> {
-        return client.send(request, responseBodyHandler)
-    }
+    fun <T> send(request: HttpRequest, responseBodyHandler: HttpResponse.BodyHandler<T>): HttpResponse<T> =
+        client.send(request, responseBodyHandler)
 
 }

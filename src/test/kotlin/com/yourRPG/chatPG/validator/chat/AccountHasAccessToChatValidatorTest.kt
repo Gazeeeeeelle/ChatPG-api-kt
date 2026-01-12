@@ -17,13 +17,13 @@ import org.mockito.junit.jupiter.MockitoExtension
 @ExtendWith(MockitoExtension::class)
 class AccountHasAccessToChatValidatorTest {
 
-    @field:InjectMocks
+    @InjectMocks
     lateinit var validator: AccountHasAccessToChatValidator
 
-    @field:Mock
+    @Mock
     lateinit var accountRepository: AccountRepository
 
-    @field:Mock
+    @Mock
     lateinit var chatRepository: ChatRepository
 
     var t: Pair<Long, Long> = Pair(0, 0)
