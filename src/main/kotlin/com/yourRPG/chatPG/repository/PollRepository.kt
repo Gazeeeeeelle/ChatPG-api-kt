@@ -8,8 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface PollRepository: JpaRepository<Poll, Poll.CompositePrimaryKey> {
 
-    fun existsByChatIdAndSubject(chat: Chat, subject: PollSubject): Boolean
+    fun existsByChatIdAndSubject(chatId: Long, subject: PollSubject): Boolean
 
-    fun findAllByChatId(chat: Chat): List<Poll>
+    fun findAllByChatId(chatId: Long): List<Poll>
 
 }
