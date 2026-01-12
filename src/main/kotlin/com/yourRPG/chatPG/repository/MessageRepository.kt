@@ -11,7 +11,7 @@ interface MessageRepository: JpaRepository<Message, Long> {
 
     /**
      * Fetches all messages from the [chat].
-     * FIXME: scalability problem
+     * FIXME: scalability issue
      *
      * @param chat from where the messages will be fetched
      * @return [List] of [Message]s fetched

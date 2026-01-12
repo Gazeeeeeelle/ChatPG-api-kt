@@ -1,31 +1,44 @@
 package com.yourRPG.chatPG.service
 
 /**
- * TODO
+ * Offers methods to convert lists from the implementation of a single object conversion method.
  */
 interface IConvertible<in C, out D> {
 
     /**
-     * TODO
+     * This is the method required to be implemented. The other methods relly on this.
+     * Converts [C] into a [D] with the logic provided on implementation.
+     *
+     * @param c to be converted
+     * @return [D] converted [c]
      */
     fun dtoOf(c: C): D
 
     /**
-     * TODO
+     * This extension function delegates to [dtoOf] method.
+     *
+     * @param [this] to be converted
+     * @return [D] converted [this]
      */
     fun (C).toDto(): D = dtoOf(this)
 
 
     /**
-     * TODO
+     * This method maps all elements of the [List] using the implemented [dtoOf] for conversion.
+     *
+     * @param [List] to be converted
+     * @return converted [List]
      */
-    fun listOfDto(c: Iterable<C>): List<D> {
-        return c.map { c: C -> c.toDto() }
+    fun listOfDto(c: List<C>): List<D> {
+        return c.map { c -> dtoOf(c) }
     }
 
     /**
-     * TODO
+     * This extension function delegates to [listOfDto] method.
+     *
+     * @param [List] to be converted
+     * @return converted [List]
      */
-    fun (Iterable<C>).toListDto(): List<D> = listOfDto(this)
+    fun (List<C>).toListDto(): List<D> = listOfDto(this)
 
 }

@@ -1,6 +1,5 @@
 package com.yourRPG.chatPG.validator.poll.start
 
-import com.yourRPG.chatPG.exception.chat.ChatNotFoundException
 import com.yourRPG.chatPG.exception.poll.PollAlreadyExistsException
 import com.yourRPG.chatPG.model.Poll
 import com.yourRPG.chatPG.repository.PollRepository
@@ -17,8 +16,7 @@ class StartPollCredentialsValidator(
     override fun validate(t: Poll): Poll {
 
         val alreadyExists: Boolean = pollRepository.existsByChatIdAndSubject(
-            chatId = t.chat?.id
-                ?: throw ChatNotFoundException("Chat id cannot be null"),
+            chat = t.chat,
             subject = t.subject
         )
 

@@ -195,7 +195,8 @@ class MessageService(
      */
     @Transactional
     fun bulkDeleteMessages(chatId: Long, bound1: Long, bound2: Long) {
-        val (idStart, idFinish) = min(a = bound1, b = bound2) to max(a = bound1, b = bound2)
+        val (idStart, idFinish) =
+            min(a = bound1, b = bound2) to max(a = bound1, b = bound2)
 
         repository.qBulkDeleteByChatIdFromIdToId(chatId, idStart, idFinish).let {
             if (it == 0) throw MessageNotFoundException("No messages deleted")

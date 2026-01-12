@@ -8,7 +8,6 @@ interface ChatRepository: JpaRepository<Chat, Long> {
 
     /**
      * Returns all chats the account identified by [accountId] has access to.
-     * FIXME: scalability problem
      *
      * @param accountId account identifier.
      * @return [List] of [Chat]s the account has access to.
