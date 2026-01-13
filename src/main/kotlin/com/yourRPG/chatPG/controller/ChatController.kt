@@ -39,7 +39,7 @@ class ChatController(
     /**
      * @see ChatService.chooseModelForChat
      */
-    @PatchMapping("/{chatId}/chooseModel")
+    @PatchMapping("/{chatId}/model")
     fun chooseModel(
         @PathVariable chatId: Long,
         @RequestBody modelName: String

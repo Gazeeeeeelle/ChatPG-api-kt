@@ -1,0 +1,148 @@
+openapi: 3.1.0
+info:
+  title: ChatPG
+  version: 1.0.0
+
+servers:
+  - url: "http://127.0.0.1:8080/api"
+
+
+
+paths:
+  /login:
+    post:
+      tags:
+        - AuthController
+      requestBody:
+        description:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginCredentials'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '403':
+          description: Unauthorized
+          content:
+            text/plain: # Or application/json
+              schema:
+                type: string
+                examples: ["Wrong password"]
+        '404':
+          description: Not Found
+          content:
+            text/plain: # Or application/json
+              schema:
+                type: string
+                examples: ["Account not found"]
+  /login/exists:
+    post:
+      tags:
+        - AuthController
+      requestBody:
+        description:
+        content:
+          text/plain:
+            schema:
+              type: string
+              examples: [JohnDoe]
+      responses:
+        '200':
+          description: Success
+          content:
+            plain/text:
+              schema:
+                type: boolean
+                examples: [true]
+
+
+
+security:
+  - auth: []
+
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          examples: [2]
+        name:
+          type: string
+          examples: ["John Doe"]
+    AiModel:
+      type: object
+      properties:
+        name:
+          type: string
+          examples: ["gemini-2.5-flash"]
+    LoginCredentials:
+      type: object
+      properties:
+        username:
+          type: string
+          examples: ["Xx-JohnDoe-xX"]
+        password:
+          type: string
+          examples: ["verynicepassword"]
+    Token:
+      type: object
+      properties:
+        token:
+          type: string
+          examples: ["9278ebf05bc999c95dce8e34b8e3ae460df6992c6d243b55325c818444a7cfeb"]
+    Chat:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          examples: [3]
+        name:
+          type: string
+          examples: ["Chat about bananas"]
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          examples: [1648]
+        content:
+          type: string
+          examples: ["Good morning!"]
+        isBot:
+          type: boolean
+          examples: [false]
+        account:
+          $ref: '#/components/schemas/Account'
+    Poll:
+      type: object
+      properties:
+        chat:
+          $ref: '#/components/schemas/Chat'
+        subject:
+          type: string
+          enum:
+            - REQUEST_AI_MESSAGE
+        quota:
+          type: integer
+          format: int32
+          examples: [4]
+        votes:
+          type: integer
+          format: int32
+          examples: [2]
+
+  securitySchemes:
+    auth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
