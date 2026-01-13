@@ -53,7 +53,7 @@ class MessageController(
     /**
      * @see MessageService.sendMessage
      */
-    @PostMapping("/send")
+    @PostMapping
     fun sendMessage(
         @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
@@ -88,7 +88,7 @@ class MessageController(
      * @see MessageService.deleteMessage
      */
     @Transactional
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     fun deleteMessage(
         @PathVariable chatId: Long,
         @PathVariable id: Long

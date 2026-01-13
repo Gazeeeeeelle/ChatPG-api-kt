@@ -30,7 +30,7 @@ interface IConvertible<in C, out D> {
      * @return converted [List]
      */
     fun listOfDto(c: List<C>): List<D> {
-        return c.map { c -> dtoOf(c) }
+        return c.map(this::dtoOf)
     }
 
     /**
