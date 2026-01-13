@@ -13,8 +13,8 @@ paths:
     post:
       tags:
         - AuthController
+      security: []
       requestBody:
-        description:
         content:
           application/json:
             schema:
@@ -26,17 +26,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Token'
-        '403':
+        '401':
           description: Unauthorized
           content:
-            text/plain: # Or application/json
+            text/plain:
               schema:
                 type: string
                 examples: ["Wrong password"]
         '404':
           description: Not Found
           content:
-            text/plain: # Or application/json
+            text/plain:
               schema:
                 type: string
                 examples: ["Account not found"]
@@ -44,6 +44,7 @@ paths:
     post:
       tags:
         - AuthController
+      security: []
       requestBody:
         description:
         content:
@@ -60,7 +61,115 @@ paths:
                 type: boolean
                 examples: [true]
 
+  /account/current:
+    get:
+      tags:
+        - AccountController
+      responses:
+        '200':
+          description: Success
+          content:
+            plain/text:
+              schema:
+                type: boolean
+                examples: [true]
+        '401':
+          $ref: "#/components/responses/Unauthorized"
 
+  /chats/all:
+    get:
+      tags:
+        - ChatController
+      responses:
+        '200':
+          description: Success
+          $ref: "#/components/schemas/ChatArray"
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+  "/chats/byName/{chatName}":
+    get:
+      tags:
+        - ChatController
+      parameters:
+        - name: chatName
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Chat2"
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+        '404':
+          $ref: "#/components/responses/ChatNotFound"
+  "/chats/{chatId}/model":
+    patch:
+      tags:
+        - ChatController
+      parameters:
+        - name: chatId
+          in: path
+          schema:
+            type: integer
+          required: true
+      responses:
+        '204':
+          description: No content
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+        '404':
+          $ref: "#/components/responses/ChatNotFound"
+    get:
+      tags:
+        - ChatController
+      parameters:
+        - name: chatId
+          in: path
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiModel"
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+        '404':
+          $ref: "#/components/responses/ChatNotFound"
+  "/chats/{chatId}/messages/new/{referenceId}":
+    patch:
+      tags:
+        - ChatController
+      parameters:
+        - name: chatId
+          in: path
+          schema:
+            type: integer
+          required: true
+        - name: referenceId
+          in: path
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                "#/components/schemas/MessageArray"
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+        '404':
+          $ref: "#/components/responses/ChatNotFound"
 
 security:
   - auth: []
@@ -77,10 +186,20 @@ components:
         name:
           type: string
           examples: ["John Doe"]
+    Account2:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          examples: [3]
+        name:
+          type: string
+          examples: ["Jane Doe"]
     AiModel:
       type: object
       properties:
-        name:
+        nickname:
           type: string
           examples: ["gemini-2.5-flash"]
     LoginCredentials:
@@ -108,6 +227,32 @@ components:
         name:
           type: string
           examples: ["Chat about bananas"]
+    Chat2:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          examples: [5]
+        name:
+          type: string
+          examples: ["Chat about pumpkins"]
+    ChatArray:
+      type: array
+      content: 
+        application/json:
+          schema:
+            type: array
+            examples: [[
+              {
+                id: 3,
+                name: "Chat about bananas"
+              }, 
+              {
+                id: 5,
+                name: "Chat about pumpkins"
+              }
+            ]]
     Message:
       type: object
       properties:
@@ -123,6 +268,27 @@ components:
           examples: [false]
         account:
           $ref: '#/components/schemas/Account'
+    MessageArray:
+      type: array
+      content: 
+        application/json:
+          schema:
+            type: array
+            examples: [[
+              {
+                id: 2133,
+                content: "Good morning!\n\nHow was your day?",
+                isBot: false,
+                account: {
+                  id: 3,
+                  name: 
+                }
+              }, 
+              {
+                id: 2134,
+                name: ""
+              }
+            ]]
     Poll:
       type: object
       properties:
@@ -146,3 +312,18 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        text/plain:
+          schema:
+            type: string
+            examples: ["Unauthorized"]
+    ChatNotFound:
+      description: Not found
+      content:
+        text/plain:
+          schema:
+            type: string
+            examples: ["Chat not found"]
