@@ -6,16 +6,16 @@ import org.jetbrains.annotations.NotNull
 
 data class PollDto(
 
-    @field: NotNull
+    @field:NotNull
     val chat: ChatDto?,
 
-    @field: NotNull
+    @field:NotNull
     val subject: PollSubject?,
 
-    @field: NotNull
+    @field:NotNull
     val quota: Int?,
 
-    @field: NotNull
+    @field:NotNull
     val votes: Int?
 
 )

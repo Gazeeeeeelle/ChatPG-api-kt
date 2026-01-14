@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank
 
 data class AiModelDto(
 
-    @field: NotBlank
+    @field:NotBlank
     val nickname: String?
 
 ) {
