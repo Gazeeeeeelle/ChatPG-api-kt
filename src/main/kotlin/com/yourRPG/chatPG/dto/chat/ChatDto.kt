@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull
 
 data class ChatDto (
 
-    @field: NotNull
+    @field:NotNull
     val id: Long?,
 
     @field:NotBlank

@@ -6,10 +6,10 @@ import jakarta.validation.constraints.NotNull
 
 data class AccountDto(
 
-    @field: NotNull
+    @field:NotNull
     var id: Long?,
 
-    @field: NotBlank
+    @field:NotBlank
     var name: String?,
 
 ) {
