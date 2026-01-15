@@ -1,7 +1,7 @@
 package com.yourRPG.chatPG.dto.message
 
 import com.yourRPG.chatPG.dto.account.AccountDto
-import com.yourRPG.chatPG.model.Message
+import com.yourRPG.chatPG.domain.Message
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 

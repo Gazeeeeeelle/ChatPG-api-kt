@@ -1,7 +1,7 @@
 package com.yourRPG.chatPG.validator.chat
 
 import com.yourRPG.chatPG.exception.chat.UnauthorizedAccountException
-import com.yourRPG.chatPG.model.Chat
+import com.yourRPG.chatPG.domain.Chat
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

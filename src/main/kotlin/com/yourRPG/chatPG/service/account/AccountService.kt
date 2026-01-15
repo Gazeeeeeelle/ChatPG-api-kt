@@ -2,7 +2,7 @@ package com.yourRPG.chatPG.service.account
 
 import com.yourRPG.chatPG.dto.account.AccountDto
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
-import com.yourRPG.chatPG.model.Account
+import com.yourRPG.chatPG.domain.Account
 import com.yourRPG.chatPG.repository.AccountRepository
 import com.yourRPG.chatPG.service.IConvertible
 import org.springframework.data.repository.findByIdOrNull

@@ -1,11 +1,16 @@
-package com.yourRPG.chatPG.model
+package com.yourRPG.chatPG.domain
 
 import jakarta.persistence.*
+import jakarta.validation.constraints.Email
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import javax.validation.constraints.NotNull
 
+/**
+ * Since the IDE does not check if the class is implicitly open because of @Entity decorator, we shall suppress the
+ * misleading warning.
+ */
 @Suppress("ProtectedInFinal")
 
 @Entity
@@ -32,6 +37,13 @@ class Account: UserDetails {
     @OneToMany(mappedBy = "account")
     var messages: MutableList<Message>? = null
         protected set
+
+    @Column(unique = true)
+    var uuid: String? = null
+
+    @Column(unique = true, nullable = false)
+    @Email
+    var email: String? = null
 
     protected constructor()
 

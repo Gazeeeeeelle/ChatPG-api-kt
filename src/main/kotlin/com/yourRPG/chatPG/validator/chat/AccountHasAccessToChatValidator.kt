@@ -16,8 +16,8 @@ class AccountHasAccessToChatValidator(
 ): IValidatable<Pair<Long, Long>> {
 
     /**
-     * Checks if the [Pair] (accountId, chatId) identifies an existing [com.yourRPG.chatPG.model.Account], an existing
-     *  [com.yourRPG.chatPG.model.Chat] and if the account has access to the chat.
+     * Checks if the [Pair] (accountId, chatId) identifies an existing [com.yourRPG.chatPG.domain.Account], an existing
+     *  [com.yourRPG.chatPG.domain.Chat] and if the account has access to the chat.
      *
      * @param [Pair] (accountId, chatId)
      * @return [Pair] given.
