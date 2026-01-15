@@ -1,7 +1,7 @@
 package com.yourRPG.chatPG.repository
 
-import com.yourRPG.chatPG.model.Chat
-import com.yourRPG.chatPG.model.Message
+import com.yourRPG.chatPG.domain.Chat
+import com.yourRPG.chatPG.domain.Message
 import jakarta.transaction.Transactional
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying

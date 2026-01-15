@@ -4,7 +4,7 @@ import com.yourRPG.chatPG.dto.ai.model.AiModelDto
 import com.yourRPG.chatPG.dto.chat.ChatDto
 import com.yourRPG.chatPG.exception.ai.models.AiModelNotFoundException
 import com.yourRPG.chatPG.exception.chat.ChatNotFoundException
-import com.yourRPG.chatPG.model.Chat
+import com.yourRPG.chatPG.domain.Chat
 import com.yourRPG.chatPG.repository.ChatRepository
 import com.yourRPG.chatPG.service.IConvertible
 import com.yourRPG.chatPG.service.ai.AiService

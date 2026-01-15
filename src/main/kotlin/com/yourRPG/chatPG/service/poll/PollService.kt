@@ -4,9 +4,9 @@ import com.yourRPG.chatPG.dto.poll.PollDto
 import com.yourRPG.chatPG.exception.BadRequestException
 import com.yourRPG.chatPG.exception.poll.AlreadyVotedInPollException
 import com.yourRPG.chatPG.exception.poll.PollNotFoundException
-import com.yourRPG.chatPG.model.Chat
-import com.yourRPG.chatPG.model.Poll
-import com.yourRPG.chatPG.model.Poll.CompositePrimaryKey
+import com.yourRPG.chatPG.domain.Chat
+import com.yourRPG.chatPG.domain.Poll
+import com.yourRPG.chatPG.domain.Poll.CompositePrimaryKey
 import com.yourRPG.chatPG.repository.PollRepository
 import com.yourRPG.chatPG.service.IConvertible
 import com.yourRPG.chatPG.service.chat.ChatService

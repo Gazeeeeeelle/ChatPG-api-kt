@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.dto.chat
 
-import com.yourRPG.chatPG.model.Chat
+import com.yourRPG.chatPG.domain.Chat
 import jakarta.validation.constraints.NotBlank
 import org.jetbrains.annotations.NotNull
 

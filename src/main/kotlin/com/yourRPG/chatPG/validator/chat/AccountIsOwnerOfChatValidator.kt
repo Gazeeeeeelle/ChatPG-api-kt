@@ -1,7 +1,7 @@
 package com.yourRPG.chatPG.validator.chat
 
 import com.yourRPG.chatPG.exception.chat.UnauthorizedAccountException
-import com.yourRPG.chatPG.model.Chat
+import com.yourRPG.chatPG.domain.Chat
 import com.yourRPG.chatPG.validator.IValidatable
 import org.springframework.stereotype.Component
 

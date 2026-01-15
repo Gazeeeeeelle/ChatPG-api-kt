@@ -2,7 +2,7 @@ package com.yourRPG.chatPG.security.filters
 
 import com.auth0.jwt.interfaces.Claim
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
-import com.yourRPG.chatPG.model.Account
+import com.yourRPG.chatPG.domain.Account
 import com.yourRPG.chatPG.security.token.TokenService
 import com.yourRPG.chatPG.service.account.AccountService
 import jakarta.servlet.http.HttpServletResponse

@@ -1,7 +1,7 @@
 package com.yourRPG.chatPG.validator.poll.vote
 
 import com.yourRPG.chatPG.exception.poll.AlreadyVotedInPollException
-import com.yourRPG.chatPG.model.Poll
+import com.yourRPG.chatPG.domain.Poll
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

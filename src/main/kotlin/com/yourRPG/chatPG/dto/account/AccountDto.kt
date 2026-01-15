@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.dto.account
 
-import com.yourRPG.chatPG.model.Account
+import com.yourRPG.chatPG.domain.Account
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 

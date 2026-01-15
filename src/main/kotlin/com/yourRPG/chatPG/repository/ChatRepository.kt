@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.repository
 
-import com.yourRPG.chatPG.model.Chat
+import com.yourRPG.chatPG.domain.Chat
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 
@@ -25,7 +25,7 @@ interface ChatRepository: JpaRepository<Chat, Long> {
     fun qFindByName(chatName: String): Chat?
 
     /**
-     * Returns [Boolean] based on whether a [Chat] is found in the chats that the [com.yourRPG.chatPG.model.Account] has
+     * Returns [Boolean] based on whether a [Chat] is found in the chats that the [com.yourRPG.chatPG.domain.Account] has
      *  access to and has id of [id].
      *
      * @param accountId account identifier.

@@ -3,9 +3,9 @@ package com.yourRPG.chatPG.service.message
 import com.yourRPG.chatPG.dto.message.MessageDto
 import com.yourRPG.chatPG.exception.ai.NullAiResponse
 import com.yourRPG.chatPG.exception.message.MessageNotFoundException
-import com.yourRPG.chatPG.model.Account
-import com.yourRPG.chatPG.model.Chat
-import com.yourRPG.chatPG.model.Message
+import com.yourRPG.chatPG.domain.Account
+import com.yourRPG.chatPG.domain.Chat
+import com.yourRPG.chatPG.domain.Message
 import com.yourRPG.chatPG.repository.MessageRepository
 import com.yourRPG.chatPG.service.IConvertible
 import com.yourRPG.chatPG.service.account.AccountService
