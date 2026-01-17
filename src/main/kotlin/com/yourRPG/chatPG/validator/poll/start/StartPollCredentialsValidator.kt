@@ -14,7 +14,7 @@ class StartPollCredentialsValidator(
 
 ): IValidatable<Poll> {
 
-    override fun validate(t: Poll): Poll {
+    override fun validate(t: Poll) {
 
         val alreadyExists: Boolean = pollRepository.existsByChatIdAndSubject(
             chatId = t.chat.id
@@ -25,7 +25,6 @@ class StartPollCredentialsValidator(
         if (alreadyExists)
             throw PollAlreadyExistsException("Cannot start a new poll because one of the same matter is already active")
 
-        return t
     }
 
 }

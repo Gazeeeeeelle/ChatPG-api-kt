@@ -11,6 +11,13 @@ class AccountDetailsService(
     private val accountService: AccountService
 ): UserDetailsService {
 
+    /**
+     * Returns [UserDetails] of [com.yourRPG.chatPG.domain.Account] found by [username].
+     *
+     * @param username
+     * @return [UserDetails] of the found [com.yourRPG.chatPG.domain.Account] by [username].
+     * @see AccountService.getByName
+     */
     override fun loadUserByUsername(username: String): UserDetails {
         return accountService.getByName(username)
     }

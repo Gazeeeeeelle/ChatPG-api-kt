@@ -3,7 +3,9 @@ package com.yourRPG.chatPG.security.filters
 import com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
 import com.yourRPG.chatPG.validator.chat.AccountHasAccessToChatValidator
 import jakarta.servlet.http.HttpServletResponse
+import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
 import org.mockito.*
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.eq
@@ -11,6 +13,7 @@ import org.mockito.BDDMockito.given
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
+import java.util.stream.Stream
 
 class AccessToChatFilterTest: FilterTest() {
 
@@ -31,7 +34,7 @@ class AccessToChatFilterTest: FilterTest() {
     lateinit var mockedSch: MockedStatic<SecurityContextHolder>
 
     @Test
-    fun valid() {
+    fun `valid - path is filtered and attends to the requirements`() {
         //ARRANGE
         given(request.servletPath)
             .willReturn("/chats/0/**")
@@ -58,33 +61,26 @@ class AccessToChatFilterTest: FilterTest() {
         mockedSch.close()
     }
 
-    @Test
-    fun `valid - such path is not filtered`() {
-        //ARRANGE
-        given(request.servletPath)
-            .willReturn("/chats/**")
+    @TestFactory
+    fun `valid - paths are not filtered`(): Stream<DynamicTest> =
+        Stream.of(
+            "/chats/all", "/account/current"
+        ).map { path ->
+            DynamicTest.dynamicTest("path: $path") {
+                //ARRANGE
+                given(request.servletPath)
+                    .willReturn(path)
 
-        //ACT
-        accessToChatFilter.doFilter(request, response, filterChain)
+                //ACT
+                accessToChatFilter.doFilter(request, response, filterChain)
 
-        //ASSERT
-        Mockito.verify(filterChain)
-            .doFilter(request, response)
-    }
+                //ASSERT
+                Mockito.verify(filterChain)
+                    .doFilter(request, response)
 
-    @Test
-    fun `valid - such path is not filtered either`() {
-        //ARRANGE
-        given(request.servletPath)
-            .willReturn("/account/current")
-
-        //ACT
-        accessToChatFilter.doFilter(request, response, filterChain)
-
-        //ASSERT
-        Mockito.verify(filterChain)
-            .doFilter(request, response)
-    }
+                Mockito.reset(filterChain)
+            }
+        }
 
     @Test
     fun `invalid - did not attend to the validation`() {
@@ -109,7 +105,7 @@ class AccessToChatFilterTest: FilterTest() {
 
         //ASSERT
         Mockito.verify(response)
-            .sendError(eq(HttpServletResponse.SC_UNAUTHORIZED), any())
+            .sendError(eq(HttpServletResponse.SC_FORBIDDEN), any())
 
     }
 

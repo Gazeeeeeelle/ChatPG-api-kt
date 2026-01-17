@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Email
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
+import java.time.Instant
+import java.util.UUID
 import javax.validation.constraints.NotNull
 
 /**
@@ -14,7 +16,6 @@ import javax.validation.constraints.NotNull
 @Suppress("ProtectedInFinal")
 
 @Entity
-@Table(name = "account")
 class Account: UserDetails {
 
     @Id
@@ -39,7 +40,10 @@ class Account: UserDetails {
         protected set
 
     @Column(unique = true)
-    var uuid: String? = null
+    var uuid: UUID? = null
+
+    @Column(unique = true)
+    var uuidBirth: Instant? = null
 
     @Column(unique = true, nullable = false)
     @Email

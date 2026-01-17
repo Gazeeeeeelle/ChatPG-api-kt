@@ -17,7 +17,6 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.MockedStatic
 import org.mockito.Mockito
-import org.mockito.Mockito.times
 import org.mockito.Spy
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
@@ -48,7 +47,7 @@ class TokenFilterTest: FilterTest() {
     lateinit var mockedSch: MockedStatic<SecurityContextHolder>
 
     @Test
-    fun valid() {
+    fun `valid - path is filtered and attends to the requirements`() {
         //ARRANGE
         given(request.servletPath)
             .willReturn("/somethingElse")
@@ -74,7 +73,7 @@ class TokenFilterTest: FilterTest() {
     }
 
     @TestFactory
-    fun `valid because such paths are not filtered`(): Stream<DynamicTest> =
+    fun `valid - path is not filtered`(): Stream<DynamicTest> =
         Stream.of(
             "/login", "/login/exists"
         ).map { path ->
@@ -87,13 +86,15 @@ class TokenFilterTest: FilterTest() {
                 tokenFilter.doFilter(request, response, filterChain)
 
                 //ASSERT
-                Mockito.verify(request, times(0))
-                    .getHeader("Authorization")
+                Mockito.verify(filterChain)
+                    .doFilter(request, response)
+
+                Mockito.reset(filterChain)
             }
         }
 
     @Test
-    fun `invalid because Authorization header is lacking`() {
+    fun `invalid - Authorization header is missing`() {
         //ARRANGE
         given(request.servletPath)
             .willReturn("/somethingElse")
@@ -110,7 +111,7 @@ class TokenFilterTest: FilterTest() {
     }
 
     @Test
-    fun `invalid because a token was given with a principal (Long id value) that did not identify an existing account`() {
+    fun `invalid - account not found`() {
         //ARRANGE
         given(request.servletPath)
             .willReturn("/somethingElse")

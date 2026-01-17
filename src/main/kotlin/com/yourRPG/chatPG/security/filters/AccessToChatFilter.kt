@@ -39,7 +39,7 @@ class AccessToChatFilter(
                 )
             }.onFailure { ex ->
                 (response as HttpServletResponse)
-                    .sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.message)
+                    .sendError(HttpServletResponse.SC_FORBIDDEN, ex.message)
                 return
             }
         }

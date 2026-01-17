@@ -25,7 +25,7 @@ class AccountHasAccessToChatValidator(
      * @throws ChatNotFoundException
      * @throws UnauthorizedAccessToChatException
      */
-    override fun validate(t: Pair<Long, Long>): Pair<Long, Long> {
+    override fun validate(t: Pair<Long, Long>) {
         val (accountId, chatId) = t
 
         if (!accountRepository.existsById(accountId))
@@ -37,7 +37,6 @@ class AccountHasAccessToChatValidator(
         if (!chatRepository.qExistsByAccountNameAndId(accountId, chatId))
             throw UnauthorizedAccessToChatException("Account $accountId cannot access chat $chatId")
 
-        return t
     }
 
 }

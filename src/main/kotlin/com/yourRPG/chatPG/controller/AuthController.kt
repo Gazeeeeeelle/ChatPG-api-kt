@@ -1,9 +1,9 @@
 package com.yourRPG.chatPG.controller
 
+import com.yourRPG.chatPG.dto.auth.ChangePasswordDto
 import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.security.AuthService
-import com.yourRPG.chatPG.service.account.AccountService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/login")
 class AuthController(
     private val service: AuthService,
-    private val accountService: AccountService
 ) {
 
     /**
@@ -30,14 +29,25 @@ class AuthController(
         )
 
     /**
-     * @see AccountService.existsByName
+     * @see AuthService.requestChangePassword
      */
-    @PostMapping("/exists")
-    fun accountExists(
-        @RequestBody accountName: String
-    ): ResponseEntity<Boolean> =
-        ResponseEntity.ok(
-            accountService.existsByName(accountName)
-        )
+    @PostMapping("/requestChangePassword")
+    fun requestChangePassword(
+        @RequestBody email: String
+    ): ResponseEntity<Unit> {
+        service.requestChangePassword(email)
+        return ResponseEntity.noContent().build()
+    }
+
+    /**
+     * @see AuthService.requestChangePassword
+     */
+    @PostMapping("/confirmChangePassword")
+    fun confirmChangePassword(
+        @RequestBody dto: ChangePasswordDto
+    ): ResponseEntity<Unit> {
+        service.confirmChangePassword(dto)
+        return ResponseEntity.noContent().build()
+    }
 
 }

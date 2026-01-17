@@ -17,13 +17,14 @@ import java.net.http.HttpResponse
 class ChutesAiService(
     /* Services */
     private val httpService: HttpService,
+
+    @param:Value("\${spring.ai.chutes.llm.api-key}")
+    private val apiKey: String,
+
+    @param:Value("\${spring.ai.chutes.llm.url}")
+    private val llmUrl: String
+
 ): IResponsive {
-
-    @Value("\${spring.ai.chutes.llm.api-key}")
-    lateinit var apiKey: String
-
-    @Value("\${spring.ai.chutes.llm.url}")
-    lateinit var llmUrl: String
 
     override fun getProvider(): AiProvider = AiProvider.CHUTES
 
