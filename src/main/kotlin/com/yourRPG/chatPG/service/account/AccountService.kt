@@ -7,6 +7,8 @@ import com.yourRPG.chatPG.repository.AccountRepository
 import com.yourRPG.chatPG.service.IConvertible
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import java.time.Instant
+import java.util.UUID
 
 @Service
 class AccountService(
@@ -45,17 +47,7 @@ class AccountService(
         getById(accountId).toDto()
 
     /**
-     * Returns a [Boolean] on whether an account was found with name [accountName]
-     *
-     * @param accountName
-     * @return [Boolean] based on if the account exists or not.
-     * @see AccountRepository.existsByNameEquals
-     */
-    fun existsByName(accountName: String): Boolean =
-        repository.existsByNameEquals(accountName)
-
-    /**
-     * Returns the [Account] found by its name [accountName]
+     * Returns the [Account] found by its name [accountName].
      *
      * @param accountName name of the account being searched for
      * @return [Account] found by name [accountName].
@@ -65,5 +57,45 @@ class AccountService(
     fun getByName(accountName: String): Account =
         repository.findByNameEquals(accountName)
             ?: throw AccountNotFoundException("Account not found with name $accountName")
+
+    /**
+     * Updates the [account] in the DB with the given [uuid] and sets [Account.uuidBirth] to be
+     * [Instant.now].
+     *
+     * @param account who is getting their uuid set.
+     * @param uuid uuid to set.
+     */
+    fun updateUuid(account: Account, uuid: UUID?) {
+        account.apply {
+            this.uuid = uuid
+            this.uuidBirth = uuid.run { Instant.now() }
+        }
+        repository.save(account)
+    }
+
+    /**
+     * Returns the [Account] found with [UUID] [uuid].
+     *
+     * @param uuid
+     * @return Account found with matching [UUID]s.
+     * @throws AccountNotFoundException if no account was found with [UUID] [uuid]
+     */
+    fun getByUuid(uuid: UUID): Account {
+        return repository.findByUuidEquals(uuid)
+            ?: throw AccountNotFoundException("No account found with uuid given")
+    }
+
+    /**
+     * Updates the [account] in the DB with the given password
+     */
+    fun updatePassword(account: Account, encryptedPassword: String) {
+        account.accountPassword = encryptedPassword
+        repository.save(account)
+    }
+
+    fun getByEmail(email: String): Account {
+        return repository.findByEmail(email)
+            ?: throw AccountNotFoundException("Account not found with email $email")
+    }
 
 }

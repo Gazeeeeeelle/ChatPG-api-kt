@@ -8,6 +8,6 @@ interface IValidatable<T> {
     /**
      * TODO~
      */
-    fun validate(t: T): T
+    fun validate(t: T)
 
 }

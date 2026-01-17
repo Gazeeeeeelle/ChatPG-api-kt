@@ -3,6 +3,8 @@ server:
   port: 8080
   radmin:
     address: ${RADMIN_ADDRESS}
+  frontend:
+    address: "127.0.0.1:5500"
   error:
     include-stacktrace: never
   servlet:
@@ -30,6 +32,16 @@ spring:
       llm:
         url: https://llm.chutes.ai/v1/chat/completions
         api-key: ${CHUTES_API_KEY}
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${CHATPG_EMAIL_ADDRESS}
+    password: ${CHATPG_EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls.enable: true
 
 hibernate:
   dialect: org.hibernate.dialect.HSQLDialect
