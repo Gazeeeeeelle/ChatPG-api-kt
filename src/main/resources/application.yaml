@@ -4,7 +4,7 @@ server:
   radmin:
     address: ${RADMIN_ADDRESS}
   frontend:
-    address: "127.0.0.1:5500"
+    address: "http://127.0.0.1:5500"
   error:
     include-stacktrace: never
   servlet:

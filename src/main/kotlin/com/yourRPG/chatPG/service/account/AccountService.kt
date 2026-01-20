@@ -5,16 +5,21 @@ import com.yourRPG.chatPG.exception.account.AccountNotFoundException
 import com.yourRPG.chatPG.domain.Account
 import com.yourRPG.chatPG.repository.AccountRepository
 import com.yourRPG.chatPG.service.IConvertible
+import com.yourRPG.chatPG.validator.account.AccountCreationCredentialsValidator
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.UUID
 
 @Service
 class AccountService(
     /* Repositories */
-    private val repository: AccountRepository
+    private val repository: AccountRepository,
 
+    private val accountCreationCredentialsValidator: AccountCreationCredentialsValidator
 ): IConvertible<Account, AccountDto> {
 
     /**
@@ -68,7 +73,7 @@ class AccountService(
     fun updateUuid(account: Account, uuid: UUID?) {
         account.apply {
             this.uuid = uuid
-            this.uuidBirth = uuid.run { Instant.now() }
+            this.uuidBirth = uuid?.run { Instant.now() }
         }
         repository.save(account)
     }
@@ -96,6 +101,36 @@ class AccountService(
     fun getByEmail(email: String): Account {
         return repository.findByEmail(email)
             ?: throw AccountNotFoundException("Account not found with email $email")
+    }
+
+    /**
+     * Inserts new [Account].
+     *
+     * @param username
+     * @param email
+     * @param encryptedPassword
+     * @return [AccountDto] of the inserted [Account]
+     */
+    @Modifying
+    @Transactional(propagation = Propagation.REQUIRED)
+    fun saveAccountWith(username: String, email: String, encryptedPassword: String): Account {
+
+        accountCreationCredentialsValidator.validate(username to email)
+
+        val account = Account(username, email, encryptedPassword)
+
+        repository.save(account)
+
+        return account
+    }
+
+    fun deleteById(id: Long?) {
+        repository.deleteById(id ?: throw AccountNotFoundException("Account not found with id $id"))
+    }
+
+    fun updateStatus(account: Account, status: AccountStatus) {
+        account.status = status
+        repository.save(account)
     }
 
 }
