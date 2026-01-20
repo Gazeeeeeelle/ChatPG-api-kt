@@ -1,5 +1,6 @@
 package com.yourRPG.chatPG.domain
 
+import com.yourRPG.chatPG.service.account.AccountStatus
 import jakarta.persistence.*
 import jakarta.validation.constraints.Email
 import org.springframework.security.core.GrantedAuthority
@@ -27,9 +28,23 @@ class Account: UserDetails {
     var name: String? = null
         protected set
 
+    @Email
+    @Column(unique = true, nullable = false)
+    var email: String? = null
+
     @NotNull
     @Column(name = "password")
     var accountPassword: String? = null
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    var status: AccountStatus = AccountStatus.DISABLED
+
+    @Column(unique = true)
+    var uuid: UUID? = null
+
+    @Column(unique = true)
+    var uuidBirth: Instant? = null
 
     @ManyToMany(mappedBy = "accounts")
     var chats: MutableList<Chat>? = null
@@ -39,17 +54,11 @@ class Account: UserDetails {
     var messages: MutableList<Message>? = null
         protected set
 
-    @Column(unique = true)
-    var uuid: UUID? = null
-
-    @Column(unique = true)
-    var uuidBirth: Instant? = null
-
-    @Column(unique = true, nullable = false)
-    @Email
-    var email: String? = null
-
-    protected constructor()
+    constructor(name: String, email: String, password: String) {
+        this.name = name
+        this.email = email
+        this.accountPassword = password
+    }
 
     override fun getAuthorities(): Collection<GrantedAuthority> {
         return listOf(SimpleGrantedAuthority("ROLE_USER"))

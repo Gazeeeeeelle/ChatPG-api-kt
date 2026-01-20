@@ -1,10 +1,11 @@
 package com.yourRPG.chatPG.exception.handler
 
+import com.yourRPG.chatPG.exception.ConflictException
 import com.yourRPG.chatPG.exception.NotFoundException
 import com.yourRPG.chatPG.exception.UnauthorizedException
 import com.yourRPG.chatPG.exception.ai.models.UnavailableAiException
-import com.yourRPG.chatPG.exception.poll.PollAlreadyExistsException
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 
@@ -26,14 +27,19 @@ class GlobalExceptionHandler {
         return ResponseEntity.status(503).body(ex.message)
     }
 
-    @ExceptionHandler(PollAlreadyExistsException::class)
-    fun pollAlreadyExistsException(ex: PollAlreadyExistsException): ResponseEntity<String> {
+    @ExceptionHandler(ConflictException::class)
+    fun pollAlreadyExistsException(ex: ConflictException): ResponseEntity<String> {
         return ResponseEntity.status(409).body(ex.message)
     }
 
     @ExceptionHandler(UnauthorizedException::class)
     fun unauthorized(ex: UnauthorizedException): ResponseEntity<String> {
         return ResponseEntity.status(409).body(ex.message)
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun methodArgumentNotValidException(ex: MethodArgumentNotValidException): ResponseEntity<String> {
+        return ResponseEntity.status(400).body(ex.fieldError?.defaultMessage)
     }
 
 }
