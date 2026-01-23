@@ -15,7 +15,7 @@ class ChatController(
 
     /**
      * @see ChatService.getChatsDtoByAccountId
-     * FIXME: scalability issue
+     * FIXME: minor scalability issue
      */
     @GetMapping("/all")
     fun getChats(

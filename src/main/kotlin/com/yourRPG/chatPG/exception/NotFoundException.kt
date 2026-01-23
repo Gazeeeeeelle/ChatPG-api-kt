@@ -1,3 +1,3 @@
 package com.yourRPG.chatPG.exception
 
-open class NotFoundException(message: String): IllegalStateException(message)
+open class NotFoundException(message: String): RuntimeException(message)

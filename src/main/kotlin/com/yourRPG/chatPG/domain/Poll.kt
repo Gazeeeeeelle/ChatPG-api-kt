@@ -5,10 +5,8 @@ import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 import java.io.Serializable
 
-/**
- * Since the IDE does not check if the class is implicitly open because of @Entity decorator, we shall suppress the
- * misleading warning.
- */
+//Since the IDE does not check if the class is implicitly open because of @Entity decorator, we shall suppress the
+// misleading warning.
 @Suppress("ProtectedInFinal")
 
 @Entity

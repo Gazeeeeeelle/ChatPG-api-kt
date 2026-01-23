@@ -3,6 +3,7 @@ package com.yourRPG.chatPG.domain
 import com.yourRPG.chatPG.service.account.AccountStatus
 import jakarta.persistence.*
 import jakarta.validation.constraints.Email
+import org.hibernate.annotations.SQLRestriction
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
@@ -10,13 +11,12 @@ import java.time.Instant
 import java.util.UUID
 import javax.validation.constraints.NotNull
 
-/**
- * Since the IDE does not check if the class is implicitly open because of @Entity decorator, we shall suppress the
- * misleading warning.
- */
+//Since the IDE does not check if the class is implicitly open because of @Entity decorator, we shall suppress the
+// misleading warning.
 @Suppress("ProtectedInFinal")
 
 @Entity
+@SQLRestriction("status = 'ENABLED'")
 class Account: UserDetails {
 
     @Id
@@ -45,6 +45,9 @@ class Account: UserDetails {
 
     @Column(unique = true)
     var uuidBirth: Instant? = null
+
+    @Column(unique = true)
+    var refreshToken: String? = null
 
     @ManyToMany(mappedBy = "accounts")
     var chats: MutableList<Chat>? = null

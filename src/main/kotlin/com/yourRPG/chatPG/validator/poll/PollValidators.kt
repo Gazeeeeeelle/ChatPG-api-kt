@@ -15,7 +15,8 @@ class PollValidators(
 ) {
 
     /**
-     * TODO
+     * @see AccountIsOwnerOfChatValidator.validate
+     * @see StartPollCredentialsValidator.validate
      */
     fun validateStart(accountId: Long, chat: Chat, poll: Poll) {
 
@@ -26,7 +27,7 @@ class PollValidators(
     }
 
     /**
-     * TODO
+     * @see VotePollValidator.validate
      */
     fun validateVote(accountId: Long, poll: Poll) {
 

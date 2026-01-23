@@ -1,81 +1,82 @@
 package com.yourRPG.chatPG.security.filters
 
 import com.auth0.jwt.interfaces.Claim
-import com.yourRPG.chatPG.exception.account.AccountNotFoundException
 import com.yourRPG.chatPG.domain.Account
+import com.yourRPG.chatPG.exception.account.AccountNotFoundException
+import com.yourRPG.chatPG.security.helper.SecurityContextHelper
 import com.yourRPG.chatPG.security.token.TokenService
 import com.yourRPG.chatPG.service.account.AccountService
+import helper.NullSafeMatchers.LONG_TYPE
+import helper.NullSafeMatchers.STRING_TYPE
+import helper.NullSafeMatchers.any
+import helper.NullSafeMatchers.eq
 import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyString
-import org.mockito.ArgumentMatchers.eq
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.BDDMockito.given
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.MockedStatic
 import org.mockito.Mockito
-import org.mockito.Spy
-import org.springframework.security.core.context.SecurityContext
-import org.springframework.security.core.context.SecurityContextHolder
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
+import org.mockito.junit.jupiter.MockitoExtension
+import org.springframework.security.core.GrantedAuthority
 import java.util.stream.Stream
 
+@ExtendWith(MockitoExtension::class)
 class TokenFilterTest: FilterTest() {
 
-    @Spy
     @InjectMocks
     lateinit var tokenFilter: TokenFilter
 
-    @Mock
-    lateinit var tokenService: TokenService
-
-    @Mock
-    lateinit var accountService: AccountService
-
-    @Mock
-    lateinit var account: Account
+    @Mock lateinit var tokenService: TokenService
+    @Mock lateinit var accountService: AccountService
+    @Mock lateinit var securityContext: SecurityContextHelper
 
     @Mock
     lateinit var claim: Claim
 
-    @Mock
-    lateinit var securityContext: SecurityContext
-
-    @Mock
-    lateinit var mockedSch: MockedStatic<SecurityContextHolder>
-
     @Test
     fun `valid - path is filtered and attends to the requirements`() {
         //ARRANGE
+        val name     = "username_test"
+        val email    = "email@email.com"
+        val password = "Password-test"
+        val token    = "valid-token123"
+
+        val account  = Account(name, email, password)
+
         given(request.servletPath)
-            .willReturn("/somethingElse")
+            .willReturn("/notAuthRelatedAndCheckedByTokenFilter")
 
-        given(request.getHeader("Authorization"))
-            .willReturn("Bearer valid-token123")
+        given(tokenService.getAccessToken(request))
+            .willReturn(token)
 
-        given(tokenService.getClaim("valid-token123", "id"))
+        given(tokenService.getClaim(token, "id"))
             .willReturn(claim)
 
         given(accountService.getById(0L))
             .willReturn(account)
 
-        mockedSch
-            .`when`<SecurityContext> { SecurityContextHolder.getContext() }
-            .thenReturn(securityContext)
-
         //ACT
         tokenFilter.doFilter(request, response, filterChain)
 
         //ASSERT
-        mockedSch.verify { SecurityContextHolder.getContext() }
+        verify(tokenService).apply {
+            getAccessToken(request)
+            getClaim(token, "id")
+        }
+        verify(accountService).getById(0L)
+        verify(securityContext).setPrincipal(0L, account.authorities)
+
     }
 
     @TestFactory
     fun `valid - path is not filtered`(): Stream<DynamicTest> =
         Stream.of(
-            "/login", "/login/exists"
+            "/auth/login", "/auth/refreshToken"
         ).map { path ->
             DynamicTest.dynamicTest("path: $path") {
                 //ARRANGE
@@ -86,7 +87,10 @@ class TokenFilterTest: FilterTest() {
                 tokenFilter.doFilter(request, response, filterChain)
 
                 //ASSERT
-                Mockito.verify(filterChain)
+                verify(securityContext, never())
+                    .setPrincipal(LONG_TYPE.any(), listOf<GrantedAuthority>().any())
+
+                verify(filterChain)
                     .doFilter(request, response)
 
                 Mockito.reset(filterChain)
@@ -99,27 +103,26 @@ class TokenFilterTest: FilterTest() {
         given(request.servletPath)
             .willReturn("/somethingElse")
 
-        given(request.getHeader("Authorization"))
-            .willReturn(null)
-
         //ACT
         tokenFilter.doFilter(request, response, filterChain)
 
         //ASSERT
-        Mockito.verify(response)
-            .sendError(eq(HttpServletResponse.SC_UNAUTHORIZED), anyString())
+        verify(response)
+            .sendError(HttpServletResponse.SC_UNAUTHORIZED.eq(), STRING_TYPE.any())
     }
 
     @Test
     fun `invalid - account not found`() {
         //ARRANGE
+        val token = "/somethingElse"
+
         given(request.servletPath)
             .willReturn("/somethingElse")
 
         given(request.getHeader("Authorization"))
-            .willReturn("Bearer valid-token123")
+            .willReturn("Bearer $token")
 
-        given(tokenService.getClaim("valid-token123", "id"))
+        given(tokenService.getClaim(token, "id"))
             .willReturn(claim)
 
         given(accountService.getById(0L))
@@ -129,8 +132,8 @@ class TokenFilterTest: FilterTest() {
         tokenFilter.doFilter(request, response, filterChain)
 
         //ASSERT
-        Mockito.verify(response)
-            .sendError(eq(HttpServletResponse.SC_UNAUTHORIZED), any())
+        verify(response)
+            .sendError(HttpServletResponse.SC_UNAUTHORIZED.eq(), STRING_TYPE.any())
     }
 
 }

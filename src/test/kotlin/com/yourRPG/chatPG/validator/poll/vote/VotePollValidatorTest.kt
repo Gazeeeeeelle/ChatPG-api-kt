@@ -10,11 +10,11 @@ import org.mockito.Mockito.mock
 
 class VotePollValidatorTest {
 
-    val votePollValidator: VotePollValidator = VotePollValidator()
+    private val votePollValidator: VotePollValidator = VotePollValidator()
 
-    val poll: Poll = mock(Poll::class.java)
+    private val poll: Poll = mock(Poll::class.java)
 
-    val t: Pair<Long, Poll> = Pair(0L, poll)
+    private val t: Pair<Long, Poll> = Pair(0L, poll)
 
     @Test
     fun valid() {
@@ -38,6 +38,5 @@ class VotePollValidatorTest {
             votePollValidator.validate(t)
         }
     }
-
 
 }

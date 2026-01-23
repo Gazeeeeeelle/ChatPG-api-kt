@@ -2,10 +2,8 @@ package com.yourRPG.chatPG.domain
 
 import jakarta.persistence.*
 
-/**
- * Since the IDE does not check if the class is implicitly open because of @Entity decorator, we shall suppress the
- * misleading warning.
- */
+//Since the IDE does not check if the class is implicitly open because of @Entity decorator, we shall suppress the
+// misleading warning.
 @Suppress("ProtectedInFinal")
 
 @Entity

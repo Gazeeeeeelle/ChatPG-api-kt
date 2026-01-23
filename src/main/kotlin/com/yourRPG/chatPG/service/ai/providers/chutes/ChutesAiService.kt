@@ -6,7 +6,7 @@ import com.yourRPG.chatPG.service.ai.IResponsive
 import com.yourRPG.chatPG.service.ai.providers.AiModel
 import com.yourRPG.chatPG.service.ai.providers.AiProvider
 import com.yourRPG.chatPG.service.ai.providers.chutes.model.ChutesResponse
-import com.yourRPG.chatPG.service.http.HttpService
+import com.yourRPG.chatPG.helper.http.HttpService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.net.URI
@@ -73,12 +73,15 @@ class ChutesAiService(
      */
     private fun getRequestJson(model: AiModel, prompt: String): String =
         mapOf(
-            "model" to model.modelName,
+            "model"    to model.modelName,
             "messages" to listOf(
-                mapOf("role" to "system", "content" to prompt)
+                mapOf(
+                    "role"    to "system",
+                    "content" to  prompt
+                )
             ),
-            "stream" to false,
-            "max_tokens" to 1024,
+            "stream"      to false,
+            "max_tokens"  to 1024,
             "temperature" to 0.7
         ).let { raw -> objectMapper.writeValueAsString(raw) }
 

@@ -10,7 +10,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 class ThymeleafConfig {
 
     @Bean
-    fun templateEngine(): TemplateEngine {
+    fun emailTemplateEngine(): TemplateEngine {
         val resolver = ClassLoaderTemplateResolver().apply {
             prefix = "templates/" // Looks in src/main/resources/templates/
             suffix = ".html"

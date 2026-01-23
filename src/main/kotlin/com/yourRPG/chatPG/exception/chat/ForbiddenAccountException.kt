@@ -2,4 +2,4 @@ package com.yourRPG.chatPG.exception.chat
 
 import com.yourRPG.chatPG.exception.UnauthorizedException
 
-class UnauthorizedAccountException(message: String): UnauthorizedException(message)
+class ForbiddenAccountException(message: String): UnauthorizedException(message)

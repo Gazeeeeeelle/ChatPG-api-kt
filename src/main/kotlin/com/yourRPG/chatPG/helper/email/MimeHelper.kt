@@ -13,7 +13,7 @@ class MimeHelper(
     @Value("\${server.frontend.address}")
     private lateinit var frontEndAddress: String
 
-    fun getTemplateWithVariables(template: String, vararg variables: Pair<String, String>): String {
+    fun getTemplate(template: String, vararg variables: Pair<String, String>): String {
         val context = Context().apply {
             for ((name, value) in variables) {
                 setVariable(name, value)

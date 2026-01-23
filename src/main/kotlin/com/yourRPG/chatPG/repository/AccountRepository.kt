@@ -11,11 +11,16 @@ interface AccountRepository: JpaRepository<Account, Long> {
 
     fun existsByNameEquals(username: String): Boolean
 
-    fun findByUuidEquals(uuid: UUID): Account?
+    @Query("SELECT * FROM account WHERE uuid = :uuid", nativeQuery = true)
+    fun qFindByUuidEquals(uuid: UUID): Account?
 
-    fun findByEmail(email: String): Account?
+    @Query("SELECT a FROM Account a WHERE a.email = :email")
+    fun qFindByEmail(email: String): Account?
 
     @Query("SELECT CASE WHEN (COUNT(a) > 0) THEN true ELSE false END FROM Account a WHERE a.email = :email")
     fun qExistsByEmail(email: String): Boolean
+
+    @Query("SELECT a FROM Account a WHERE a.refreshToken = :refresh")
+    fun qFindByRefreshToken(refresh: String): Account?
 
 }

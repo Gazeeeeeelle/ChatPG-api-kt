@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.security.filters
 
-import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
+import com.yourRPG.chatPG.security.helper.SecurityContextHelper
 import com.yourRPG.chatPG.security.token.TokenService
 import com.yourRPG.chatPG.service.account.AccountService
 import jakarta.servlet.Filter
@@ -9,14 +9,13 @@ import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 
 @Component
 class TokenFilter(
     private val tokenService: TokenService,
-    private val accountService: AccountService
+    private val accountService: AccountService,
+    private val securityContext: SecurityContextHelper
 ): Filter {
 
     override fun doFilter(
@@ -24,34 +23,28 @@ class TokenFilter(
         response: ServletResponse,
         filterChain: FilterChain
     ) {
+        val path = (request as HttpServletRequest)
+            .servletPath
 
-        if ((request as HttpServletRequest)
-                .servletPath.startsWith("/login")
+        if (path.contains("/auth") && !path.contains("/auth/logout")
         ) {
             filterChain.doFilter(request, response)
             return
         }
 
         runCatching {
-            val token = getToken(request)
+            val token = tokenService.getAccessToken(request)
 
             val accountId = tokenService.getClaim(token, "id").asLong()
             val account = accountService.getById(accountId)
 
-            SecurityContextHolder.getContext().authentication =
-                UsernamePasswordAuthenticationToken(account.id, null, account.authorities)
-
-            filterChain.doFilter(request, response)
+            securityContext.setPrincipal(accountId, account.authorities)
         }.onFailure { ex ->
             (response as HttpServletResponse)
                 .sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.message)
         }
-    }
 
-   private fun getToken(request: HttpServletRequest): String {
-        return request.getHeader("Authorization")
-            ?.replace("Bearer ", "")
-            ?: throw AccessToAccountUnauthorizedException("Authorization header is missing")
-   }
+        filterChain.doFilter(request, response)
+    }
 
 }
