@@ -1,5 +1,8 @@
 package com.yourRPG.chatPG.validator.account
 
+import com.yourRPG.chatPG.exception.auth.username.UsernameContainsIllegalCharactersException
+import com.yourRPG.chatPG.exception.auth.username.UsernameTooLongException
+import com.yourRPG.chatPG.exception.auth.username.UsernameTooShortException
 import com.yourRPG.chatPG.validator.IValidatable
 import org.springframework.stereotype.Component
 
@@ -12,17 +15,15 @@ class UsernameValidator: IValidatable<String> {
     }
 
     override fun validate(t: String) {
-        require(t.length >= 3) {
-            "Username length must be greater than or equal to 8"
-        }
 
-        require(t.length <= 16) {
-            "Username length must be lesser than or equal to 16"
-        }
+        if (t.length < 3)
+            throw UsernameTooShortException("Username length must be at least 3")
 
-        require(t.matches(usernameRegex)) {
-            "Username contains invalid characters. Permitted: a-z, A-Z, 0-9 and _"
-        }
+        if (t.length > 16)
+            throw UsernameTooLongException("Username length must be at maximum 16")
+
+        if (!t.matches(usernameRegex))
+            throw UsernameContainsIllegalCharactersException("Username contains invalid characters. Permitted: a-z, A-Z, 0-9 and _")
 
     }
 

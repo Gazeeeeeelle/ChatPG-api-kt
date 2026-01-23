@@ -27,10 +27,18 @@ class MessageContentValidatorTest {
     }
 
     @Test
-    fun invalid_blank() {
+    fun invalid_empty() {
         //ACT + ASSERT
         assertThrows<MessageContentBlankException> {
             validator.validate(t = "")
+        }
+    }
+
+    @Test
+    fun invalid_blank() {
+        //ACT + ASSERT
+        assertThrows<MessageContentBlankException> {
+            validator.validate(t = "   ")
         }
     }
 

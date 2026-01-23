@@ -1,25 +1,25 @@
 package com.yourRPG.chatPG.validator.chat
 
-import com.yourRPG.chatPG.exception.chat.UnauthorizedAccountException
 import com.yourRPG.chatPG.domain.Chat
+import com.yourRPG.chatPG.exception.chat.ForbiddenAccountException
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.BDDMockito.given
 import org.mockito.InjectMocks
-import org.mockito.Mockito
+import org.mockito.Mockito.mock
 import org.mockito.junit.jupiter.MockitoExtension
 
 @ExtendWith(MockitoExtension::class)
 class AccountIsOwnerOfChatValidatorTest {
 
     @InjectMocks
-    lateinit var validator: AccountIsOwnerOfChatValidator
+    private lateinit var validator: AccountIsOwnerOfChatValidator
 
-    val chat: Chat = Mockito.mock(Chat::class.java)
+    private val chat = mock(Chat::class.java)
 
-    val t: Pair<Long, Chat> = Pair(0, chat)
+    private val t: Pair<Long, Chat> = Pair(0, chat)
 
     @Test
     fun valid() {
@@ -40,7 +40,7 @@ class AccountIsOwnerOfChatValidatorTest {
             .willReturn(t.first + 1)
 
         //ACT + ASSERT
-        assertThrows<UnauthorizedAccountException> {
+        assertThrows<ForbiddenAccountException> {
             validator.validate(t)
         }
     }

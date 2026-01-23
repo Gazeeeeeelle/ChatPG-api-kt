@@ -1,6 +1,7 @@
 package com.yourRPG.chatPG.validator.account
 
-import com.yourRPG.chatPG.exception.ConflictException
+import com.yourRPG.chatPG.exception.auth.username.UsernameAlreadyRegisteredException
+import com.yourRPG.chatPG.exception.email.EmailAlreadyRegisteredException
 import com.yourRPG.chatPG.repository.AccountRepository
 import com.yourRPG.chatPG.validator.IValidatable
 import org.springframework.stereotype.Component
@@ -14,10 +15,10 @@ class AccountCreationCredentialsValidator(
         val (username, email) = t
 
         if (repository.existsByNameEquals(username))
-            throw ConflictException("There already is an account with that username")
+            throw UsernameAlreadyRegisteredException("There already is an account with that username")
 
         if (repository.qExistsByEmail(email))
-            throw ConflictException("There already is an account with that email")
+            throw EmailAlreadyRegisteredException("There already is an account with that email")
 
     }
 

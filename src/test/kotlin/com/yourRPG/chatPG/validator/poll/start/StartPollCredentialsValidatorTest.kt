@@ -22,32 +22,30 @@ class StartPollCredentialsValidatorTest {
     @InjectMocks
     lateinit var validator: StartPollCredentialsValidator
 
-    @field:Mock
-    lateinit var pollRepository: PollRepository
+    @Mock lateinit var pollRepository: PollRepository
 
-    val t: Poll = Mockito.mock(Poll::class.java)
-
+    val poll: Poll = Mockito.mock(Poll::class.java)
     val chat: Chat = Mockito.mock(Chat::class.java)
 
     @Test
     fun valid() {
         //ARRANGE
-        given(t.chat)
+        given(poll.chat)
             .willReturn(chat)
 
         //ACT + ASSERT
         assertDoesNotThrow {
-            validator.validate(t)
+            validator.validate(poll)
         }
     }
 
     @Test
     fun invalid_chatNotFound() {
         //ARRANGE
-        given(t.subject)
+        given(poll.subject)
             .willReturn(PollSubject.NONE)
 
-        given(t.chat)
+        given(poll.chat)
             .willReturn(chat)
 
         given(chat.id)
@@ -55,28 +53,25 @@ class StartPollCredentialsValidatorTest {
 
         //ACT + ASSERT
         assertThrows<ChatNotFoundException> {
-            validator.validate(t)
+            validator.validate(poll)
         }
     }
 
     @Test
     fun invalid_pollAlreadyExistsException() {
         //ARRANGE
-        given(t.chat)
+        given(poll.chat)
             .willReturn(chat)
 
-        given(t.subject)
+        given(poll.subject)
             .willReturn(PollSubject.NONE)
-
-        given(chat.id)
-            .willReturn(0L)
 
         given(pollRepository.existsByChatIdAndSubject(0L, PollSubject.NONE))
             .willReturn(true)
 
         //ACT + ASSERT
         assertThrows<PollAlreadyExistsException> {
-            validator.validate(t)
+            validator.validate(poll)
         }
     }
 

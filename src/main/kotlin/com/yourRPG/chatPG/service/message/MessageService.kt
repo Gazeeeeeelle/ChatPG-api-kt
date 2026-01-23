@@ -41,7 +41,7 @@ class MessageService(
 
     /**
      * Fetches 20 messages in the [Chat] identified with and [chatId]. The messages are fetched by selecting
-     *  the ids lesser than the [referenceId], and therefore, older messages than the reference.
+     *  the ids less than the [referenceId], and therefore, older messages than the reference.
      * If the [referenceId] equals -1, then it fetches using a [Long.MAX_VALUE], which makes
      *  [MessageRepository.qFindOldByChatIdAndReference] provide the last 20 messages of the chat, since they just need
      *  to have lesser ids than the largest possible.

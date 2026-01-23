@@ -1,4 +1,4 @@
-package com.yourRPG.chatPG.service.http
+package com.yourRPG.chatPG.helper.http
 
 import org.springframework.stereotype.Service
 import java.net.http.HttpClient
@@ -15,7 +15,7 @@ class HttpService {
      *
      * @param request
      * @param responseBodyHandler
-     * @return [HttpResponse]
+     * @return [java.net.http.HttpResponse]
      * @throws java.io.IOException
      * @throws InterruptedException
      * @throws IllegalArgumentException

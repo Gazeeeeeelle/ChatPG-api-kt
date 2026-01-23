@@ -1,4 +1,4 @@
-package com.yourRPG.chatPG.exception.auth
+package com.yourRPG.chatPG.exception.auth.password
 
 import com.yourRPG.chatPG.exception.ConflictException
 

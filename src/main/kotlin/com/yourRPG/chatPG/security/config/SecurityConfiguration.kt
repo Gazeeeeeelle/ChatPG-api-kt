@@ -34,7 +34,8 @@ class SecurityConfiguration(
             it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         }
         authorizeHttpRequests {
-            it.requestMatchers(HttpMethod.POST, "/login/**").permitAll()
+            it.requestMatchers(HttpMethod.POST, "/auth/logout").authenticated()
+            it.requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
                 .anyRequest().authenticated()
         }
         addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter::class.java)
@@ -57,6 +58,7 @@ class SecurityConfiguration(
                 "http://127.0.0.1:5500",
                 "http://$radminAddress:5500"
             )
+            allowCredentials = true
             allowedMethods =
                 listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD", "TRACE", "CONNECT")
             allowedHeaders =

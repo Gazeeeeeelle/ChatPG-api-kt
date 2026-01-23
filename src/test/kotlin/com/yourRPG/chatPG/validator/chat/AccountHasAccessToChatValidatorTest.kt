@@ -20,11 +20,8 @@ class AccountHasAccessToChatValidatorTest {
     @InjectMocks
     lateinit var validator: AccountHasAccessToChatValidator
 
-    @Mock
-    lateinit var accountRepository: AccountRepository
-
-    @Mock
-    lateinit var chatRepository: ChatRepository
+    @Mock lateinit var accountRepository: AccountRepository
+    @Mock lateinit var chatRepository: ChatRepository
 
     var t: Pair<Long, Long> = Pair(0, 0)
 
@@ -48,10 +45,6 @@ class AccountHasAccessToChatValidatorTest {
 
     @Test
     fun invalid_accountDoesNotExist() {
-        //ARRANGE
-        given(accountRepository.existsById(t.first))
-            .willReturn(false)
-
         //ACT + ASSERT
         assertThrows<AccountNotFoundException> {
             validator.validate(t)
@@ -63,9 +56,6 @@ class AccountHasAccessToChatValidatorTest {
         //ARRANGE
         given(accountRepository.existsById(t.first))
             .willReturn(true)
-
-        given(chatRepository.existsById(t.second))
-            .willReturn(false)
 
         //ACT + ASSERT
         assertThrows<ChatNotFoundException> {
@@ -81,9 +71,6 @@ class AccountHasAccessToChatValidatorTest {
 
         given(chatRepository.existsById(t.second))
             .willReturn(true)
-
-        given(chatRepository.qExistsByAccountNameAndId(t.first, t.second))
-            .willReturn(false)
 
         //ACT + ASSERT
         assertThrows<UnauthorizedAccessToChatException> {

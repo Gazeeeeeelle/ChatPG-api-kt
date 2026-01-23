@@ -11,7 +11,7 @@ interface MessageRepository: JpaRepository<Message, Long> {
 
     /**
      * Fetches all messages from the [chat].
-     * FIXME: scalability issue
+     * FIXME: minor scalability issue
      *
      * @param chat from where the messages will be fetched
      * @return [List] of [Message]s fetched
@@ -21,7 +21,7 @@ interface MessageRepository: JpaRepository<Message, Long> {
 
     /**
      * Fetches 20 messages from the [Chat] identified with [chatId]. The messages are fetched by selecting the ids
-     *  lesser than the [reference] id, and therefore, 20 older messages than the reference.
+     *  less than the [reference] id, and therefore, 20 older messages than the reference.
      *
      * @param chatId chat identifier
      * @param reference reference id for fetching

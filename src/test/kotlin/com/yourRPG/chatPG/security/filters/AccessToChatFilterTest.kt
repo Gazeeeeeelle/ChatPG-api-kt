@@ -1,37 +1,28 @@
 package com.yourRPG.chatPG.security.filters
 
 import com.yourRPG.chatPG.exception.chat.UnauthorizedAccessToChatException
+import com.yourRPG.chatPG.security.helper.SecurityContextHelper
 import com.yourRPG.chatPG.validator.chat.AccountHasAccessToChatValidator
 import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.mockito.*
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.BDDMockito.given
-import org.springframework.security.core.Authentication
-import org.springframework.security.core.context.SecurityContext
-import org.springframework.security.core.context.SecurityContextHolder
+import org.mockito.InjectMocks
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.Mockito.verify
 import java.util.stream.Stream
 
 class AccessToChatFilterTest: FilterTest() {
 
-    @Spy
     @InjectMocks
     lateinit var accessToChatFilter: AccessToChatFilter
 
-    @Mock
-    lateinit var validator: AccountHasAccessToChatValidator
-
-    @Mock
-    lateinit var securityContext: SecurityContext
-
-    @Mock
-    lateinit var authentication: Authentication
-
-    @Mock
-    lateinit var mockedSch: MockedStatic<SecurityContextHolder>
+    @Mock lateinit var validator: AccountHasAccessToChatValidator
+    @Mock lateinit var securityContext: SecurityContextHelper
 
     @Test
     fun `valid - path is filtered and attends to the requirements`() {
@@ -39,26 +30,19 @@ class AccessToChatFilterTest: FilterTest() {
         given(request.servletPath)
             .willReturn("/chats/0/**")
 
-        mockedSch.`when`<SecurityContext> { SecurityContextHolder.getContext() }
-            .thenReturn(securityContext)
-
-        given(securityContext.authentication)
-            .willReturn(authentication)
-
-        given(authentication.principal)
+        given(securityContext.getPrincipal())
             .willReturn(0L)
-
-        mockedSch.`when`<SecurityContext> { SecurityContextHolder.getContext() }
-            .thenReturn(securityContext)
 
         //ACT
         accessToChatFilter.doFilter(request, response, filterChain)
 
         //ASSERT
-        Mockito.verify(filterChain)
+        verify(validator)
+            .validate(0L to 0L)
+
+        verify(filterChain)
             .doFilter(request, response)
 
-        mockedSch.close()
     }
 
     @TestFactory
@@ -75,7 +59,7 @@ class AccessToChatFilterTest: FilterTest() {
                 accessToChatFilter.doFilter(request, response, filterChain)
 
                 //ASSERT
-                Mockito.verify(filterChain)
+                verify(filterChain)
                     .doFilter(request, response)
 
                 Mockito.reset(filterChain)
@@ -88,13 +72,7 @@ class AccessToChatFilterTest: FilterTest() {
         given(request.servletPath)
             .willReturn("/chats/0/**")
 
-        mockedSch.`when`<SecurityContext> { SecurityContextHolder.getContext() }
-            .thenReturn(securityContext)
-
-        given(securityContext.authentication)
-            .willReturn(authentication)
-
-        given(authentication.principal)
+        given(securityContext.getPrincipal())
             .willReturn(0L)
 
         given(validator.validate(0L to 0L))
@@ -104,7 +82,7 @@ class AccessToChatFilterTest: FilterTest() {
         accessToChatFilter.doFilter(request, response, filterChain)
 
         //ASSERT
-        Mockito.verify(response)
+        verify(response)
             .sendError(eq(HttpServletResponse.SC_FORBIDDEN), any())
 
     }

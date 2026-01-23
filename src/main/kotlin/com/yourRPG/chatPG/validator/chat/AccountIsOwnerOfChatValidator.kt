@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.validator.chat
 
-import com.yourRPG.chatPG.exception.chat.UnauthorizedAccountException
+import com.yourRPG.chatPG.exception.chat.ForbiddenAccountException
 import com.yourRPG.chatPG.domain.Chat
 import com.yourRPG.chatPG.validator.IValidatable
 import org.springframework.stereotype.Component
@@ -12,7 +12,7 @@ class AccountIsOwnerOfChatValidator: IValidatable<Pair<Long, Chat>> {
         val (accountId, chat) = t
 
         if (accountId != chat.ownerId)
-            throw UnauthorizedAccountException("This account does not attend to the requirements to realize such action")
+            throw ForbiddenAccountException("This account does not attend to the requirements to realize such action")
 
     }
 

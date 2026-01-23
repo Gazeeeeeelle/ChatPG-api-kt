@@ -18,17 +18,13 @@ class PollValidatorsTest {
     @InjectMocks
     lateinit var validator: PollValidators
 
-    @field:Mock
-    lateinit var startPoll: StartPollCredentialsValidator
+    @Mock lateinit var startPoll: StartPollCredentialsValidator
 
-    @field:Mock
-    lateinit var isOwner: AccountIsOwnerOfChatValidator
+    @Mock lateinit var isOwner: AccountIsOwnerOfChatValidator
 
-    @field:Mock
-    lateinit var votePoll: VotePollValidator
+    @Mock lateinit var votePoll: VotePollValidator
 
     val poll: Poll = mock(Poll::class.java)
-
     val chat: Chat = mock(Chat::class.java)
 
     @Test
@@ -36,10 +32,10 @@ class PollValidatorsTest {
 
         validator.validateStart(accountId = 0L, chat, poll)
 
-        verify(isOwner, times(1))
+        verify(isOwner)
             .validate(t = 0L to chat)
 
-        verify(startPoll, times(1))
+        verify(startPoll)
             .validate(t = poll)
 
     }
@@ -49,7 +45,7 @@ class PollValidatorsTest {
 
         validator.validateVote(accountId = 0L, poll)
 
-        verify(votePoll, times(1))
+        verify(votePoll)
             .validate(t = 0L to poll)
 
     }

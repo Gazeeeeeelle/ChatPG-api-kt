@@ -1,21 +1,22 @@
 package com.yourRPG.chatPG.security.token
 
 import com.auth0.jwt.JWT
-import com.yourRPG.chatPG.domain.Account
-import com.yourRPG.chatPG.service.account.AccountService
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.BDDMockito.*
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.Claim
-import com.yourRPG.chatPG.exception.account.AccountNotFoundException
+import com.auth0.jwt.interfaces.DecodedJWT
+import com.yourRPG.chatPG.domain.Account
 import com.yourRPG.chatPG.exception.security.InvalidTokenException
+import com.yourRPG.chatPG.service.account.AccountService
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.BDDMockito.given
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
-import org.springframework.security.core.userdetails.UserDetails
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 
@@ -24,20 +25,14 @@ class TokenServiceTest {
 
     private lateinit var tokenService: TokenService
 
-    @Mock
-    private lateinit var accountService: AccountService
-
-    @Mock
-    private lateinit var userDetails: UserDetails
-
-    @Mock
-    private lateinit var account: Account
+    @Mock private lateinit var accountService: AccountService
 
     private val secret = "secret"
 
-    private val issuer = "API ChatPG"
-
     private val clock = Clock.fixed(Instant.now(), ZoneId.of("UTC"))
+
+    @Mock
+    private lateinit var account: Account
 
     @BeforeEach
     fun setup() {
@@ -45,83 +40,76 @@ class TokenServiceTest {
     }
 
     @Test
-    fun `generateToken - success`() {
+    fun `signAccessToken - success`() {
         //ARRANGE
-        val name = "Daniel"
+        val username = "username_test"
 
-        given(userDetails.username)
-            .willReturn(name)
-
-        given(accountService.getByName(name))
-            .willReturn(account)
+        given(account.username)
+            .willReturn(username)
 
         //ACT
-        val token = tokenService.generateToken(userDetails)
+        val token = tokenService.signAccessToken(account)
 
         //ASSERT
-        verify(accountService)
-            .getByName(name)
+        assertEquals(getIdClaim(token).toString(), "0")
 
-        assertDoesNotThrow { getClaim(token, "id") }
-
+        assertEquals(getSubject(token), username)
     }
 
     @Test
-    fun `generateToken - failure due to account absence`() {
+    fun `signAccessTokenWithLifetime - token IS NOT expired`() {
         //ARRANGE
-        val name = "Daniel"
+        val username = "username_test"
 
-        given(userDetails.username)
-            .willReturn(name)
+        given(account.username)
+            .willReturn(username)
 
-        val message = "Account not found"
-        given(accountService.getByName(name))
-            .willThrow(AccountNotFoundException(message))
+        //ACT
+        val token = tokenService.signAccessTokenWithLifetime(Duration.ofMinutes(10L), account)
 
-        //ACT + ASSERT
-        val ex = assertThrows<AccountNotFoundException> {
-            tokenService.generateToken(userDetails)
-        }
+        //ASSERT
+        assertEquals(getIdClaim(token).toString(), "0")
 
-        assertEquals(message, ex.message)
-        verify(accountService)
-            .getByName(name)
+        assertEquals(getSubject(token), username)
     }
 
     @Test
-    fun `generateToken - failure due to id abnormal absence`() {
+    fun `signAccessTokenWithLifetime - (Duration, Account) - token IS expired`() {
         //ARRANGE
-        val name = "Daniel"
+        val username = "username_test"
 
-        given(userDetails.username)
-            .willReturn(name)
+        given(account.username)
+            .willReturn(username)
 
-        given(accountService.getByName(name))
-            .willReturn(account)
+        //ACT
+        val token = tokenService.signAccessTokenWithLifetime(Duration.ofSeconds(0L), account)
 
-        given(account.id)
-            .willReturn(null)
-
-        //ACT + ASSERT
-        val ex = assertThrows<AccountNotFoundException> {
-            tokenService.generateToken(userDetails)
+        //ASSERT
+        assertThrows<InvalidTokenException> {
+            getIdClaim(token)
         }
-
-        assertEquals("ID not found", ex.message)
-
     }
 
-    fun getClaim(token: String, claim: String): Claim =
+    private fun getIdClaim(token: String): Claim =
         runCatching {
-            JWT.require(Algorithm.HMAC256(secret))
-                .withIssuer(issuer)
-                .build()
-                .verify(token)
-                .claims[claim]
+            verifyToken(token)
+                .claims["id"]
                 ?: throw InvalidTokenException("Invalid claim")
         }.getOrElse { ex ->
             throw InvalidTokenException(ex.message ?: "Token invalid")
         }
 
+    private fun getSubject(token: String): String =
+        runCatching {
+            verifyToken(token).subject
+        }.getOrElse { ex ->
+            throw InvalidTokenException(ex.message ?: "Token invalid")
+        }
+
+    private fun verifyToken(token: String): DecodedJWT =
+        JWT.require(Algorithm.HMAC256(secret))
+            .withIssuer(tokenService.issuer)
+            .build()
+            .verify(token)
 
 }
