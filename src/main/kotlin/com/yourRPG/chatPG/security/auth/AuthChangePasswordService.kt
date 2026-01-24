@@ -1,7 +1,7 @@
 package com.yourRPG.chatPG.security.auth
 
 import com.yourRPG.chatPG.domain.Account
-import com.yourRPG.chatPG.dto.auth.ChangePasswordDto
+import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
 import com.yourRPG.chatPG.exception.auth.password.PasswordResetException
 import com.yourRPG.chatPG.helper.email.MimeHelper
 import com.yourRPG.chatPG.helper.frontend.FrontendUrlHelper

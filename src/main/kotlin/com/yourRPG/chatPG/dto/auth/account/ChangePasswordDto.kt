@@ -1,4 +1,4 @@
-package com.yourRPG.chatPG.dto.auth
+package com.yourRPG.chatPG.dto.auth.account
 
 import jakarta.validation.constraints.Pattern
 
