@@ -80,6 +80,13 @@ class AccountService(
             ?: throw AccountNotFoundException("Account not found with email $email")
     }
 
+    /**
+     * Returns the [Account] found with the *Refresh Token* given.
+     *
+     * @param refresh the refresh token.
+     * @return [Account] found with.
+     * @throws UnauthorizedException if the refresh token given did not identify any account.
+     */
     fun getByRefreshToken(refresh: String): Account =
         repository.qFindByRefreshToken(refresh)
             ?: throw UnauthorizedException("No account found with refresh token given")

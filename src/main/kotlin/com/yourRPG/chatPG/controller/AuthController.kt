@@ -7,7 +7,6 @@ import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.dto.auth.UuidDto
 import com.yourRPG.chatPG.security.auth.AuthService
-import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -51,10 +50,8 @@ class AuthController(
         @CookieValue("refresh_token") oldRefresh: String,
         response: HttpServletResponse
     ): ResponseEntity<TokenDto> {
-        val (access, refresh) = service.refreshToken(oldRefresh)
-        response.addCookie(Cookie("refresh_token", refresh))
         return ResponseEntity.ok(
-            TokenDto(access)
+            service.refreshToken(response, oldRefresh)
         )
     }
 

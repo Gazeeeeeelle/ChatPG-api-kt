@@ -58,7 +58,10 @@ class Poll {
 
             other as CompositePrimaryKey
 
-            return !(chat != other.chat || subject != other.subject)
+            if (chat != other.chat) return false
+            if (subject != other.subject) return false
+
+            return true
         }
 
         override fun hashCode(): Int {
