@@ -6,6 +6,7 @@ import com.auth0.jwt.interfaces.Claim
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.yourRPG.chatPG.domain.Account
 import com.yourRPG.chatPG.exception.security.InvalidTokenException
+import com.yourRPG.chatPG.helper.http.CookieService
 import com.yourRPG.chatPG.service.account.AccountService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -26,6 +27,7 @@ class TokenServiceTest {
     private lateinit var tokenService: TokenService
 
     @Mock private lateinit var accountService: AccountService
+    @Mock private lateinit var cookieService: CookieService
 
     private val secret = "secret"
 
@@ -36,7 +38,7 @@ class TokenServiceTest {
 
     @BeforeEach
     fun setup() {
-        tokenService = TokenService(accountService, secret, clock)
+        tokenService = TokenService(accountService, cookieService, secret, clock)
     }
 
     @Test

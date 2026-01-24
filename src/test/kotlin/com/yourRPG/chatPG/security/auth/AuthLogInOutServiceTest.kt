@@ -3,7 +3,6 @@ package com.yourRPG.chatPG.security.auth
 import com.yourRPG.chatPG.domain.Account
 import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
-import com.yourRPG.chatPG.helper.http.CookieService
 import com.yourRPG.chatPG.security.token.TokenService
 import com.yourRPG.chatPG.service.account.AccountService
 import jakarta.servlet.http.HttpServletResponse
@@ -27,7 +26,6 @@ class AuthLogInOutServiceTest {
     @Mock private lateinit var authPasswordService: AuthPasswordService
     @Mock private lateinit var tokenService: TokenService
     @Mock private lateinit var accountService: AccountService
-    @Mock private lateinit var cookieService: CookieService
 
     @Mock
     private lateinit var passwordEncoder: PasswordEncoder
@@ -64,8 +62,8 @@ class AuthLogInOutServiceTest {
         service.login(response, credentials)
 
         //ASSERT
-        verify(cookieService)
-            .appendRefreshTokenCookie(response, account)
+        verify(tokenService)
+            .appendNewRefreshToken(response, account)
 
 
     }
@@ -93,8 +91,8 @@ class AuthLogInOutServiceTest {
         }
 
         //ASSERT
-        verify(cookieService, never())
-            .appendRefreshTokenCookie(response, account)
+        verify(tokenService, never())
+            .appendNewRefreshToken(response, account)
 
     }
 

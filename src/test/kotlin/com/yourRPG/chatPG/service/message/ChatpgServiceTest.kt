@@ -38,11 +38,9 @@ class ChatpgServiceTest {
         //ACT
         val actual = chatpgService.treatMemoryForPrompt(messages)
 
-        val expected = """
-            [USER($username):]first message
-            [AI:]second message
-            [USER($username):]third message
-        """.trimIndent()
+        val expected = "[USER($username):]first message\n" +
+            "[AI:]second message\n" +
+            "[USER($username):]third message\n"
 
         //ASSERT
         assertEquals(expected, actual)

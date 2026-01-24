@@ -10,6 +10,10 @@ import com.yourRPG.chatPG.security.token.TokenService
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Service
 
+/**
+ * This service is an orchestrator to enhance code maintainability and organization. Please do not interact with Auth related
+ *  services without first delegating to this service.
+ */
 @Service
 class AuthService(
     private val authChangePasswordService: AuthChangePasswordService,
@@ -65,8 +69,8 @@ class AuthService(
      * Delegates.
      * @see TokenService.refreshTokens
      */
-    fun refreshToken(oldRefresh: String): Pair<String, String> {
-        return tokenService.refreshTokens(oldRefresh)
+    fun refreshToken(response: HttpServletResponse, oldRefresh: String): TokenDto {
+        return tokenService.refreshTokens(response, oldRefresh)
     }
 
 }
