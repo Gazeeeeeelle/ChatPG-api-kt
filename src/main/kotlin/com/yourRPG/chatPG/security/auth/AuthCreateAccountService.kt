@@ -2,7 +2,7 @@ package com.yourRPG.chatPG.security.auth
 
 import com.yourRPG.chatPG.domain.Account
 import com.yourRPG.chatPG.dto.account.AccountDto
-import com.yourRPG.chatPG.dto.account.CreateAccountDto
+import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
 import com.yourRPG.chatPG.dto.auth.UuidDto
 import com.yourRPG.chatPG.exception.ConflictException
 import com.yourRPG.chatPG.exception.auth.AccountActivationException
@@ -66,7 +66,7 @@ class AuthCreateAccountService(
 
     @Modifying
     @Transactional
-    fun activateAccount(dto: UuidDto): AccountDto? {
+    fun activateAccount(dto: UuidDto): AccountDto {
         val account: Account = accountService.getByUuid(UUID.fromString(dto.uuid))
 
         when (account.status) {

@@ -1,7 +1,7 @@
 package com.yourRPG.chatPG.security.auth
 
 import com.yourRPG.chatPG.domain.Account
-import com.yourRPG.chatPG.dto.account.CreateAccountDto
+import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
 import com.yourRPG.chatPG.exception.auth.password.*
 import com.yourRPG.chatPG.exception.auth.username.BadUsernameException
 import com.yourRPG.chatPG.exception.auth.username.UsernameContainsIllegalCharactersException

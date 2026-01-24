@@ -9,8 +9,9 @@ servers:
 
 
 paths:
-  /login:
+  /auth/login:
     post:
+      description: Receives account's credentials and returns the access token in a TokenDto object, and appends a cookie containing the refresh token to the response.
       tags:
         - AuthController
       security: []
@@ -41,8 +42,30 @@ paths:
               schema:
                 type: string
                 examples: ["Account not found"]
-  /login/exists:
+  /auth/logout:
     post:
+      description: Clears the account's refresh token.
+      tags:
+        - AuthController
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+  /auth/refreshToken:
+    post:
+      description: Refreshes 'Access' and 'Refresh' tokens.
+      tags:
+        - AuthController
+      security: []
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+  /auth/requestChangePassword:
+    post:
+      description: Requests change of password, sending an email to the provided address with the link containing the UUID that identifies the request.
       tags:
         - AuthController
       security: []
@@ -52,18 +75,82 @@ paths:
           text/plain:
             schema:
               type: string
-              examples: ["JohnDoe"]
+              examples: ["johnDoe@email.com"]
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+  /auth/confirmChangePassword:
+    post:
+      description: Confirms the requested password change.
+      tags:
+        - AuthController
+      security: []
+      requestBody:
+        description:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordDto"
+      responses:
+        '204':
+          description: No Content
+        '403':
+          $ref: "#/components/responses/Forbidden"
+  /auth/createAccount:
+    post:
+      description: Creates a, still disabled, account. An email, together with an uuid, which identifies the request of account creation, is sent to the address given in the requestBody to activate the account.
+      tags:
+        - AuthController
+      security: []
+      requestBody:
+        description:
+        content:
+          text/plain:
+            schema:
+              $ref: "#/components/schemas/CreateAccountDto"
       responses:
         '200':
           description: Success
           content:
+            application/json:
+              schema:
+                $ref:  "#/components/schemas/Account"
+        '400':
+          description: Bad Request
+          content:
             text/plain:
               schema:
-                type: boolean
-                examples: [true]
-
+                type: string
+                examples: ["Invalid email", "Username already taken", "Email already registered"]
+  /auth/activateAccount:
+    post:
+      description: Activates the account using the uuid sent to the email as identifier of the request to fulfill.
+      tags:
+        - AuthController
+      security: []
+      requestBody:
+        description:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UuidDto"
+      responses:
+        '204':
+          description: No Content
+        '403':
+          $ref: "#/components/responses/Forbidden"
+        '409':
+          description: Conflict
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples: ["That account was already activated"]
   /account/current:
     get:
+      description: Returns the AccountDto of the current logged account.
       tags:
         - AccountController
       responses:
@@ -76,9 +163,49 @@ paths:
                 examples: [true]
         '401':
           $ref: "#/components/responses/Unauthorized"
-
+  "/models/isModelAvailable/{modelName}":
+    get:
+      description: Returns a boolean on whether the model name given is of a supported model.
+      tags:
+        - ModelController
+      parameters:
+        - name: modelName
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: boolean
+                examples: [true]
+        '401':
+          $ref: "#/components/responses/Unauthorized"
+  "/models/all":
+    get:
+      description: Returns an array with the name of all available AI models.
+      tags:
+        - ModelController
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                examples: [[
+                  "gemini-2.5-flash",
+                  "gpt-oss-20b",
+                  "gemma-3-4b-it"
+                ]]
+        '401':
+          $ref: "#/components/responses/Unauthorized"
   /chats/all:
     get:
+      description: Returns a list of ChatDto of the chats the current logged account has access to.
       tags:
         - ChatController
       responses:
@@ -89,6 +216,7 @@ paths:
           $ref: "#/components/responses/Unauthorized"
   "/chats/byName/{chatName}":
     get:
+      description: "Returns, if any, a chat the current logged account has access to and that has the given name. If none attends to the criteria, returns 404(Not Found)."
       tags:
         - ChatController
       parameters:
@@ -110,6 +238,7 @@ paths:
           $ref: "#/components/responses/ChatNotFound"
   "/chats/{chatId}/model":
     patch:
+      description: Selects another AI model to be active on the chat.
       tags:
         - ChatController
       parameters:
@@ -123,9 +252,12 @@ paths:
           description: No content
         '401':
           $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/ChatForbidden"
         '404':
           $ref: "#/components/responses/ChatNotFound"
     get:
+      description: Gets the AI model active on the chat.
       tags:
         - ChatController
       parameters:
@@ -143,10 +275,13 @@ paths:
                 $ref: "#/components/schemas/AiModel"
         '401':
           $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/ChatForbidden"
         '404':
           $ref: "#/components/responses/ChatNotFound"
   "/chats/{chatId}/messages/{messageId}":
     get:
+      description: Returns the MessageDto of the message specified by the ID.
       tags:
         - MessageController
       parameters:
@@ -169,9 +304,12 @@ paths:
                 $ref: "#/components/schemas/Message"
         '401':
           $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/ChatForbidden"
         '404':
           $ref: "#/components/responses/ChatOrMessageNotFound"
     delete:
+      description: Deletes the message specified by the ID.
       tags:
         - MessageController
       parameters:
@@ -190,10 +328,13 @@ paths:
           description: No content
         '401':
           $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/ChatForbidden"
         '404':
           $ref: "#/components/responses/ChatOrMessageNotFound"
   "/chats/{chatId}/messages/new/{referenceId}":
     get:
+      description: Gets a chunk of messages from a chat with a reference ID of the last message loaded, loading the messages with greater ID, and therefore, fresher than the last loaded.
       tags:
         - MessageController
       parameters:
@@ -213,10 +354,13 @@ paths:
           $ref: "#/components/schemas/MessageArray"
         '401':
           $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/ChatForbidden"
         '404':
           $ref: "#/components/responses/ChatNotFound"
   "/chats/{chatId}/messages/old/{referenceId}":
     get:
+      description: Gets a chunk of messages from a chat with a reference ID of the last message loaded, loading the messages with smaller ID, and therefore, older than the last loaded.
       tags:
         - MessageController
       parameters:
@@ -236,31 +380,13 @@ paths:
           $ref: "#/components/schemas/MessageArray2"
         '401':
           $ref: "#/components/responses/Unauthorized"
-        '404':
-          $ref: "#/components/responses/ChatNotFound"
-  "/chats/{chatId}/messages":
-    post:
-      tags:
-        - MessageController
-      parameters:
-        - name: chatId
-          in: path
-          schema:
-            type: integer
-          required: true
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Message"
-        '401':
-          $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/ChatForbidden"
         '404':
           $ref: "#/components/responses/ChatNotFound"
   "/chats/{chatId}/messages/generateResponse":
     post:
+      description: Requests the message generation as response with the AI model currently selected.
       tags:
         - MessageController
       parameters:
@@ -280,10 +406,13 @@ paths:
           $ref: "#/components/responses/BadRequestModel"
         '401':
           $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/ChatForbidden"
         '404':
           $ref: "#/components/responses/ChatNotFound"
   "/chats/{chatId}/messages/bulkDelete/{bound1}/{bound2}":
     delete:
+      description: Deletes the messages in the inclusive range of IDs between bound1 and bound2.
       tags:
         - MessageController
       parameters:
@@ -307,10 +436,13 @@ paths:
           description: No content
         '401':
           $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/ChatForbidden"
         '404':
           $ref: "#/components/responses/MessageNotDeleted"
   "/chats/{chatId}/polls/start":
     post:
+      description: "Starts a poll with the given topic (Command to be run)."
       tags:
         - PollController
       parameters:
@@ -335,10 +467,13 @@ paths:
                 $ref: "#/components/schemas/Poll"
         '401':
           $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/ChatForbidden"
         '404':
           $ref: "#/components/responses/ChatNotFound"
   "/chats/{chatId}/polls/vote":
     post:
+      description: "Votes in the poll, if any active, of topic given, i.e. the command to be run"
       tags:
         - PollController
       parameters:
@@ -363,10 +498,13 @@ paths:
                 $ref: "#/components/schemas/Poll2"
         '401':
           $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/ChatForbidden"
         '404':
           $ref: "#/components/responses/ChatNotFound"
   "/chats/{chatId}/polls/all":
     get:
+      description: Gets all the active polls in a chat.
       tags:
         - PollController
       parameters:
@@ -384,8 +522,13 @@ paths:
                 $ref: "#/components/schemas/Poll2"
         '401':
           $ref: "#/components/responses/Unauthorized"
+        '403':
+          $ref: "#/components/responses/ChatForbidden"
         '404':
           $ref: "#/components/responses/ChatNotFound"
+
+
+
 security:
   - auth: []
 
@@ -454,7 +597,7 @@ components:
           examples: ["Chat about pumpkins"]
     ChatArray:
       type: array
-      content: 
+      content:
         application/json:
           schema:
             type: array
@@ -462,7 +605,7 @@ components:
               {
                 id: 3,
                 name: "Chat about bananas"
-              }, 
+              },
               {
                 id: 5,
                 name: "Chat about pumpkins"
@@ -486,22 +629,22 @@ components:
     AiMessage:
       type: object
       properties:
-        id: 
+        id:
           type: integer
           format: int64
           examples: [9001]
-        content: 
+        content:
           type: string
           examples: ["Good morning! I hope your day is off to a productive start. How may I assist you with your objectives today?"]
-        isBot: 
+        isBot:
           type: boolean
           examples: [true]
-        account: 
+        account:
           type: object
           examples: [null]
     MessageArray:
       type: array
-      content: 
+      content:
         application/json:
           schema:
             type: array
@@ -514,7 +657,7 @@ components:
                   id: 3,
                   name: "John Doe"
                 }
-              }, 
+              },
               {
                 id: 5022,
                 content: "i need those papers",
@@ -527,7 +670,7 @@ components:
             ]]
     MessageArray2:
       type: array
-      content: 
+      content:
         application/json:
           schema:
             type: array
@@ -587,6 +730,34 @@ components:
           type: integer
           format: int32
           examples: [3]
+    ChangePasswordDto:
+      type: object
+      properties:
+        uuid:
+          type: string
+          examples: ["aed8d388-7325-485b-b1c3-248c7a7d55fa"]
+        password:
+          type: string
+          examples: ["password"]
+    CreateAccountDto:
+      type: object
+      properties:
+        username:
+          type: string
+          examples: ["JaneDoe"]
+        email:
+          type: string
+          examples: ["JaneDoe@email.com"]
+        password:
+          type: string
+          examples: ["password"]
+    UuidDto:
+      type: object
+      properties:
+        uuid:
+          type: string
+          examples: ["aed8d388-7325-485b-b1c3-248c7a7d55fa"]
+
 
   securitySchemes:
     auth:
@@ -601,6 +772,20 @@ components:
           schema:
             type: string
             examples: ["Unauthorized"]
+    ChatForbidden:
+      description: Forbidden
+      content:
+        text/plain:
+          schema:
+            type: string
+            examples: ["You do not have access to that chat"]
+    Forbidden:
+      description: Forbidden
+      content:
+        text/plain:
+          schema:
+            type: string
+            examples: ["Forbidden"]
     ChatNotFound:
       description: Not found
       content:

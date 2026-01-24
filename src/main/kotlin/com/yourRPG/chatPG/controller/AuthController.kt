@@ -1,8 +1,8 @@
 package com.yourRPG.chatPG.controller
 
 import com.yourRPG.chatPG.dto.account.AccountDto
-import com.yourRPG.chatPG.dto.account.CreateAccountDto
-import com.yourRPG.chatPG.dto.auth.ChangePasswordDto
+import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
+import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
 import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.dto.auth.UuidDto
@@ -94,7 +94,7 @@ class AuthController(
     @PostMapping("/activateAccount")
     fun activateAccount(
         @Valid @RequestBody uuid: UuidDto
-    ): ResponseEntity<AccountDto?> =
+    ): ResponseEntity<AccountDto> =
         ResponseEntity.ok(
             service.activateAccount(uuid)
         )

@@ -1,8 +1,8 @@
 package com.yourRPG.chatPG.security.auth
 
 import com.yourRPG.chatPG.dto.account.AccountDto
-import com.yourRPG.chatPG.dto.account.CreateAccountDto
-import com.yourRPG.chatPG.dto.auth.ChangePasswordDto
+import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
+import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
 import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.dto.auth.UuidDto
@@ -62,7 +62,7 @@ class AuthService(
      * Delegates.
      * @see AuthCreateAccountService.activateAccount
      */
-    fun activateAccount(uuid: UuidDto): AccountDto? =
+    fun activateAccount(uuid: UuidDto): AccountDto =
         authCreateAccountService.activateAccount(uuid)
 
     /**
