@@ -1,12 +1,12 @@
 package com.yourRPG.chatPG.security.auth
 
 import com.yourRPG.chatPG.dto.account.AccountDto
-import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
-import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
 import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.dto.auth.UuidDto
-import com.yourRPG.chatPG.security.token.TokenService
+import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
+import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
+import com.yourRPG.chatPG.security.token.TokenManagerService
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Service
 
@@ -19,7 +19,7 @@ class AuthService(
     private val authChangePasswordService: AuthChangePasswordService,
     private val authCreateAccountService: AuthCreateAccountService,
     private val authLogInOutService: AuthLogInOutService,
-    private val tokenService: TokenService
+    private val tokenManagerService: TokenManagerService
 ) {
 
     /**
@@ -67,10 +67,10 @@ class AuthService(
 
     /**
      * Delegates.
-     * @see TokenService.refreshTokens
+     * @see TokenManagerService.refreshTokens
      */
     fun refreshToken(response: HttpServletResponse, oldRefresh: String): TokenDto {
-        return tokenService.refreshTokens(response, oldRefresh)
+        return tokenManagerService.refreshTokens(response, oldRefresh)
     }
 
 }

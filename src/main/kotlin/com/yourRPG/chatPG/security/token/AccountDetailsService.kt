@@ -9,7 +9,6 @@ import javax.security.auth.login.AccountNotFoundException
 
 @Service
 class AccountDetailsService(
-    /* Services */
     private val accountRepository: AccountRepository
 ): UserDetailsService {
 

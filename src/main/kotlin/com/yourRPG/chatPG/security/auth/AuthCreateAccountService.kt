@@ -2,8 +2,8 @@ package com.yourRPG.chatPG.security.auth
 
 import com.yourRPG.chatPG.domain.Account
 import com.yourRPG.chatPG.dto.account.AccountDto
-import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
 import com.yourRPG.chatPG.dto.auth.UuidDto
+import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
 import com.yourRPG.chatPG.exception.ConflictException
 import com.yourRPG.chatPG.exception.auth.AccountActivationException
 import com.yourRPG.chatPG.helper.email.MimeHelper
@@ -16,9 +16,9 @@ import com.yourRPG.chatPG.validator.account.UsernameValidator
 import jakarta.transaction.Transactional
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.stereotype.Service
-import java.time.Duration
 import java.time.Instant
-import java.util.UUID
+import java.time.temporal.ChronoUnit
+import java.util.*
 
 @Service
 class AuthCreateAccountService(
@@ -67,7 +67,8 @@ class AuthCreateAccountService(
     @Modifying
     @Transactional
     fun activateAccount(dto: UuidDto): AccountDto {
-        val account: Account = accountService.getByUuid(UUID.fromString(dto.uuid))
+        val account: Account = accountService.getByUuid(UUID.fromString(dto.uuid)) //DELEGATION
+        accountService.updateUuid(account, null) //DELEGATION
 
         when (account.status) {
             AccountStatus.DISABLED -> {}
@@ -78,17 +79,16 @@ class AuthCreateAccountService(
         val birth = account.uuidBirth
             ?: throw AccountActivationException("Uuid does not have instant of creation")
 
-        val fifteenMinutesAgo = Instant.now()
-            .minus(Duration.ofMinutes(30)) //30 minutes
+        val thirtyMinutesAgo = Instant.now()
+            .minus(30, ChronoUnit.MINUTES)
 
-        if (birth.isAfter(fifteenMinutesAgo)) {
-            accountService.updateUuid(account, null)
-            accountService.updateStatus(account, status = AccountStatus.ENABLED)
-            return accountService.dtoOf(c = account)
+        if (birth.isAfter(thirtyMinutesAgo)) {
+            accountService.updateStatus(account, status = AccountStatus.ENABLED) //DELEGATION
+            return accountService.dtoOf(c = account) //DELEGATION & OUTCOME
         }
 
-        accountService.deleteById(account.id)
-        throw AccountActivationException("Request expired. Request will be deleted")
+        accountService.deleteById(account.id) //DELEGATION
+        throw AccountActivationException("Request expired. Request will be deleted") //OUTCOME
     }
 
 }
