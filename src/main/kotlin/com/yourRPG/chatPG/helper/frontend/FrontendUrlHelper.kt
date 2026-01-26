@@ -13,5 +13,6 @@ class FrontendUrlHelper(
         return frontendUrl + value
     }
 
+    fun getUrl(): String = frontendUrl
 
 }
