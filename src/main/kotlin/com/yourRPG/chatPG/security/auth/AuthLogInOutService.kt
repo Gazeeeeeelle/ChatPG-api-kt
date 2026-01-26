@@ -3,7 +3,7 @@ package com.yourRPG.chatPG.security.auth
 import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
-import com.yourRPG.chatPG.security.token.TokenService
+import com.yourRPG.chatPG.security.token.TokenManagerService
 import com.yourRPG.chatPG.service.account.AccountService
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Service
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 @Service
 class AuthLogInOutService(
     private val authPasswordService: AuthPasswordService,
-    private val tokenService: TokenService,
+    private val tokenManagerService: TokenManagerService,
     private val accountService: AccountService,
 ) {
 
@@ -22,9 +22,9 @@ class AuthLogInOutService(
             .takeIf { it }
             ?: throw AccessToAccountUnauthorizedException("Wrong password")
 
-        tokenService.appendNewRefreshToken(response, owner = account)
+        tokenManagerService.appendNewRefreshToken(response, owner = account)
 
-        val token = tokenService.signAccessToken(account)
+        val token = tokenManagerService.signAccessToken(account)
 
         return TokenDto(token)
     }

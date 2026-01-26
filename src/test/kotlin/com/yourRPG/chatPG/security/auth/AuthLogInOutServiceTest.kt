@@ -3,7 +3,7 @@ package com.yourRPG.chatPG.security.auth
 import com.yourRPG.chatPG.domain.Account
 import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
-import com.yourRPG.chatPG.security.token.TokenService
+import com.yourRPG.chatPG.security.token.TokenManagerService
 import com.yourRPG.chatPG.service.account.AccountService
 import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.Test
@@ -12,8 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.BDDMockito.given
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.never
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.crypto.password.PasswordEncoder
 
@@ -24,7 +23,7 @@ class AuthLogInOutServiceTest {
     private lateinit var service: AuthLogInOutService
 
     @Mock private lateinit var authPasswordService: AuthPasswordService
-    @Mock private lateinit var tokenService: TokenService
+    @Mock private lateinit var tokenManagerService: TokenManagerService
     @Mock private lateinit var accountService: AccountService
 
     @Mock
@@ -55,14 +54,14 @@ class AuthLogInOutServiceTest {
         given(passwordEncoder.matches(rawPassword, encodedPassword))
             .willReturn(true)
 
-        given(tokenService.signAccessToken(account))
+        given(tokenManagerService.signAccessToken(account))
             .willReturn(token)
 
         //ACT
         service.login(response, credentials)
 
         //ASSERT
-        verify(tokenService)
+        verify(tokenManagerService)
             .appendNewRefreshToken(response, account)
 
 
@@ -91,8 +90,25 @@ class AuthLogInOutServiceTest {
         }
 
         //ASSERT
-        verify(tokenService, never())
+        verify(tokenManagerService, never())
             .appendNewRefreshToken(response, account)
+
+    }
+
+    @Test
+    fun logout() {
+        //ARRANGE
+        val account = mock(Account::class.java)
+
+        given(accountService.getById(0L))
+            .willReturn(account)
+
+        //ACT
+        service.logout(0L)
+
+        //ASSERT
+        verify(accountService)
+            .saveWithRefreshToken(account, refreshToken = null)
 
     }
 

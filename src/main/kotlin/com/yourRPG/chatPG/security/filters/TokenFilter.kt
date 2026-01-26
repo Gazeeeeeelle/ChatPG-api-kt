@@ -42,6 +42,7 @@ class TokenFilter(
         }.onFailure { ex ->
             (response as HttpServletResponse)
                 .sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.message)
+            return
         }
 
         filterChain.doFilter(request, response)

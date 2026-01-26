@@ -1,11 +1,11 @@
 package com.yourRPG.chatPG.security.config
 
+import com.yourRPG.chatPG.helper.frontend.FrontendUrlHelper
 import com.yourRPG.chatPG.security.filters.AccessToChatFilter
 import com.yourRPG.chatPG.security.filters.TokenFilter
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -23,40 +23,39 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableWebSecurity
 class SecurityConfiguration(
     private val tokenFilter: TokenFilter,
-    private val accessToChatFilter: AccessToChatFilter
+    private val accessToChatFilter: AccessToChatFilter,
+    private val frontendUrlHelper: FrontendUrlHelper,
+
+    @param:Value("\${server.protocol}")
+    private val protocol: String,
+
+    @param:Value("\${server.address}")
+    private val address: String
 ) {
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain = with(http) {
         cors { it.configurationSource(corsConfigurationSource()) }
         csrf { it.disable() }
-        sessionManagement {
-            it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        }
+        sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
         authorizeHttpRequests {
-            it.requestMatchers(HttpMethod.POST, "/auth/logout").authenticated()
-            it.requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
-                .anyRequest().authenticated()
+            it.requestMatchers("/auth/logout").authenticated()
+            it.requestMatchers("/auth/**").permitAll()
+
+            it.anyRequest().authenticated()
         }
         addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter::class.java)
         addFilterAfter(accessToChatFilter, UsernamePasswordAuthenticationFilter::class.java)
         build()
     }
 
-    @Value("\${server.address}")
-    private lateinit var address: String
-
-    @Value("\${server.radmin.address}")
-    private lateinit var radminAddress: String
-
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource = UrlBasedCorsConfigurationSource().apply {
         val configuration = CorsConfiguration().apply {
             allowedOrigins = listOf(
-                "http://$address:5500",
-                "http://$radminAddress:8081",
-                "http://127.0.0.1:5500",
-                "http://$radminAddress:5500"
+                "$protocol$address:5500",
+                "${protocol}127.0.0.1:5500",
+                frontendUrlHelper.getUrl()
             )
             allowCredentials = true
             allowedMethods =

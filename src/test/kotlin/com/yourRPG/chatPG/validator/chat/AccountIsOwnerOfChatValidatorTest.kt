@@ -19,13 +19,14 @@ class AccountIsOwnerOfChatValidatorTest {
 
     private val chat = mock(Chat::class.java)
 
-    private val t: Pair<Long, Chat> = Pair(0, chat)
-
     @Test
     fun valid() {
         //ARRANGE
-        given(t.second.ownerId)
-            .willReturn(t.first)
+        val sameId = 1L
+        val t = sameId to chat
+
+        given(chat.ownerId)
+            .willReturn(sameId)
 
         //ACT + ASSERT
         assertDoesNotThrow {
@@ -36,8 +37,26 @@ class AccountIsOwnerOfChatValidatorTest {
     @Test
     fun invalid() {
         //ARRANGE
-        given(t.second.ownerId)
-            .willReturn(t.first + 1)
+        val differentId = 2L
+        val t = 0L to chat
+
+        given(chat.ownerId)
+            .willReturn(differentId)
+
+
+        //ACT + ASSERT
+        assertThrows<ForbiddenAccountException> {
+            validator.validate(t)
+        }
+    }
+
+    @Test
+    fun `invalid - abnormal - ownerless chat`() {
+        //ARRANGE
+        val t = 0L to chat
+
+        given(chat.ownerId)
+            .willReturn(null)
 
         //ACT + ASSERT
         assertThrows<ForbiddenAccountException> {

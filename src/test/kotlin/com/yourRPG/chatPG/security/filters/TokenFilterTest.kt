@@ -18,9 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.BDDMockito.given
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito
-import org.mockito.Mockito.never
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.core.GrantedAuthority
 import java.util.stream.Stream
@@ -38,8 +36,8 @@ class TokenFilterTest: FilterTest() {
     @Mock
     lateinit var claim: Claim
 
-    @Test
-    fun `valid - path is filtered and attends to the requirements`() {
+    @TestFactory
+    fun `valid - paths are filtered`(): Stream<DynamicTest> {
         //ARRANGE
         val name     = "username_test"
         val email    = "email@email.com"
@@ -48,29 +46,37 @@ class TokenFilterTest: FilterTest() {
 
         val account  = Account(name, email, password)
 
-        given(request.servletPath)
-            .willReturn("/notAuthRelatedAndCheckedByTokenFilter")
+        return Stream.of(
+            "/auth/logout", "/notAuthRelatedAndCheckedByTokenFilter"
+        ).map { path ->
+            DynamicTest.dynamicTest("path: $path") {
+                //ARRANGE
+                given(request.servletPath)
+                    .willReturn(path)
 
-        given(tokenService.getAccessToken(request))
-            .willReturn(token)
+                given(tokenService.getAccessToken(request))
+                    .willReturn(token)
 
-        given(tokenService.getClaim(token, "id"))
-            .willReturn(claim)
+                given(tokenService.getClaim(token, "id"))
+                    .willReturn(claim)
 
-        given(accountService.getById(0L))
-            .willReturn(account)
+                given(accountService.getById(0L))
+                    .willReturn(account)
 
-        //ACT
-        tokenFilter.doFilter(request, response, filterChain)
+                //ACT
+                tokenFilter.doFilter(request, response, filterChain)
 
-        //ASSERT
-        verify(tokenService).apply {
-            getAccessToken(request)
-            getClaim(token, "id")
+                //ASSERT
+                verify(tokenService).apply {
+                    getAccessToken(request)
+                    getClaim(token, "id")
+                }
+                verify(accountService).getById(0L)
+                verify(securityContext).setPrincipal(0L, account.authorities)
+
+                reset(request, tokenService, accountService, securityContext)
+            }
         }
-        verify(accountService).getById(0L)
-        verify(securityContext).setPrincipal(0L, account.authorities)
-
     }
 
     @TestFactory
@@ -93,7 +99,7 @@ class TokenFilterTest: FilterTest() {
                 verify(filterChain)
                     .doFilter(request, response)
 
-                Mockito.reset(filterChain)
+                reset(filterChain)
             }
         }
 

@@ -23,19 +23,19 @@ class AuthChangePasswordService(
 
     fun requestChangePassword(email: String) {
         val account: Account =
-            accountService.getByEmail(email) //DELEGATED
+            accountService.getByEmail(email)
 
         val uuid = UUID.randomUUID()
 
-        accountService.updateUuid(account, uuid) //DELEGATED
+        accountService.updateUuid(account, uuid)
 
-        val url = frontendUrlHelper.append("/login/forgot-password/$uuid") //DELEGATED
-        val html = mimeHelper.getTemplate( //DELEGATED
+        val url = frontendUrlHelper.append("/login/forgot-password/$uuid")
+        val html = mimeHelper.getTemplate(
             template  = "mime-change-password",
             variables = arrayOf("url" to url)
         )
 
-        emailService.sendMimeEmail( //DELEGATED
+        emailService.sendMimeEmail(
             subject = "Reset password",
             to = email,
             html
