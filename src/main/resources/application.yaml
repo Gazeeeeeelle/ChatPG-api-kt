@@ -63,4 +63,13 @@ logging:
                 annotation:
                   ExceptionHandlerExceptionResolver: ERROR
 
-api.security.token.secret: ${API_SECURITY_KEY_SECRET}
+security:
+  auth.external:
+    github.client:
+      id: ${GITHUB_CLIENT_ID}
+      secret: ${GITHUB_CLIENT_SECRET}
+
+  token.secret: ${API_SECURITY_KEY_SECRET}
+
+
+

@@ -5,7 +5,7 @@ import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
 import com.yourRPG.chatPG.exception.auth.password.PasswordResetException
 import com.yourRPG.chatPG.helper.email.MimeHelper
-import com.yourRPG.chatPG.helper.frontend.FrontendUrlHelper
+import com.yourRPG.chatPG.helper.uri.FrontendUriHelper
 import com.yourRPG.chatPG.service.account.AccountService
 import com.yourRPG.chatPG.service.email.EmailService
 import helper.NullSafeMatchers.STRING_TYPE
@@ -30,7 +30,7 @@ class AuthChangePasswordServiceTest {
 
     @Mock private lateinit var accountService: AccountService
     @Mock private lateinit var mimeHelper: MimeHelper
-    @Mock private lateinit var frontendUrlHelper: FrontendUrlHelper
+    @Mock private lateinit var frontendUriHelper: FrontendUriHelper
     @Mock private lateinit var emailService: EmailService
     @Mock private lateinit var passwordService: AuthPasswordService
 
@@ -46,7 +46,7 @@ class AuthChangePasswordServiceTest {
         given(accountService.getByEmail(email))
             .willReturn(account)
 
-        given(frontendUrlHelper.append(STRING_TYPE.any()))
+        given(frontendUriHelper.append(STRING_TYPE.any()))
             .willReturn(url)
 
         given(mimeHelper.getTemplate(STRING_TYPE.any(), ("url" to url).eq()))

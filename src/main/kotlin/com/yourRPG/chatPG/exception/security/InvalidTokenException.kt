@@ -1,5 +1,5 @@
 package com.yourRPG.chatPG.exception.security
 
-import com.yourRPG.chatPG.exception.UnauthorizedException
+import com.yourRPG.chatPG.exception.http.UnauthorizedException
 
-class InvalidTokenException(message: String?) : UnauthorizedException(message)
+class InvalidTokenException(message: String) : UnauthorizedException(message)

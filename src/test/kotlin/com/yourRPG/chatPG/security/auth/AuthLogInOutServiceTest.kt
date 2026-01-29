@@ -5,7 +5,6 @@ import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
 import com.yourRPG.chatPG.security.token.TokenManagerService
 import com.yourRPG.chatPG.service.account.AccountService
-import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -15,6 +14,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.crypto.password.PasswordEncoder
+import kotlin.test.assertEquals
 
 @ExtendWith(MockitoExtension::class)
 class AuthLogInOutServiceTest {
@@ -29,9 +29,6 @@ class AuthLogInOutServiceTest {
     @Mock
     private lateinit var passwordEncoder: PasswordEncoder
 
-    @Mock
-    private lateinit var response: HttpServletResponse
-
     @Test
     fun `login - success`() {
         //ARRANGE
@@ -40,7 +37,8 @@ class AuthLogInOutServiceTest {
         val rawPassword     = "Password-test"
         val encodedPassword = "encoded-Password-test"
 
-        val token = "token_test"
+        val accessToken = "access_token_test"
+        val refreshToken = "refresh_token_test"
 
         val credentials = LoginCredentials(username, rawPassword)
         val account     = Account(username, email, encodedPassword)
@@ -55,15 +53,17 @@ class AuthLogInOutServiceTest {
             .willReturn(true)
 
         given(tokenManagerService.signAccessToken(account))
-            .willReturn(token)
+            .willReturn(accessToken)
+
+        given(tokenManagerService.newRefreshToken(account))
+            .willReturn(refreshToken)
 
         //ACT
-        service.login(response, credentials)
+        val (responseAccessToken, responseRefreshToken) = service.login(credentials)
 
         //ASSERT
-        verify(tokenManagerService)
-            .appendNewRefreshToken(response, account)
-
+        assertEquals(accessToken, responseAccessToken.token)
+        assertEquals(refreshToken, responseRefreshToken)
 
     }
 
@@ -86,12 +86,15 @@ class AuthLogInOutServiceTest {
 
         //ACT
         assertThrows<AccessToAccountUnauthorizedException> {
-            service.login(response, credentials)
+            service.login(credentials)
         }
 
         //ASSERT
         verify(tokenManagerService, never())
-            .appendNewRefreshToken(response, account)
+            .signAccessToken(account)
+
+        verify(tokenManagerService, never())
+            .newRefreshToken(account)
 
     }
 

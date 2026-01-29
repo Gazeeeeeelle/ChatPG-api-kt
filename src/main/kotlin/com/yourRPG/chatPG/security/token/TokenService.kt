@@ -18,7 +18,7 @@ import java.time.Duration
 
 @Service
 class TokenService(
-    @param:Value("\${api.security.token.secret}")
+    @param:Value("\${security.token.secret}")
     private val secret: String,
 
     private val clock: Clock = Clock.systemUTC()
@@ -87,7 +87,7 @@ class TokenService(
         runCatching {
             buildJWTVerifier().verify(token)
         }.getOrElse { ex ->
-            throw InvalidTokenException(ex.message)
+            throw InvalidTokenException(ex.message ?: "Token verification failed")
         }
 
     fun buildJWTVerifier(): JWTVerifier =

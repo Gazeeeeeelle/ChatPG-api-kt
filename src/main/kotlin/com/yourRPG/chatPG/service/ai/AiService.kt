@@ -26,7 +26,7 @@ class AiService(
      * @param AiModel
      * @param String
      * @return nullable [String] containing the AI's response
-     * @throws com.yourRPG.chatPG.exception.BadRequestException if the model given had provider [AiProvider.NONE]
+     * @throws com.yourRPG.chatPG.exception.http.BadRequestException if the model given had provider [AiProvider.NONE]
      * @throws com.yourRPG.chatPG.exception.ai.models.UnavailableAiException
      * if the AI's response could not fit the expected object, likely because the response was an error object, and therefore it is judged as an Internal Server Error from the provider's end.
      */

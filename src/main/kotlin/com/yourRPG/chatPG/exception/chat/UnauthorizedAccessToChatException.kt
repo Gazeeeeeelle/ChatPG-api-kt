@@ -1,5 +1,5 @@
 package com.yourRPG.chatPG.exception.chat
 
-import com.yourRPG.chatPG.exception.UnauthorizedException
+import com.yourRPG.chatPG.exception.http.UnauthorizedException
 
 class UnauthorizedAccessToChatException(message: String): UnauthorizedException(message)

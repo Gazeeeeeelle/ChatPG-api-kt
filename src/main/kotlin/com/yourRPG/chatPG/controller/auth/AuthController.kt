@@ -1,22 +1,29 @@
-package com.yourRPG.chatPG.controller
+package com.yourRPG.chatPG.controller.auth
 
 import com.yourRPG.chatPG.dto.account.AccountDto
-import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
-import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
 import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.dto.auth.UuidDto
+import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
+import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
+import com.yourRPG.chatPG.helper.http.CookieService
 import com.yourRPG.chatPG.security.auth.AuthService
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.CookieValue
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/auth")
 class AuthController(
     private val service: AuthService,
+
+    private val cookieService: CookieService,
 ) {
 
     /**
@@ -26,10 +33,13 @@ class AuthController(
     fun login(
         @Valid @RequestBody credentials: LoginCredentials,
         response: HttpServletResponse
-    ): ResponseEntity<TokenDto> =
-        ResponseEntity.ok(
-            service.login(response, credentials)
-        )
+    ): ResponseEntity<TokenDto> {
+        val (tokenDto, refreshToken) = service.login(credentials)
+
+        cookieService.appendRefreshToken(response, refreshToken)
+
+        return ResponseEntity.ok(tokenDto)
+    }
 
     /**
      * @see AuthService.logout
@@ -47,12 +57,14 @@ class AuthController(
      */
     @PostMapping("/refreshToken")
     fun refreshToken(
-        @CookieValue("refresh_token") oldRefresh: String,
+        @CookieValue("refresh_token") oldRefreshToken: String,
         response: HttpServletResponse
     ): ResponseEntity<TokenDto> {
-        return ResponseEntity.ok(
-            service.refreshToken(response, oldRefresh)
-        )
+        val (tokenDto, newRefreshToken) = service.refreshToken(oldRefreshToken)
+
+        cookieService.appendRefreshToken(response, newRefreshToken)
+
+        return ResponseEntity.ok(tokenDto)
     }
 
     /**

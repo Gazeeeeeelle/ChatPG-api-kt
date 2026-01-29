@@ -4,10 +4,10 @@ import com.yourRPG.chatPG.domain.Account
 import com.yourRPG.chatPG.dto.account.AccountDto
 import com.yourRPG.chatPG.dto.auth.UuidDto
 import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
-import com.yourRPG.chatPG.exception.ConflictException
+import com.yourRPG.chatPG.exception.http.ConflictException
 import com.yourRPG.chatPG.exception.auth.AccountActivationException
 import com.yourRPG.chatPG.helper.email.MimeHelper
-import com.yourRPG.chatPG.helper.frontend.FrontendUrlHelper
+import com.yourRPG.chatPG.helper.uri.FrontendUriHelper
 import com.yourRPG.chatPG.service.account.AccountService
 import com.yourRPG.chatPG.service.account.AccountStatus
 import com.yourRPG.chatPG.service.email.EmailService
@@ -30,7 +30,7 @@ class AuthCreateAccountService(
     private val passwordValidator: PasswordValidator,
 
     private val mimeHelper: MimeHelper,
-    private val frontendUrlHelper: FrontendUrlHelper
+    private val frontendUriHelper: FrontendUriHelper
 ) {
 
     @Modifying
@@ -51,7 +51,7 @@ class AuthCreateAccountService(
         val html = mimeHelper.getTemplate(
             template  = "mime-activate-account",
             variables = arrayOf(
-                "url" to frontendUrlHelper.append("/login/activate-account/$uuid")
+                "url" to frontendUriHelper.append("/login/activate-account/$uuid")
             )
         )
 
@@ -68,6 +68,7 @@ class AuthCreateAccountService(
     @Transactional
     fun activateAccount(dto: UuidDto): AccountDto {
         val account: Account = accountService.getByUuid(UUID.fromString(dto.uuid)) //DELEGATION
+
         accountService.updateUuid(account, null) //DELEGATION
 
         when (account.status) {
@@ -87,7 +88,8 @@ class AuthCreateAccountService(
             return accountService.dtoOf(c = account) //DELEGATION & OUTCOME
         }
 
-        accountService.deleteById(account.id) //DELEGATION
+        accountService.deleteById(account.id)
+
         throw AccountActivationException("Request expired. Request will be deleted") //OUTCOME
     }
 
