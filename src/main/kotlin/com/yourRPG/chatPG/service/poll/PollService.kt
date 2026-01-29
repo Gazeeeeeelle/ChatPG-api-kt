@@ -1,7 +1,7 @@
 package com.yourRPG.chatPG.service.poll
 
 import com.yourRPG.chatPG.dto.poll.PollDto
-import com.yourRPG.chatPG.exception.BadRequestException
+import com.yourRPG.chatPG.exception.http.BadRequestException
 import com.yourRPG.chatPG.exception.poll.AlreadyVotedInPollException
 import com.yourRPG.chatPG.exception.poll.PollNotFoundException
 import com.yourRPG.chatPG.domain.Chat

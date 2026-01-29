@@ -2,6 +2,7 @@ package com.yourRPG.chatPG.security.filters
 
 import com.auth0.jwt.interfaces.Claim
 import com.yourRPG.chatPG.domain.Account
+import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
 import com.yourRPG.chatPG.security.helper.SecurityContextHelper
 import com.yourRPG.chatPG.security.token.TokenService
@@ -109,6 +110,9 @@ class TokenFilterTest: FilterTest() {
         given(request.servletPath)
             .willReturn("/somethingElse")
 
+        given(tokenService.getAccessToken(request))
+            .willThrow(AccessToAccountUnauthorizedException::class.java)
+
         //ACT
         tokenFilter.doFilter(request, response, filterChain)
 
@@ -120,13 +124,13 @@ class TokenFilterTest: FilterTest() {
     @Test
     fun `invalid - account not found`() {
         //ARRANGE
-        val token = "/somethingElse"
+        val token = "tokenTest"
 
         given(request.servletPath)
             .willReturn("/somethingElse")
 
-        given(request.getHeader("Authorization"))
-            .willReturn("Bearer $token")
+        given(tokenService.getAccessToken(request))
+            .willReturn(token)
 
         given(tokenService.getClaim(token, "id"))
             .willReturn(claim)
@@ -139,7 +143,32 @@ class TokenFilterTest: FilterTest() {
 
         //ASSERT
         verify(response)
-            .sendError(HttpServletResponse.SC_UNAUTHORIZED.eq(), STRING_TYPE.any())
+            .sendError(HttpServletResponse.SC_NOT_FOUND.eq(), STRING_TYPE.any())
+    }
+
+    @Test
+    fun `invalid - unhandled exception returns 500`() {
+        //ARRANGE
+        val token = "tokenTest"
+
+        given(request.servletPath)
+            .willReturn("/somethingElse")
+
+        given(tokenService.getAccessToken(request))
+            .willReturn(token)
+
+        given(tokenService.getClaim(token, "id"))
+            .willReturn(claim)
+
+        given(accountService.getById(0L))
+            .willThrow(RuntimeException::class.java)
+
+        //ACT
+        tokenFilter.doFilter(request, response, filterChain)
+
+        //ASSERT
+        verify(response)
+            .sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR.eq(), STRING_TYPE.any())
     }
 
 }

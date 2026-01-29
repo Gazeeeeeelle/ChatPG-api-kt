@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.security.config
 
-import com.yourRPG.chatPG.helper.frontend.FrontendUrlHelper
+import com.yourRPG.chatPG.helper.uri.FrontendUriHelper
 import com.yourRPG.chatPG.security.filters.AccessToChatFilter
 import com.yourRPG.chatPG.security.filters.TokenFilter
 import org.springframework.beans.factory.annotation.Value
@@ -24,7 +24,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 class SecurityConfiguration(
     private val tokenFilter: TokenFilter,
     private val accessToChatFilter: AccessToChatFilter,
-    private val frontendUrlHelper: FrontendUrlHelper,
+    private val frontendUriHelper: FrontendUriHelper,
 
     @param:Value("\${server.protocol}")
     private val protocol: String,
@@ -34,7 +34,7 @@ class SecurityConfiguration(
 ) {
 
     @Bean
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain = with(http) {
+    fun securityFilterChain(httpSecurity: HttpSecurity): SecurityFilterChain = with(httpSecurity) {
         cors { it.configurationSource(corsConfigurationSource()) }
         csrf { it.disable() }
         sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
@@ -54,8 +54,7 @@ class SecurityConfiguration(
         val configuration = CorsConfiguration().apply {
             allowedOrigins = listOf(
                 "$protocol$address:5500",
-                "${protocol}127.0.0.1:5500",
-                frontendUrlHelper.getUrl()
+                frontendUriHelper.getUriString()
             )
             allowCredentials = true
             allowedMethods =

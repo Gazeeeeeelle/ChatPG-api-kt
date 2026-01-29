@@ -1,5 +1,8 @@
 package com.yourRPG.chatPG.security.filters
 
+import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
+import com.yourRPG.chatPG.exception.account.AccountNotFoundException
+import com.yourRPG.chatPG.exception.security.InvalidTokenException
 import com.yourRPG.chatPG.security.helper.SecurityContextHelper
 import com.yourRPG.chatPG.security.token.TokenService
 import com.yourRPG.chatPG.service.account.AccountService
@@ -23,8 +26,10 @@ class TokenFilter(
         response: ServletResponse,
         filterChain: FilterChain
     ) {
-        val path = (request as HttpServletRequest)
-            .servletPath
+        val servletRequest  = request  as HttpServletRequest
+        val servletResponse = response as HttpServletResponse
+
+        val path = servletRequest.servletPath
 
         if (path.contains("/auth") && !path.contains("/auth/logout")
         ) {
@@ -33,19 +38,25 @@ class TokenFilter(
         }
 
         runCatching {
-            val token = tokenService.getAccessToken(request)
+            val token = tokenService.getAccessToken(servletRequest)
 
             val accountId = tokenService.getClaim(token, "id").asLong()
             val account = accountService.getById(accountId)
 
             securityContext.setPrincipal(accountId, account.authorities)
+
+            filterChain.doFilter(request, response)
         }.onFailure { ex ->
-            (response as HttpServletResponse)
-                .sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.message)
-            return
+            val status = when (ex) {
+                is AccessToAccountUnauthorizedException -> HttpServletResponse.SC_UNAUTHORIZED
+                is InvalidTokenException                -> HttpServletResponse.SC_BAD_REQUEST
+                is AccountNotFoundException             -> HttpServletResponse.SC_NOT_FOUND
+                else -> HttpServletResponse.SC_INTERNAL_SERVER_ERROR
+            }
+
+            servletResponse.sendError(status, ex.message ?: "Unknown error")
         }
 
-        filterChain.doFilter(request, response)
     }
 
 }

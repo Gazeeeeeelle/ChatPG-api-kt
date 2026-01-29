@@ -3,21 +3,19 @@ package com.yourRPG.chatPG.security.token
 import com.yourRPG.chatPG.domain.Account
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
 import com.yourRPG.chatPG.exception.security.InvalidTokenException
-import com.yourRPG.chatPG.helper.http.CookieService
 import com.yourRPG.chatPG.service.account.AccountService
-import helper.NullSafeMatchers.STRING_TYPE
 import helper.NullSafeMatchers.any
-import helper.NullSafeMatchers.eq
-import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.BDDMockito.given
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
 import java.time.Duration
+import kotlin.test.assertEquals
 
 @ExtendWith(MockitoExtension::class)
 class TokenManagerServiceTest {
@@ -27,13 +25,9 @@ class TokenManagerServiceTest {
 
     @Mock private lateinit var tokenService: TokenService
     @Mock private lateinit var accountService: AccountService
-    @Mock private lateinit var cookieService: CookieService
 
     @Mock
     private lateinit var account: Account
-
-    @Mock
-    private lateinit var response: HttpServletResponse
 
     @Test
     fun signAccessToken() {
@@ -49,23 +43,33 @@ class TokenManagerServiceTest {
     fun `refreshTokens - success`() {
         //ARRANGE
         val oldRefreshToken = "oldRefreshTokenTest"
+        val newRefreshToken = "newRefreshTokenTest"
         val newAccessToken  = "newAccessTokenTest"
 
         given(accountService.getByRefreshToken(oldRefreshToken))
             .willReturn(account)
 
-        given(service.signAccessToken(account))
+        given(tokenService.signTokenWithLifetime(Duration.ofMinutes(10L), account))
             .willReturn(newAccessToken)
 
+        given(tokenService.signTokenWithLifetime(Duration.ofDays(7L), account))
+            .willReturn(newRefreshToken)
+
         //ACT
-        service.refreshTokens(response, oldRefreshToken)
+        val (responseAccessToken, responseRefreshToken) = service.refreshTokens(oldRefreshToken)
 
         //ASSERT
+        assertEquals(newAccessToken, responseAccessToken.token)
+        assertEquals(newRefreshToken, responseRefreshToken)
+
         verify(tokenService)
             .verify(oldRefreshToken)
 
-        verify(cookieService)
-            .appendCookie(response.eq(), name = "refresh_token".eq(), value = STRING_TYPE.any())
+        verify(accountService)
+            .getByRefreshToken(oldRefreshToken)
+
+        verify(tokenService)
+            .signTokenWithLifetime(Duration.ofMinutes(10L), account)
 
     }
 
@@ -79,11 +83,14 @@ class TokenManagerServiceTest {
 
         //ACT + ASSERT
         assertThrows<InvalidTokenException> {
-            service.refreshTokens(response, oldRefreshToken)
+            service.refreshTokens(oldRefreshToken)
         }
 
         verify(tokenService)
             .verify(oldRefreshToken)
+
+        verify(tokenService, never())
+            .signTokenWithLifetime(Duration.ZERO.any(), account.any())
 
     }
 
@@ -97,22 +104,14 @@ class TokenManagerServiceTest {
 
         //ACT + ASSERT
         assertThrows<AccountNotFoundException> {
-            service.refreshTokens(response, oldRefreshToken)
+            service.refreshTokens(oldRefreshToken)
         }
 
         verify(tokenService)
             .verify(oldRefreshToken)
 
-    }
-
-    @Test
-    fun appendNewRefreshToken() {
-        //ACT
-        service.appendNewRefreshToken(response, owner = account)
-
-        //ASSERT
-        verify(cookieService)
-            .appendCookie(response.eq(), name = "refresh_token".eq(), value = STRING_TYPE.any())
+        verify(tokenService, never())
+            .signTokenWithLifetime(Duration.ZERO.any(), account.any())
 
     }
 

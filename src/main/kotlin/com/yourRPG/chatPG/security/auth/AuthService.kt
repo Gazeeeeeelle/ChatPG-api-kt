@@ -7,7 +7,6 @@ import com.yourRPG.chatPG.dto.auth.UuidDto
 import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
 import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
 import com.yourRPG.chatPG.security.token.TokenManagerService
-import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Service
 
 /**
@@ -26,8 +25,8 @@ class AuthService(
      * Delegates.
      * @see AuthLogInOutService.login
      */
-    fun login(response: HttpServletResponse, credentials: LoginCredentials): TokenDto =
-        authLogInOutService.login(response, credentials)
+    fun login(credentials: LoginCredentials): Pair<TokenDto, String> =
+        authLogInOutService.login(credentials)
 
     /**
      * Delegates.
@@ -69,8 +68,8 @@ class AuthService(
      * Delegates.
      * @see TokenManagerService.refreshTokens
      */
-    fun refreshToken(response: HttpServletResponse, oldRefresh: String): TokenDto {
-        return tokenManagerService.refreshTokens(response, oldRefresh)
+    fun refreshToken(oldRefreshToken: String): Pair<TokenDto, String> {
+        return tokenManagerService.refreshTokens(oldRefreshToken)
     }
 
 }

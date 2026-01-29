@@ -1,9 +1,9 @@
 package com.yourRPG.chatPG.service.account
 
+import com.yourRPG.chatPG.domain.Account
 import com.yourRPG.chatPG.dto.account.AccountDto
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
-import com.yourRPG.chatPG.domain.Account
-import com.yourRPG.chatPG.exception.UnauthorizedException
+import com.yourRPG.chatPG.exception.http.UnauthorizedException
 import com.yourRPG.chatPG.repository.AccountRepository
 import com.yourRPG.chatPG.service.IConvertible
 import com.yourRPG.chatPG.validator.account.AccountCreationCredentialsValidator
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 @Service
 class AccountService(
@@ -75,6 +75,13 @@ class AccountService(
             ?: throw AccountNotFoundException("No account found with uuid given")
     }
 
+    /**
+     * Returns the Account found with [email] given.
+     *
+     * @param email used to search for the account.
+     * @return [Account] found.
+     * @throws AccountNotFoundException
+     */
     fun getByEmail(email: String): Account {
         return repository.qFindByEmail(email)
             ?: throw AccountNotFoundException("Account not found with email $email")
@@ -108,7 +115,10 @@ class AccountService(
     }
 
     /**
-     * Updates the [account] in the DB with the given password
+     * Updates the [account] in the DB with the given password.
+     *
+     * @param account account to change status of.
+     * @param encryptedPassword encrypted password to change replace the old one.
      */
     @Transactional(propagation = Propagation.REQUIRED)
     fun updatePassword(account: Account, encryptedPassword: String) {
@@ -136,17 +146,36 @@ class AccountService(
         return account
     }
 
+    /**
+     * Hard deletes account with id [id].
+     *
+     * @param id account identifier, nullable to mitigate cluttering of null checks at usage.
+     * @throws AccountNotFoundException if the id given was null.
+     */
     @Transactional(propagation = Propagation.REQUIRED)
     fun deleteById(id: Long?) {
-        repository.deleteById(id ?: throw AccountNotFoundException("Account not found with id $id"))
+        repository.deleteById(id
+            ?: throw AccountNotFoundException("Null account id"))
     }
 
+    /**
+     * Updates [AccountStatus] of the given [Account], [account], with [status].
+     *
+     * @param account account to change status of.
+     * @param status which of the statuses change the account's status to.
+     */
     @Transactional(propagation = Propagation.REQUIRED)
     fun updateStatus(account: Account, status: AccountStatus) {
         account.status = status
         repository.save(account)
     }
 
+    /**
+     * Updates [Account.refreshToken] of the given [Account], [account], to [refreshToken].
+     *
+     * @param account account to change refreshToken of.
+     * @param refreshToken which token to replace with.
+     */
     @Transactional(propagation = Propagation.REQUIRED)
     fun saveWithRefreshToken(account: Account, refreshToken: String?) {
         account.refreshToken = refreshToken

@@ -14,4 +14,8 @@ class CookieService {
         })
     }
 
+    fun appendRefreshToken(response: HttpServletResponse, refreshToken: String) {
+        appendCookie(response, "refresh_token", refreshToken)
+    }
+
 }

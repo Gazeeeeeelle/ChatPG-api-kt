@@ -4,7 +4,7 @@ import com.yourRPG.chatPG.domain.Account
 import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
 import com.yourRPG.chatPG.exception.auth.password.PasswordResetException
 import com.yourRPG.chatPG.helper.email.MimeHelper
-import com.yourRPG.chatPG.helper.frontend.FrontendUrlHelper
+import com.yourRPG.chatPG.helper.uri.FrontendUriHelper
 import com.yourRPG.chatPG.service.account.AccountService
 import com.yourRPG.chatPG.service.email.EmailService
 import org.springframework.stereotype.Service
@@ -16,7 +16,7 @@ import java.util.UUID
 class AuthChangePasswordService(
     private val accountService: AccountService,
     private val mimeHelper: MimeHelper,
-    private val frontendUrlHelper: FrontendUrlHelper,
+    private val frontendUriHelper: FrontendUriHelper,
     private val emailService: EmailService,
     private val passwordService: AuthPasswordService
 ) {
@@ -29,7 +29,7 @@ class AuthChangePasswordService(
 
         accountService.updateUuid(account, uuid)
 
-        val url = frontendUrlHelper.append("/login/forgot-password/$uuid")
+        val url = frontendUriHelper.append("/login/forgot-password/$uuid")
         val html = mimeHelper.getTemplate(
             template  = "mime-change-password",
             variables = arrayOf("url" to url)

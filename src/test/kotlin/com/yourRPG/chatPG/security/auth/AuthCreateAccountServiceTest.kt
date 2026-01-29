@@ -3,15 +3,15 @@ package com.yourRPG.chatPG.security.auth
 import com.yourRPG.chatPG.domain.Account
 import com.yourRPG.chatPG.dto.auth.UuidDto
 import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
-import com.yourRPG.chatPG.exception.ConflictException
 import com.yourRPG.chatPG.exception.auth.AccountActivationException
 import com.yourRPG.chatPG.exception.auth.password.*
 import com.yourRPG.chatPG.exception.auth.username.BadUsernameException
 import com.yourRPG.chatPG.exception.auth.username.UsernameContainsIllegalCharactersException
 import com.yourRPG.chatPG.exception.auth.username.UsernameTooLongException
 import com.yourRPG.chatPG.exception.auth.username.UsernameTooShortException
+import com.yourRPG.chatPG.exception.http.ConflictException
 import com.yourRPG.chatPG.helper.email.MimeHelper
-import com.yourRPG.chatPG.helper.frontend.FrontendUrlHelper
+import com.yourRPG.chatPG.helper.uri.FrontendUriHelper
 import com.yourRPG.chatPG.service.account.AccountService
 import com.yourRPG.chatPG.service.account.AccountStatus
 import com.yourRPG.chatPG.service.email.EmailService
@@ -50,7 +50,7 @@ class AuthCreateAccountServiceTest {
     @Mock private lateinit var passwordValidator: PasswordValidator
 
     @Mock private lateinit var mimeHelper: MimeHelper
-    @Mock private lateinit var frontendUrlHelper: FrontendUrlHelper
+    @Mock private lateinit var frontendUriHelper: FrontendUriHelper
 
     @Test
     fun `createAccount - success`() {
