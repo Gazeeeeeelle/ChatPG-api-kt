@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.security.auth
 
-import com.yourRPG.chatPG.domain.Account
+import com.yourRPG.chatPG.domain.account.Account
 import com.yourRPG.chatPG.dto.auth.UuidDto
 import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
 import com.yourRPG.chatPG.exception.auth.AccountActivationException
@@ -10,11 +10,11 @@ import com.yourRPG.chatPG.exception.auth.username.UsernameContainsIllegalCharact
 import com.yourRPG.chatPG.exception.auth.username.UsernameTooLongException
 import com.yourRPG.chatPG.exception.auth.username.UsernameTooShortException
 import com.yourRPG.chatPG.exception.http.ConflictException
-import com.yourRPG.chatPG.helper.email.MimeHelper
-import com.yourRPG.chatPG.helper.uri.FrontendUriHelper
+import com.yourRPG.chatPG.infra.email.MimeHelper
+import com.yourRPG.chatPG.infra.uri.FrontendUriHelper
 import com.yourRPG.chatPG.service.account.AccountService
 import com.yourRPG.chatPG.service.account.AccountStatus
-import com.yourRPG.chatPG.service.email.EmailService
+import com.yourRPG.chatPG.infra.email.EmailService
 import com.yourRPG.chatPG.validator.account.PasswordValidator
 import com.yourRPG.chatPG.validator.account.UsernameValidator
 import helper.NullSafeMatchers.LONG_TYPE
@@ -159,10 +159,10 @@ class AuthCreateAccountServiceTest {
         given(accountService.getByUuid(uuid))
             .willReturn(account)
 
-        given(account.status)
+        given(account.auth.status)
             .willReturn(AccountStatus.DISABLED)
 
-        given(account.uuidBirth)
+        given(account.auth.uuidBirth)
             .willReturn(Instant.now())
 
         //ACT
@@ -194,7 +194,7 @@ class AuthCreateAccountServiceTest {
                 given(accountService.getByUuid(uuid))
                     .willReturn(account)
 
-                given(account.status)
+                given(account.auth.status)
                     .willReturn(status)
 
                 //ACT + ASSERT
@@ -226,7 +226,7 @@ class AuthCreateAccountServiceTest {
         given(accountService.getByUuid(uuid))
             .willReturn(account)
 
-        given(account.status)
+        given(account.auth.status)
             .willReturn(AccountStatus.DISABLED)
 
         //ACT + ASSERT
@@ -257,13 +257,13 @@ class AuthCreateAccountServiceTest {
         given(accountService.getByUuid(uuid))
             .willReturn(account)
 
-        given(account.status)
+        given(account.auth.status)
             .willReturn(AccountStatus.DISABLED)
 
         val thirtyMinutesAgo = Instant.now()
             .minus(30, ChronoUnit.MINUTES)
 
-        given(account.uuidBirth)
+        given(account.auth.uuidBirth)
             .willReturn(thirtyMinutesAgo)
 
         //ACT + ASSERT

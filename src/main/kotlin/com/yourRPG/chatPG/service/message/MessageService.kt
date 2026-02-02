@@ -1,13 +1,13 @@
 package com.yourRPG.chatPG.service.message
 
+import com.yourRPG.chatPG.domain.account.Account
+import com.yourRPG.chatPG.domain.chat.Chat
+import com.yourRPG.chatPG.domain.message.Message
 import com.yourRPG.chatPG.dto.message.MessageDto
 import com.yourRPG.chatPG.exception.ai.NullAiResponse
 import com.yourRPG.chatPG.exception.message.MessageNotFoundException
-import com.yourRPG.chatPG.domain.Account
-import com.yourRPG.chatPG.domain.Chat
-import com.yourRPG.chatPG.domain.Message
+import com.yourRPG.chatPG.mapper.MessageMapper
 import com.yourRPG.chatPG.repository.MessageRepository
-import com.yourRPG.chatPG.service.IConvertible
 import com.yourRPG.chatPG.service.account.AccountService
 import com.yourRPG.chatPG.service.ai.AiService
 import com.yourRPG.chatPG.service.chat.ChatService
@@ -19,25 +19,17 @@ import kotlin.math.min
 
 @Service
 class MessageService(
-    /* Service */
     private val accountService: AccountService,
     private val chatService: ChatService,
     private val chatPGService: ChatpgService,
     private val aiService: AiService,
 
-    /* Repositories */
     private val repository: MessageRepository,
 
-    /* Validators */
-    private val contentValidator: MessageContentValidator
-): IConvertible<Message, MessageDto> {
+    private val contentValidator: MessageContentValidator,
 
-    /**
-     * Conversion.
-     *
-     * @see IConvertible
-     */
-    override fun dtoOf(c: Message): MessageDto = MessageDto(c)
+    private val mapper: MessageMapper
+) {
 
     /**
      * Fetches 20 messages in the [Chat] identified with and [chatId]. The messages are fetched by selecting
@@ -55,8 +47,8 @@ class MessageService(
         require(referenceId >= -1L) { "Invalid reference ID: $referenceId" }
 
         return when (referenceId) {
-            -1L -> repository.qFindOldByChatIdAndReference(chatId, reference = Long.MAX_VALUE).toListDto()
-            else -> repository.qFindOldByChatIdAndReference(chatId, referenceId).toListDto()
+            -1L -> repository.qFindOldByChatIdAndReference(chatId, reference = Long.MAX_VALUE).map(mapper::toDto)
+            else -> repository.qFindOldByChatIdAndReference(chatId, referenceId).map(mapper::toDto)
         }
     }
     /**
@@ -70,7 +62,7 @@ class MessageService(
     fun getNewMessagesInChat(chatId: Long, referenceId: Long): List<MessageDto> {
         require(referenceId >= -1L) { "Invalid reference ID: $referenceId" }
 
-        return repository.qFindNewByChatIdAndReference(chatId, referenceId).toListDto()
+        return repository.qFindNewByChatIdAndReference(chatId, referenceId).map(mapper::toDto)
     }
 
     /**
@@ -91,7 +83,7 @@ class MessageService(
      * @param messageId
      */
     fun getDtoByChatIdAndId(chatId: Long, messageId: Long): MessageDto =
-        getByChatIdAndId(chatId, messageId).toDto()
+        mapper.toDto(getByChatIdAndId(chatId, messageId))
 
     /**
      * Creates a message as the account identified by [accountId] in the chat identified by [chatId] with content [content]
@@ -105,12 +97,12 @@ class MessageService(
      * @see createMessage
      */
     fun sendMessage(accountId: Long, chatId: Long, content: String): MessageDto =
-        createMessage(
+        mapper.toDto(createMessage(
             accountService.getById(accountId),
             chatService.getByChatId(chatId),
             content,
             isBot = false
-        ).toDto()
+        ))
 
     /**
      * Validates content of message, constructs the [Message], then persists it.
@@ -133,10 +125,7 @@ class MessageService(
      * @see ChatService.getByChatId
      * @see createAIMessage
      */
-    fun generateResponse(chatId: Long): MessageDto =
-        createAIMessage(
-            chatService.getByChatId(chatId)
-        )
+    fun generateResponse(chatId: Long): MessageDto = createAIMessage(chatService.getByChatId(chatId))
 
     /**
      * Fetches previous messages present in the chat ([MessageRepository.qFindAllMessagesFromChat]), then treats them
@@ -161,12 +150,12 @@ class MessageService(
 
         val content = aiService.askAi(chat.model, prompt)
 
-        return createMessage(
+        return mapper.toDto(createMessage(
             account = null,
             chat,
             content,
             isBot = true
-        ).toDto()
+        ))
     }
 
     /**

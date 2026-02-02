@@ -6,24 +6,18 @@ import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.dto.auth.UuidDto
 import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
 import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
-import com.yourRPG.chatPG.helper.http.CookieService
+import com.yourRPG.chatPG.infra.http.CookieService
 import com.yourRPG.chatPG.security.auth.AuthService
-import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
+import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.CookieValue
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/auth")
 class AuthController(
     private val service: AuthService,
-
-    private val cookieService: CookieService,
+    private val cookieService: CookieService
 ) {
 
     /**
@@ -32,45 +26,42 @@ class AuthController(
     @PostMapping("/login")
     fun login(
         @Valid @RequestBody credentials: LoginCredentials,
-        response: HttpServletResponse
     ): ResponseEntity<TokenDto> {
         val (tokenDto, refreshToken) = service.login(credentials)
 
-        cookieService.appendRefreshToken(response, refreshToken)
+        val cookie = cookieService.refreshToken(refreshToken)
 
-        return ResponseEntity.ok(tokenDto)
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, cookie.toString())
+            .body(tokenDto)
     }
 
     /**
-     * @see AuthService.logout
-     */
-    @PostMapping("/logout")
-    fun logout(
-        @AuthenticationPrincipal accountId: Long
-    ): ResponseEntity<TokenDto> {
-        service.logout(accountId)
-        return ResponseEntity.noContent().build()
-    }
-
-    /**
+     * Returns a [TokenDto] containing the generated access token, together with the refresh token inside an http-only
+     *  cookie.
+     *
+     * @param oldRefreshToken the refresh token that will be used to identify the account requiring the refresh, and
+     *  authorize that to be done.
+     *      
      * @see AuthService.login
      */
-    @PostMapping("/refreshToken")
-    fun refreshToken(
+    @PostMapping("/refresh-tokens")
+    fun refreshTokens(
         @CookieValue("refresh_token") oldRefreshToken: String,
-        response: HttpServletResponse
     ): ResponseEntity<TokenDto> {
         val (tokenDto, newRefreshToken) = service.refreshToken(oldRefreshToken)
 
-        cookieService.appendRefreshToken(response, newRefreshToken)
+        val cookie = cookieService.refreshToken(newRefreshToken)
 
-        return ResponseEntity.ok(tokenDto)
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, cookie.toString())
+            .body(tokenDto)
     }
 
     /**
      * @see AuthService.requestChangePassword
      */
-    @PostMapping("/requestChangePassword")
+    @PostMapping("/request-change-password")
     fun requestChangePassword(
         @RequestBody email: String
     ): ResponseEntity<Unit> {
@@ -81,7 +72,7 @@ class AuthController(
     /**
      * @see AuthService.requestChangePassword
      */
-    @PostMapping("/confirmChangePassword")
+    @PostMapping("/confirm-change-password")
     fun confirmChangePassword(
         @RequestBody dto: ChangePasswordDto
     ): ResponseEntity<Unit> {
@@ -92,7 +83,7 @@ class AuthController(
     /**
      * @see AuthService.createAccount
      */
-    @PostMapping("/createAccount")
+    @PostMapping("/create-account")
     fun createAccount(
         @Valid @RequestBody dto: CreateAccountDto
     ): ResponseEntity<AccountDto> =
@@ -103,7 +94,7 @@ class AuthController(
     /**
      * @see AuthService.activateAccount
      */
-    @PostMapping("/activateAccount")
+    @PostMapping("/activate-account")
     fun activateAccount(
         @Valid @RequestBody uuid: UuidDto
     ): ResponseEntity<AccountDto> =

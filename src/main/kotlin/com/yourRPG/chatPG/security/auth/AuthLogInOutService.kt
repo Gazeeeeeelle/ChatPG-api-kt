@@ -23,7 +23,7 @@ class AuthLogInOutService(
 
         val token = tokenManagerService.signAccessToken(account)
 
-        val refreshToken = tokenManagerService.newRefreshToken(account)
+        val refreshToken = tokenManagerService.signRefreshToken(account)
 
         return TokenDto(token) to refreshToken
     }

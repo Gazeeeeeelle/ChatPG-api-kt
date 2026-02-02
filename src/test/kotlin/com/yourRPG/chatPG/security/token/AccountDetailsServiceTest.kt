@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.security.token
 
-import com.yourRPG.chatPG.domain.Account
+import com.yourRPG.chatPG.domain.account.Account
 import com.yourRPG.chatPG.repository.AccountRepository
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.controller
 
-import com.yourRPG.chatPG.dto.ai.model.AiModelDto
+import com.yourRPG.chatPG.dto.aimodel.AiModelDto
 import com.yourRPG.chatPG.dto.chat.ChatDto
 import com.yourRPG.chatPG.service.chat.ChatService
 import org.springframework.http.ResponseEntity
@@ -28,7 +28,7 @@ class ChatController(
     /**
      * @see ChatService.getDtoByChatName
      */
-    @GetMapping("/byName/{chatName}")
+    @GetMapping("/by-name/{chatName}")
     fun getChat(
         @PathVariable chatName: String
     ): ResponseEntity<ChatDto> =

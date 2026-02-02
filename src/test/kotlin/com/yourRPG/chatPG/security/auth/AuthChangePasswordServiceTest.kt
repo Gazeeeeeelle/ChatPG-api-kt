@@ -1,13 +1,13 @@
 package com.yourRPG.chatPG.security.auth
 
-import com.yourRPG.chatPG.domain.Account
+import com.yourRPG.chatPG.domain.account.Account
 import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
 import com.yourRPG.chatPG.exception.auth.password.PasswordResetException
-import com.yourRPG.chatPG.helper.email.MimeHelper
-import com.yourRPG.chatPG.helper.uri.FrontendUriHelper
+import com.yourRPG.chatPG.infra.email.MimeHelper
+import com.yourRPG.chatPG.infra.uri.FrontendUriHelper
 import com.yourRPG.chatPG.service.account.AccountService
-import com.yourRPG.chatPG.service.email.EmailService
+import com.yourRPG.chatPG.infra.email.EmailService
 import helper.NullSafeMatchers.STRING_TYPE
 import helper.NullSafeMatchers.any
 import helper.NullSafeMatchers.eq
@@ -46,7 +46,7 @@ class AuthChangePasswordServiceTest {
         given(accountService.getByEmail(email))
             .willReturn(account)
 
-        given(frontendUriHelper.append(STRING_TYPE.any()))
+        given(frontendUriHelper.appendString(STRING_TYPE.any()))
             .willReturn(url)
 
         given(mimeHelper.getTemplate(STRING_TYPE.any(), ("url" to url).eq()))
@@ -93,7 +93,7 @@ class AuthChangePasswordServiceTest {
         given(accountService.getByUuid(uuid))
             .willReturn(account)
 
-        account.uuidBirth = Instant.now()
+        account.auth.uuidBirth = Instant.now()
 
         given(passwordService.encrypt(rawPassword))
             .willReturn(encryptedPassword)
@@ -128,7 +128,7 @@ class AuthChangePasswordServiceTest {
 
         val twentyMinutes = Duration.ofMinutes(15)
 
-        account.uuidBirth = Instant.now().minus(twentyMinutes)
+        account.auth.uuidBirth = Instant.now().minus(twentyMinutes)
 
         //ACT
         service.confirmChangePassword(changePassword)

@@ -1,14 +1,14 @@
 package com.yourRPG.chatPG.service.poll
 
+import com.yourRPG.chatPG.domain.chat.Chat
+import com.yourRPG.chatPG.domain.poll.Poll
+import com.yourRPG.chatPG.domain.poll.Poll.CompositePrimaryKey
 import com.yourRPG.chatPG.dto.poll.PollDto
 import com.yourRPG.chatPG.exception.http.BadRequestException
 import com.yourRPG.chatPG.exception.poll.AlreadyVotedInPollException
 import com.yourRPG.chatPG.exception.poll.PollNotFoundException
-import com.yourRPG.chatPG.domain.Chat
-import com.yourRPG.chatPG.domain.Poll
-import com.yourRPG.chatPG.domain.Poll.CompositePrimaryKey
+import com.yourRPG.chatPG.mapper.PollMapper
 import com.yourRPG.chatPG.repository.PollRepository
-import com.yourRPG.chatPG.service.IConvertible
 import com.yourRPG.chatPG.service.chat.ChatService
 import com.yourRPG.chatPG.service.poll.commandRunner.PollCommandRunnerService
 import com.yourRPG.chatPG.validator.poll.PollValidators
@@ -16,28 +16,15 @@ import org.springframework.stereotype.Service
 
 @Service
 class PollService(
-    /* Services */
     private val runnerService: PollCommandRunnerService,
     private val chatService: ChatService,
 
-    /* Repositories */
     private val pollRepository: PollRepository,
 
-    /* Validators */
-    private val pollValidators: PollValidators
-): IConvertible<Poll, PollDto> {
+    private val pollValidators: PollValidators,
 
-    /**
-     * Conversion.
-     * @see IConvertible
-     */
-    override fun dtoOf(c: Poll): PollDto =
-        PollDto(
-            chat = chatService.dtoOf(c = c.chat),
-            c.subject,
-            c.quota,
-            votes = c.votes.size
-        )
+    private val mapper: PollMapper
+) {
 
     /**
      * Returns poll of subject [subject] in chat [chat].
@@ -61,7 +48,7 @@ class PollService(
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
      */
     fun all(chatId: Long): List<PollDto> =
-        pollRepository.findAllByChatId(chatId).toListDto()
+        pollRepository.findAllByChatId(chatId).map(mapper::toDto)
 
     /**
      * Starts a new poll on a chat.
@@ -91,7 +78,7 @@ class PollService(
 
         pollRepository.save(poll)
 
-        return poll.toDto()
+        return mapper.toDto(poll)
     }
 
     /**
@@ -120,7 +107,7 @@ class PollService(
         poll.vote(accountId)
         checkPollVotes(poll)
 
-        return poll.toDto()
+        return mapper.toDto(poll)
     }
 
     /**

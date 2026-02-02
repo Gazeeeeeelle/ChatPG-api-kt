@@ -1,12 +1,12 @@
 package com.yourRPG.chatPG.security.auth
 
-import com.yourRPG.chatPG.domain.Account
+import com.yourRPG.chatPG.domain.account.Account
 import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
 import com.yourRPG.chatPG.exception.auth.password.PasswordResetException
-import com.yourRPG.chatPG.helper.email.MimeHelper
-import com.yourRPG.chatPG.helper.uri.FrontendUriHelper
+import com.yourRPG.chatPG.infra.email.MimeHelper
+import com.yourRPG.chatPG.infra.uri.FrontendUriHelper
 import com.yourRPG.chatPG.service.account.AccountService
-import com.yourRPG.chatPG.service.email.EmailService
+import com.yourRPG.chatPG.infra.email.EmailService
 import org.springframework.stereotype.Service
 import java.time.Duration
 import java.time.Instant
@@ -29,7 +29,7 @@ class AuthChangePasswordService(
 
         accountService.updateUuid(account, uuid)
 
-        val url = frontendUriHelper.append("/login/forgot-password/$uuid")
+        val url = frontendUriHelper.appendString("/login/forgot-password/$uuid")
         val html = mimeHelper.getTemplate(
             template  = "mime-change-password",
             variables = arrayOf("url" to url)
@@ -51,7 +51,7 @@ class AuthChangePasswordService(
 
         accountService.updateUuid(account, null)
 
-        val birth = account.uuidBirth
+        val birth = account.auth.uuidBirth
             ?: throw PasswordResetException("Uuid does not have instant of creation")
 
         val fifteenMinutes = Duration.ofMinutes(15)

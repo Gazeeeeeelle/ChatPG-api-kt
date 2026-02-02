@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.security.token
 
-import com.yourRPG.chatPG.domain.Account
+import com.yourRPG.chatPG.domain.account.Account
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
 import com.yourRPG.chatPG.exception.security.InvalidTokenException
 import com.yourRPG.chatPG.service.account.AccountService
@@ -116,7 +116,7 @@ class TokenManagerServiceTest {
     }
 
     @Test
-    fun newRefreshToken() {
+    fun signRefreshToken() {
         //ARRANGE
         val token = "tokenTest"
 
@@ -124,7 +124,7 @@ class TokenManagerServiceTest {
             .willReturn(token)
 
         //ACT
-        service.newRefreshToken(account)
+        service.signRefreshToken(account)
 
         //ASSERT
         verify(tokenService)

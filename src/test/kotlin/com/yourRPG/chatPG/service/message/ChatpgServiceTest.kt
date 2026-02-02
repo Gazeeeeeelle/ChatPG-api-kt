@@ -1,8 +1,8 @@
 package com.yourRPG.chatPG.service.message
 
-import com.yourRPG.chatPG.domain.Account
-import com.yourRPG.chatPG.domain.Chat
-import com.yourRPG.chatPG.domain.Message
+import com.yourRPG.chatPG.domain.account.Account
+import com.yourRPG.chatPG.domain.chat.Chat
+import com.yourRPG.chatPG.domain.message.Message
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

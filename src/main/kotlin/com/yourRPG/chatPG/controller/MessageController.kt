@@ -71,7 +71,7 @@ class MessageController(
     /**
      * @see MessageService.generateResponse
      */
-    @PostMapping("/generateResponse")
+    @PostMapping("/generate-response")
     fun generateResponse(
         @PathVariable chatId: Long,
         ucb: UriComponentsBuilder
@@ -101,7 +101,7 @@ class MessageController(
      * @see MessageService.bulkDeleteMessages
      */
     @Transactional
-    @DeleteMapping("/bulkDelete/{bound1}/{bound2}")
+    @DeleteMapping("/bulk-delete/{bound1}/{bound2}")
     fun bulkDeleteMessages(
         @PathVariable chatId: Long,
         @PathVariable bound1: Long,

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/account")
-class AccountController(
+class  AccountController(
     private val accountService: AccountService
 ) {
 
@@ -24,5 +24,7 @@ class AccountController(
         ResponseEntity.ok(
             accountService.getDtoById(accountId)
         )
+
+
 
 }

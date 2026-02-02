@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.validator.chat
 
-import com.yourRPG.chatPG.domain.Chat
+import com.yourRPG.chatPG.domain.chat.Chat
 import com.yourRPG.chatPG.exception.chat.ForbiddenAccountException
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Test

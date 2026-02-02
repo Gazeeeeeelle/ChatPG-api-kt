@@ -68,8 +68,10 @@ class AuthService(
      * Delegates.
      * @see TokenManagerService.refreshTokens
      */
-    fun refreshToken(oldRefreshToken: String): Pair<TokenDto, String> {
-        return tokenManagerService.refreshTokens(oldRefreshToken)
-    }
+    fun refreshToken(oldRefreshToken: String): Pair<TokenDto, String> =
+        tokenManagerService.refreshTokens(oldRefreshToken)
+
+    fun requireRefreshToken(accountId: Long): Pair<TokenDto, String> =
+        tokenManagerService.requireRefreshToken(accountId)
 
 }

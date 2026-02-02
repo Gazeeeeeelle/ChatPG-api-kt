@@ -1,6 +1,5 @@
 package com.yourRPG.chatPG.dto.account
 
-import com.yourRPG.chatPG.domain.Account
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 
@@ -12,8 +11,4 @@ data class AccountDto(
     @field:NotBlank
     var name: String?,
 
-) {
-
-    constructor(account: Account): this(account.id, account.name)
-
-}
+)

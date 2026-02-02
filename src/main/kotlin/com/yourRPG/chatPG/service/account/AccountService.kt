@@ -1,11 +1,11 @@
 package com.yourRPG.chatPG.service.account
 
-import com.yourRPG.chatPG.domain.Account
+import com.yourRPG.chatPG.domain.account.Account
 import com.yourRPG.chatPG.dto.account.AccountDto
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
 import com.yourRPG.chatPG.exception.http.UnauthorizedException
+import com.yourRPG.chatPG.mapper.AccountMapper
 import com.yourRPG.chatPG.repository.AccountRepository
-import com.yourRPG.chatPG.service.IConvertible
 import com.yourRPG.chatPG.validator.account.AccountCreationCredentialsValidator
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -18,15 +18,10 @@ import java.util.*
 class AccountService(
     /* Repositories */
     private val repository: AccountRepository,
+    private val mapper: AccountMapper,
 
     private val accountCreationCredentialsValidator: AccountCreationCredentialsValidator
-): IConvertible<Account, AccountDto> {
-
-    /**
-     * Conversion.
-     * @see IConvertible
-     */
-    override fun dtoOf(c: Account): AccountDto = AccountDto(c)
+) {
 
     /**
      * Returns an [Account] by its id.
@@ -49,7 +44,7 @@ class AccountService(
      * @see getById
      */
     fun getDtoById(accountId: Long): AccountDto =
-        getById(accountId).toDto()
+        mapper.toDto(getById(accountId))
 
     /**
      * Returns the [Account] found by its name [username].
@@ -99,8 +94,8 @@ class AccountService(
             ?: throw UnauthorizedException("No account found with refresh token given")
 
     /**
-     * Updates the [account] in the DB with the given [uuid] and sets [Account.uuidBirth] to be
-     * [Instant.now].
+     * Updates the [account] in the DB with the given [uuid] and sets
+     * [com.yourRPG.chatPG.domain.account.AccountAuth.uuidBirth] to be [Instant.now].
      *
      * @param account who is getting their uuid set.
      * @param uuid uuid to set.
@@ -108,8 +103,8 @@ class AccountService(
     @Transactional(propagation = Propagation.REQUIRED)
     fun updateUuid(account: Account, uuid: UUID?) {
         account.apply {
-            this.uuid = uuid
-            this.uuidBirth = uuid?.run { Instant.now() }
+            this.auth.uuid = uuid
+            this.auth.uuidBirth = uuid?.run { Instant.now() }
         }
         repository.save(account)
     }
@@ -122,7 +117,7 @@ class AccountService(
      */
     @Transactional(propagation = Propagation.REQUIRED)
     fun updatePassword(account: Account, encryptedPassword: String) {
-        account.accountPassword = encryptedPassword
+        account.auth.credentials.accountPassword = encryptedPassword
         repository.save(account)
     }
 
@@ -154,8 +149,10 @@ class AccountService(
      */
     @Transactional(propagation = Propagation.REQUIRED)
     fun deleteById(id: Long?) {
-        repository.deleteById(id
-            ?: throw AccountNotFoundException("Null account id"))
+        repository.deleteById(
+            id
+                ?: throw AccountNotFoundException("Null account id")
+        )
     }
 
     /**
@@ -166,19 +163,20 @@ class AccountService(
      */
     @Transactional(propagation = Propagation.REQUIRED)
     fun updateStatus(account: Account, status: AccountStatus) {
-        account.status = status
+        account.auth.status = status
         repository.save(account)
     }
 
     /**
-     * Updates [Account.refreshToken] of the given [Account], [account], to [refreshToken].
+     * Updates [com.yourRPG.chatPG.domain.account.AccountAuth.refreshToken] of the given [Account], [account], to
+     *  [refreshToken].
      *
      * @param account account to change refreshToken of.
      * @param refreshToken which token to replace with.
      */
     @Transactional(propagation = Propagation.REQUIRED)
     fun saveWithRefreshToken(account: Account, refreshToken: String?) {
-        account.refreshToken = refreshToken
+        account.auth.refreshToken = refreshToken
         repository.save(account)
     }
 

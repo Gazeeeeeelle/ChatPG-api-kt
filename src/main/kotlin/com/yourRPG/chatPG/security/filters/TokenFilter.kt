@@ -31,7 +31,7 @@ class TokenFilter(
 
         val path = servletRequest.servletPath
 
-        if (path.contains("/auth") && !path.contains("/auth/logout")
+        if (path.contains("/auth") && !path.contains("/auth/secure")
         ) {
             filterChain.doFilter(request, response)
             return

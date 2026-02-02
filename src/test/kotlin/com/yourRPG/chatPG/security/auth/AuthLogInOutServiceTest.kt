@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.security.auth
 
-import com.yourRPG.chatPG.domain.Account
+import com.yourRPG.chatPG.domain.account.Account
 import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
 import com.yourRPG.chatPG.security.token.TokenManagerService
@@ -55,7 +55,7 @@ class AuthLogInOutServiceTest {
         given(tokenManagerService.signAccessToken(account))
             .willReturn(accessToken)
 
-        given(tokenManagerService.newRefreshToken(account))
+        given(tokenManagerService.signRefreshToken(account))
             .willReturn(refreshToken)
 
         //ACT
@@ -94,7 +94,7 @@ class AuthLogInOutServiceTest {
             .signAccessToken(account)
 
         verify(tokenManagerService, never())
-            .newRefreshToken(account)
+            .signRefreshToken(account)
 
     }
 

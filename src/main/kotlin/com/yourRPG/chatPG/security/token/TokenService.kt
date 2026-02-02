@@ -4,11 +4,14 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTCreator
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.JWTVerificationException
+import com.auth0.jwt.exceptions.TokenExpiredException
 import com.auth0.jwt.interfaces.Claim
 import com.auth0.jwt.interfaces.DecodedJWT
-import com.yourRPG.chatPG.domain.Account
+import com.yourRPG.chatPG.domain.account.Account
 import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
+import com.yourRPG.chatPG.exception.http.BadRequestException
 import com.yourRPG.chatPG.exception.security.InvalidTokenException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
@@ -84,10 +87,12 @@ class TokenService(
      * @throws InvalidTokenException if the verification failed.
      */
     fun verify(token: String): DecodedJWT =
-        runCatching {
+        try {
             buildJWTVerifier().verify(token)
-        }.getOrElse { ex ->
-            throw InvalidTokenException(ex.message ?: "Token verification failed")
+        } catch (_: TokenExpiredException) {
+            throw AccessToAccountUnauthorizedException("Token expired")
+        } catch (_: JWTVerificationException) {
+            throw InvalidTokenException("Malformed token")
         }
 
     fun buildJWTVerifier(): JWTVerifier =

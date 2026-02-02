@@ -16,7 +16,7 @@ class AiModelController(
     /**
      * @see isModelAvailable
      */
-    @GetMapping("/isModelAvailable/{modelName}")
+    @GetMapping("/is-model-available/{modelName}")
     fun isModelAvailable(
         @PathVariable modelName: String
     ): ResponseEntity<Boolean> =

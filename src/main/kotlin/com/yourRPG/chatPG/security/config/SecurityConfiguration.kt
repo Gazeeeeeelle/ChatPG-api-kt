@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.security.config
 
-import com.yourRPG.chatPG.helper.uri.FrontendUriHelper
+import com.yourRPG.chatPG.infra.uri.FrontendUriHelper
 import com.yourRPG.chatPG.security.filters.AccessToChatFilter
 import com.yourRPG.chatPG.security.filters.TokenFilter
 import org.springframework.beans.factory.annotation.Value
@@ -39,7 +39,7 @@ class SecurityConfiguration(
         csrf { it.disable() }
         sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
         authorizeHttpRequests {
-            it.requestMatchers("/auth/logout").authenticated()
+            it.requestMatchers("/auth/secure/**").authenticated()
             it.requestMatchers("/auth/**").permitAll()
 
             it.anyRequest().authenticated()

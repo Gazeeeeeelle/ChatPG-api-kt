@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.security.token
 
-import com.yourRPG.chatPG.domain.Account
+import com.yourRPG.chatPG.domain.account.Account
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.service.account.AccountService
 import jakarta.transaction.Transactional
@@ -17,10 +17,11 @@ class TokenManagerService(
      * Refresh both the *Access Token* and the *Refresh Token*. Returns them in the order they were mentioned in a [Pair].
      *
      * @param oldRefreshToken refresh token used to check authenticity of the request.
-     * @see AccountService.getByRefreshToken
-     * @see signAccessToken
+     * @return [Pair] of [TokenDto], containing the access token, and the [String] value of the refresh token.
      * @throws com.yourRPG.chatPG.exception.http.UnauthorizedException if the [oldRefreshToken] refresh token given did not identify
      *  an account.
+     * @see AccountService.getByRefreshToken
+     * @see signAccessToken
      */
     @Transactional
     fun refreshTokens(oldRefreshToken: String): Pair<TokenDto, String> {
@@ -30,7 +31,24 @@ class TokenManagerService(
 
         val newAccessToken = signAccessToken(account)
 
-        return TokenDto(newAccessToken) to newRefreshToken(account)
+        return TokenDto(newAccessToken) to signRefreshToken(account)
+    }
+
+    /**
+     * Refreshes both tokens in name of the account identified by [accountId].
+     *
+     * @param accountId account identifier
+     * @return [Pair] of [TokenDto], containing the access token, and the [String] value of the refresh token.
+     * @see AccountService.getById
+     * @see signAccessToken
+     */
+    @Transactional
+    fun requireRefreshToken(accountId: Long): Pair<TokenDto, String> {
+        val account = accountService.getById(accountId)
+
+        val newAccessToken = signAccessToken(account)
+
+        return TokenDto(newAccessToken) to signRefreshToken(account)
     }
 
     /**
@@ -51,13 +69,13 @@ class TokenManagerService(
      * @return JWT's [String] value.
      * @see AccountService.saveWithRefreshToken
      */
-    fun newRefreshToken(account: Account): String =
+    fun signRefreshToken(account: Account): String =
         tokenService.signTokenWithLifetime(7L.days(), account).apply {
             accountService.saveWithRefreshToken(account, refreshToken = this)
         }
 
     /**
-     * Wrappers for [Duration]'s *"of"* methods to increase readability.
+     * Wrappers for [Duration]'s *"of"* methods to improve readability.
      */
     fun (Long).minutes(): Duration = Duration.ofMinutes(this)
     fun (Long).days()   : Duration = Duration.ofDays(this)
