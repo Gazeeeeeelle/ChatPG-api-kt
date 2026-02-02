@@ -38,7 +38,7 @@ class TokenFilterTest: FilterTest() {
     lateinit var claim: Claim
 
     @TestFactory
-    fun `valid - paths are filtered`(): Stream<DynamicTest> {
+    fun `valid - paths are secured`(): Stream<DynamicTest> {
         //ARRANGE
         val name     = "username_test"
         val email    = "email@email.com"
@@ -48,7 +48,7 @@ class TokenFilterTest: FilterTest() {
         val account  = Account(name, email, password)
 
         return Stream.of(
-            "/auth/logout", "/notAuthRelatedAndCheckedByTokenFilter"
+            "/auth/secure/logout", "/notAuthRelatedAndCheckedByTokenFilter"
         ).map { path ->
             DynamicTest.dynamicTest("path: $path") {
                 //ARRANGE
@@ -81,7 +81,7 @@ class TokenFilterTest: FilterTest() {
     }
 
     @TestFactory
-    fun `valid - path is not filtered`(): Stream<DynamicTest> =
+    fun `valid - paths are not filtered`(): Stream<DynamicTest> =
         Stream.of(
             "/auth/login", "/auth/refreshToken"
         ).map { path ->

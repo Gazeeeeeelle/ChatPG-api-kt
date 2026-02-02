@@ -15,6 +15,7 @@ import com.yourRPG.chatPG.infra.uri.FrontendUriHelper
 import com.yourRPG.chatPG.service.account.AccountService
 import com.yourRPG.chatPG.service.account.AccountStatus
 import com.yourRPG.chatPG.infra.email.EmailService
+import com.yourRPG.chatPG.mapper.AccountMapper
 import com.yourRPG.chatPG.validator.account.PasswordValidator
 import com.yourRPG.chatPG.validator.account.UsernameValidator
 import helper.NullSafeMatchers.LONG_TYPE
@@ -52,6 +53,8 @@ class AuthCreateAccountServiceTest {
     @Mock private lateinit var mimeHelper: MimeHelper
     @Mock private lateinit var frontendUriHelper: FrontendUriHelper
 
+    @Mock private lateinit var accountMapper: AccountMapper
+
     @Test
     fun `createAccount - success`() {
         //ARRANGE
@@ -88,8 +91,8 @@ class AuthCreateAccountServiceTest {
         verify(emailService)
             .sendMimeEmail(STRING_TYPE.any(), email.eq(), STRING_TYPE.any())
 
-        verify(accountService)
-            .dtoOf(c = account)
+        verify(accountMapper)
+            .toDto(account)
     }
 
     @TestFactory
@@ -154,16 +157,12 @@ class AuthCreateAccountServiceTest {
         //ARRANGE
         val dto = UuidDto("b22ef8ea-bd27-48fe-994c-568e6a4e58e4")
         val uuid = UUID.fromString(dto.uuid)
-        val account = mock(Account::class.java)
+        val account = Account("username", "email@email.com", "PasswordTest")
 
         given(accountService.getByUuid(uuid))
             .willReturn(account)
 
-        given(account.auth.status)
-            .willReturn(AccountStatus.DISABLED)
-
-        given(account.auth.uuidBirth)
-            .willReturn(Instant.now())
+        account.auth.uuidBirth = Instant.now()
 
         //ACT
         service.activateAccount(dto)
@@ -184,18 +183,17 @@ class AuthCreateAccountServiceTest {
         //ARRANGE
         val dto = UuidDto("b22ef8ea-bd27-48fe-994c-568e6a4e58e4")
         val uuid = UUID.fromString(dto.uuid)
-        val account = mock(Account::class.java)
+        val account = Account("username", "email@email.com", "PasswordTest")
 
         return Stream.of(
             AccountStatus.ENABLED,
             AccountStatus.DELETED,
         ).map { status ->
             DynamicTest.dynamicTest("Status: $status") {
+                account.auth.status = status
+
                 given(accountService.getByUuid(uuid))
                     .willReturn(account)
-
-                given(account.auth.status)
-                    .willReturn(status)
 
                 //ACT + ASSERT
                 assertThrows<ConflictException> {
@@ -221,13 +219,10 @@ class AuthCreateAccountServiceTest {
         //ARRANGE
         val dto = UuidDto("b22ef8ea-bd27-48fe-994c-568e6a4e58e4")
         val uuid = UUID.fromString(dto.uuid)
-        val account = mock(Account::class.java)
+        val account = Account("username", "email@email.com", "PasswordTest")
 
         given(accountService.getByUuid(uuid))
             .willReturn(account)
-
-        given(account.auth.status)
-            .willReturn(AccountStatus.DISABLED)
 
         //ACT + ASSERT
         assertThrows<AccountActivationException> {
@@ -252,19 +247,15 @@ class AuthCreateAccountServiceTest {
         //ARRANGE
         val dto = UuidDto("b22ef8ea-bd27-48fe-994c-568e6a4e58e4")
         val uuid = UUID.fromString(dto.uuid)
-        val account = mock(Account::class.java)
+        val account = Account("username", "email@email.com", "PasswordTest")
 
         given(accountService.getByUuid(uuid))
             .willReturn(account)
 
-        given(account.auth.status)
-            .willReturn(AccountStatus.DISABLED)
-
         val thirtyMinutesAgo = Instant.now()
             .minus(30, ChronoUnit.MINUTES)
 
-        given(account.auth.uuidBirth)
-            .willReturn(thirtyMinutesAgo)
+        account.auth.uuidBirth = thirtyMinutesAgo
 
         //ACT + ASSERT
         assertThrows<AccountActivationException> {

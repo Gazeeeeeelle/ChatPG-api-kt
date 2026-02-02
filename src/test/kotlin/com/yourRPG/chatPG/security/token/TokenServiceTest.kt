@@ -183,7 +183,7 @@ class TokenServiceTest {
         val token = service.signTokenWithLifetime(Duration.ofSeconds(0L), account)
 
         //ACT + ASSERT
-        assertThrows<InvalidTokenException> {
+        assertThrows<AccessToAccountUnauthorizedException> {
             service.verify(token)
         }
 

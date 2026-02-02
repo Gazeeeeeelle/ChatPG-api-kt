@@ -13,6 +13,7 @@ import com.yourRPG.chatPG.service.chat.ChatService
 import com.yourRPG.chatPG.service.poll.commandRunner.PollCommandRunnerService
 import com.yourRPG.chatPG.validator.poll.PollValidators
 import org.springframework.stereotype.Service
+import kotlin.jvm.optionals.getOrElse
 
 @Service
 class PollService(
@@ -35,8 +36,9 @@ class PollService(
      * @throws PollNotFoundException if there is no such poll with that subject in that chat.
      */
     fun getById(chat: Chat, subject: PollSubject): Poll =
-        pollRepository.getReferenceById(CompositePrimaryKey(chat, subject))
-            ?: throw PollNotFoundException("No poll with subject \"${subject.name}\" in chat with id ${chat.id}")
+        pollRepository.findById(CompositePrimaryKey(chat, subject)).getOrElse {
+            throw PollNotFoundException("No poll with subject \"${subject.name}\" in chat with id ${chat.id}")
+        }
 
     /**
      * Returns all polls active in the chat.

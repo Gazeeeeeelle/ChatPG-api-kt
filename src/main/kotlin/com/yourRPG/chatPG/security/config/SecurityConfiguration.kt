@@ -42,6 +42,9 @@ class SecurityConfiguration(
             it.requestMatchers("/auth/secure/**").authenticated()
             it.requestMatchers("/auth/**").permitAll()
 
+            it.requestMatchers("/swagger-ui/**").permitAll()
+            it.requestMatchers("/swagger-ui.html").permitAll()
+
             it.anyRequest().authenticated()
         }
         addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter::class.java)
