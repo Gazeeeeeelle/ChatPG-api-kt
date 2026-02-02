@@ -11,7 +11,6 @@ import com.auth0.jwt.interfaces.DecodedJWT
 import com.yourRPG.chatPG.domain.account.Account
 import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
-import com.yourRPG.chatPG.exception.http.BadRequestException
 import com.yourRPG.chatPG.exception.security.InvalidTokenException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value

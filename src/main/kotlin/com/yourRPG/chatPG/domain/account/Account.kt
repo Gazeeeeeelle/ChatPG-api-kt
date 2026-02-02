@@ -2,25 +2,11 @@ package com.yourRPG.chatPG.domain.account
 
 import com.yourRPG.chatPG.domain.chat.Chat
 import com.yourRPG.chatPG.domain.message.Message
-import com.yourRPG.chatPG.service.account.AccountStatus
-import jakarta.persistence.Column
-import jakarta.persistence.Embedded
-import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.ManyToMany
-import jakarta.persistence.OneToMany
-import jakarta.validation.constraints.Email
+import jakarta.persistence.*
 import org.hibernate.annotations.SQLRestriction
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
-import java.time.Instant
-import java.util.UUID
-import javax.validation.constraints.NotNull
 
 //Since the IDE does not check if the class is implicitly open because of @Entity decorator, we shall suppress the
 // misleading warning.

@@ -1,6 +1,5 @@
 package com.yourRPG.chatPG.infra.http
 
-import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseCookie
 import org.springframework.stereotype.Service

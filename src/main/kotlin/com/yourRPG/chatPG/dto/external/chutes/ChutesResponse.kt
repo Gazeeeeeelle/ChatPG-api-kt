@@ -11,17 +11,4 @@ data class ChutesResponse(
     val usage: ChutesUsage,
     val metadata: ChutesMetadata,
     @field: JsonProperty("chutes_verification") val chutesVerification: String
-) {
-
-    constructor(): this(
-        id = "",
-        obj = "",
-        created = -1L,
-        model = "",
-        choices = emptyList(),
-        usage = ChutesUsage(),
-        metadata = ChutesMetadata(),
-        chutesVerification = ""
-    )
-
-}
+)

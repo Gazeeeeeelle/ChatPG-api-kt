@@ -19,11 +19,6 @@ class GithubLoginService(
     override fun getCodeUrl(): String = githubAuthApiService.getCodeUrl()
 
     /**
-     * @see [GithubAuthApiService.getToken]
-     */
-    fun getToken(code: String): String = githubAuthApiService.getToken(code)
-
-    /**
      * Delegates to [GithubAuthApiService.getEmail] to find a valid email in the account owning the [code].
      *
      * @param code used to get its owner's email.

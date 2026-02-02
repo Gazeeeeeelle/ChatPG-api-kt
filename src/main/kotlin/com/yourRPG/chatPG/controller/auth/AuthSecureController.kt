@@ -3,11 +3,9 @@ package com.yourRPG.chatPG.controller.auth
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.infra.http.CookieService
 import com.yourRPG.chatPG.security.auth.AuthService
-import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
