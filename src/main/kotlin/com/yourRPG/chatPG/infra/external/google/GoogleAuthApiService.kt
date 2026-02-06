@@ -100,19 +100,23 @@ class GoogleAuthApiService(
         }
 
     /**
-     *
+     * TODO: introduce a mapper that is able to take either HttpStatus enum or numerical code and return the respective
+     *  Exception
      */
-    fun tokenResponseHandler(response: ClientHttpResponse): Unit =
-        when (val code = response.statusCode) {
+    fun tokenResponseHandler(response: ClientHttpResponse) {
+        val code = response.statusCode
+        val message = "Google: $code"
+        when (response.statusCode) {
             HttpStatus.BAD_REQUEST ->
-                throw BadRequestException("Google: $code. Malformed token or request.")
+                throw BadRequestException("$message. Malformed token or request.")
             HttpStatus.UNAUTHORIZED ->
-                throw UnauthorizedException("Google: $code. Invalid or expired token sent to Google.")
+                throw UnauthorizedException("$message. Invalid or expired token sent to Google.")
             HttpStatus.FORBIDDEN ->
-                throw ForbiddenException("Google: $code. Rate limit exceeded or insufficient scopes.")
+                throw ForbiddenException("$message. Rate limit exceeded or insufficient scopes.")
             HttpStatus.NOT_FOUND ->
-                throw NotFoundException("Google: $code. User emails endpoint not found.")
+                throw NotFoundException("$message. User emails endpoint not found.")
             else -> throw InternalServerException("Could not retrieve emails from Google's endpoint.")
+        }
     }
 
 }
