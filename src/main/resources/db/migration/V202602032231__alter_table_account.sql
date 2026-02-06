@@ -1,0 +1,1 @@
+ALTER TABLE account RENAME COLUMN uuid TO public_id;

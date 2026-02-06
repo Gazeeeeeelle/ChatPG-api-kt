@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS chat (
+    id BIGINT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    model VARCHAR(255) NOT NULL,
+    owner_id BIGINT NOT NULL,
+
+    CONSTRAINT chat_pkey PRIMARY KEY (id)
+);
