@@ -63,7 +63,7 @@ class AccountService(
      * @throws AccountNotFoundException if no account was found with [UUID] [publicId]
      */
     fun getByPublicId(publicId: UUID): Account {
-        return repository.qFindByPublicIdEquals(publicId)
+        return repository.qFindByPublicId(publicId)
             ?: throw AccountNotFoundException("No account found with public ID given")
     }
 
