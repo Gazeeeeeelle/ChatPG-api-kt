@@ -5,8 +5,14 @@ import org.springframework.stereotype.Component
 
 @Component
 class FrontendUriHelper(
-    @param:Value("\${server.frontend.address}")
+    @param:Value("\${frontend.address}")
     private val frontendUri: String,
+
+    @param:Value("\${frontend.paths.authorized}")
+    val authorizedUrl: String,
+
+    @param:Value("\${frontend.paths.a2f}")
+    val a2fUrl: String
 ): UriHelper {
 
     override fun getUriString(): String = frontendUri
