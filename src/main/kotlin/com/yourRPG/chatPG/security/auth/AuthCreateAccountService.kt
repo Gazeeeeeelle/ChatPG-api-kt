@@ -3,7 +3,7 @@ package com.yourRPG.chatPG.security.auth
 import com.yourRPG.chatPG.domain.account.Account
 import com.yourRPG.chatPG.dto.account.AccountDto
 import com.yourRPG.chatPG.dto.auth.UuidDto
-import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
+import com.yourRPG.chatPG.dto.auth.OpenAccountCreationDto
 import com.yourRPG.chatPG.exception.auth.AccountActivationException
 import com.yourRPG.chatPG.exception.http.ConflictException
 import com.yourRPG.chatPG.infra.email.EmailService
@@ -52,7 +52,7 @@ class AuthCreateAccountService(
     }
 
     @Transactional
-    fun openAccountCreation(dto: CreateAccountDto): AccountDto {
+    fun openAccountCreation(dto: OpenAccountCreationDto): AccountDto {
         usernameValidator.validate(t = dto.username)
         passwordValidator.validate(t = dto.password)
 
