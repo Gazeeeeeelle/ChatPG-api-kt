@@ -1,5 +1,6 @@
 package com.yourRPG.chatPG.security.filters
 
+import com.yourRPG.chatPG.config.ApplicationEndpoints
 import com.yourRPG.chatPG.security.helper.SecurityContextHelper
 import com.yourRPG.chatPG.validator.chat.AccountHasAccessToChatValidator
 import jakarta.servlet.Filter
@@ -25,24 +26,24 @@ class AccessToChatFilter(
 
         val path = request.servletPath
 
-        val regex = Regex(".*/chats/(\\d+)/.*")
+        val regex = Regex("${ApplicationEndpoints.Chat.BASE}/(\\d+)")
 
         val match: MatchResult? = regex.find(path)
 
         if (match != null) {
             runCatching {
                 val chatId = match.groupValues[1].toLong()
-                val accountId = securityContext.getPrincipal() //DELEGATED
+                val accountId = securityContext.getPrincipal()
 
-                validator.validate(t = accountId to chatId) //DELEGATED
+                validator.validate(t = accountId to chatId)
             }.onFailure { ex ->
                 (response as HttpServletResponse)
-                    .sendError(HttpServletResponse.SC_FORBIDDEN, ex.message) //DELEGATED
+                    .sendError(HttpServletResponse.SC_FORBIDDEN, ex.message)
                 return
             }
         }
 
-        filterChain.doFilter(request, response) //DELEGATED
+        filterChain.doFilter(request, response)
     }
 
 }
