@@ -1,9 +1,9 @@
-package com.yourRPG.chatPG.dto.auth.account
+package com.yourRPG.chatPG.dto.auth
 
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 
-data class CreateAccountDto(
+data class OpenAccountCreationDto(
 
     @field:NotBlank
     val username: String,

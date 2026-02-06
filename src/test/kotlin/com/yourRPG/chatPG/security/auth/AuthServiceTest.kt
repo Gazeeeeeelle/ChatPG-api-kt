@@ -3,8 +3,9 @@ package com.yourRPG.chatPG.security.auth
 import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.dto.auth.UuidDto
-import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
-import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
+import com.yourRPG.chatPG.dto.auth.FulfillPasswordChangeDto
+import com.yourRPG.chatPG.dto.auth.OpenAccountCreationDto
+import com.yourRPG.chatPG.dto.auth.OpenPasswordChangeDto
 import com.yourRPG.chatPG.security.token.TokenManagerService
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -66,54 +67,55 @@ class AuthServiceTest {
     fun requestChangePassword() {
         //ARRANGE
         val email = "email@email.com"
+        val openPasswordChangeDto = OpenPasswordChangeDto(email)
 
         //ACT
-        service.requestChangePassword(email)
+        service.openPasswordChange(openPasswordChangeDto)
 
         //ASSERT
         verify(authChangePasswordService)
-            .requestChangePassword(email)
+            .openPasswordChange(openPasswordChangeDto)
 
     }
 
     @Test
-    fun confirmChangePassword() {
+    fun fulfillPasswordChange() {
         //ARRANGE
-        val changePasswordDto = mock(ChangePasswordDto::class.java)
+        val fulfillPasswordChangeDto = mock(FulfillPasswordChangeDto::class.java)
 
         //ACT
-        service.confirmChangePassword(changePasswordDto)
+        service.fulfillPasswordChange(fulfillPasswordChangeDto)
 
         //ASSERT
         verify(authChangePasswordService)
-            .confirmChangePassword(changePasswordDto)
+            .fulfillPasswordChange(fulfillPasswordChangeDto)
     }
 
     @Test
-    fun createAccount() {
+    fun openAccountCreation() {
         //ARRANGE
-        val createAccountDto = mock(CreateAccountDto::class.java)
+        val openAccountCreationDto = mock(OpenAccountCreationDto::class.java)
 
         //ACT
-        service.createAccount(createAccountDto)
+        service.openAccountCreation(openAccountCreationDto)
 
         //ASSERT
         verify(authCreateAccountService)
-            .createAccount(createAccountDto)
+            .openAccountCreation(openAccountCreationDto)
 
     }
 
     @Test
-    fun activateAccount() {
+    fun fulfillAccountCreation() {
         //ARRANGE
         val uuidDto = mock(UuidDto::class.java)
 
         //ACT
-        service.activateAccount(uuidDto)
+        service.fulfillAccountCreation(uuidDto)
 
         //ASSERT
         verify(authCreateAccountService)
-            .activateAccount(uuidDto)
+            .fulfillAccountCreation(uuidDto)
 
     }
 

@@ -4,8 +4,9 @@ import com.yourRPG.chatPG.dto.account.AccountDto
 import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.dto.auth.UuidDto
-import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
-import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
+import com.yourRPG.chatPG.dto.auth.FulfillPasswordChangeDto
+import com.yourRPG.chatPG.dto.auth.OpenAccountCreationDto
+import com.yourRPG.chatPG.dto.auth.OpenPasswordChangeDto
 import com.yourRPG.chatPG.security.token.TokenManagerService
 import org.springframework.stereotype.Service
 
@@ -38,31 +39,31 @@ class AuthService(
 
     /**
      * Delegates.
-     * @see AuthChangePasswordService.requestChangePassword
+     * @see AuthChangePasswordService.openPasswordChange
      */
-    fun requestChangePassword(email: String) =
-        authChangePasswordService.requestChangePassword(email)
+    fun openPasswordChange(dto: OpenPasswordChangeDto) =
+        authChangePasswordService.openPasswordChange(dto)
 
     /**
      * Delegates.
      * @see AuthChangePasswordService.confirmChangePassword
      */
-    fun confirmChangePassword(dto: ChangePasswordDto) =
-        authChangePasswordService.confirmChangePassword(dto)
+    fun fulfillPasswordChange(dto: FulfillPasswordChangeDto) =
+        authChangePasswordService.fulfillPasswordChange(dto)
 
     /**
      * Delegates.
-     * @see AuthCreateAccountService.createAccount
+     * @see AuthCreateAccountService.openAccountCreation
      */
-    fun createAccount(dto: CreateAccountDto): AccountDto =
-        authCreateAccountService.createAccount(dto)
+    fun openAccountCreation(dto: OpenAccountCreationDto): AccountDto =
+        authCreateAccountService.openAccountCreation(dto)
 
     /**
      * Delegates.
-     * @see AuthCreateAccountService.activateAccount
+     * @see AuthCreateAccountService.fulfillAccountCreation
      */
-    fun activateAccount(uuid: UuidDto): AccountDto =
-        authCreateAccountService.activateAccount(uuid)
+    fun fulfillAccountCreation(dto: UuidDto): AccountDto =
+        authCreateAccountService.fulfillAccountCreation(dto)
 
     /**
      * Delegates.
@@ -71,6 +72,10 @@ class AuthService(
     fun refreshToken(oldRefreshToken: String): Pair<TokenDto, String> =
         tokenManagerService.refreshTokens(oldRefreshToken)
 
+    /**
+     * Delegates.
+     * @see TokenManagerService.requireRefreshToken
+     */
     fun requireRefreshToken(accountId: Long): Pair<TokenDto, String> =
         tokenManagerService.requireRefreshToken(accountId)
 
