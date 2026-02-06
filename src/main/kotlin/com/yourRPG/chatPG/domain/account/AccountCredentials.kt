@@ -12,8 +12,7 @@ class AccountCredentials {
     @Column(unique = true, nullable = false)
     var email: String? = null
 
-    @NotNull
-    @Column(name = "password")
-    var accountPassword: String? = null
+    @Column(nullable = false)
+    var password: String? = null
 
 }
