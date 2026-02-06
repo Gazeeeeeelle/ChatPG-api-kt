@@ -9,8 +9,8 @@ import com.auth0.jwt.exceptions.TokenExpiredException
 import com.auth0.jwt.interfaces.Claim
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.yourRPG.chatPG.domain.account.Account
-import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
+import com.yourRPG.chatPG.exception.http.UnauthorizedException
 import com.yourRPG.chatPG.exception.security.InvalidTokenException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
@@ -43,8 +43,7 @@ class TokenService(
 
             withSubject(account.username)
 
-            withClaim("id", account.id
-                ?: throw AccountNotFoundException("ID not found"))
+            withClaim("id", account.publicId.toString())
 
         }.sign(algorithm)
 
@@ -89,7 +88,7 @@ class TokenService(
         try {
             buildJWTVerifier().verify(token)
         } catch (_: TokenExpiredException) {
-            throw AccessToAccountUnauthorizedException("Token expired")
+            throw UnauthorizedException("Token expired")
         } catch (_: JWTVerificationException) {
             throw InvalidTokenException("Malformed token")
         }
@@ -104,11 +103,11 @@ class TokenService(
      *
      * @param request where to extract the bearer token from.
      * @return Bearer token's [String] value.
-     * @throws AccessToAccountUnauthorizedException if no *Authorization* header was found.
+     * @throws UnauthorizedException if no *Authorization* header was found.
      */
     fun getAccessToken(request: HttpServletRequest): String =
         request.getHeader("Authorization")
             ?.replace("Bearer ", "")
-            ?: throw AccessToAccountUnauthorizedException("Authorization header is missing")
+            ?: throw UnauthorizedException("Authorization header is missing")
 
 }
