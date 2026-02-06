@@ -1,9 +1,8 @@
 package com.yourRPG.chatPG.domain.account
 
-import com.yourRPG.chatPG.service.account.AccountStatus
-import jakarta.persistence.*
-import java.time.Instant
-import java.util.*
+import jakarta.persistence.Column
+import jakarta.persistence.Embeddable
+import jakarta.persistence.Embedded
 
 @Embeddable
 class AccountAuth {
@@ -13,14 +12,7 @@ class AccountAuth {
 
     var a2f: Boolean = false
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    var status: AccountStatus = AccountStatus.DISABLED
-
-    @Column(unique = true)
-    var uuid: UUID? = null
-
-    var uuidBirth: Instant? = null
+    var requestHandle: String? = null
 
     @Column(unique = true)
     var refreshToken: String? = null
