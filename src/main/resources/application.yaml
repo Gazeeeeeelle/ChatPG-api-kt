@@ -4,12 +4,18 @@ server:
   port: 8080
   radmin:
     address: ${RADMIN_ADDRESS}
-  frontend:
-    address: "http://127.0.0.1:5500"
   error:
     include-stacktrace: never
   servlet:
     context-path: /api
+
+frontend:
+  address: "http://127.0.0.1:5500"
+  paths:
+    authorized: "/login/authorized"
+    activate-account: "/login/activate-account"
+    a2f: "/login/a2f"
+
 
 spring:
   config:
@@ -22,7 +28,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: false
   ai:
     google:
@@ -43,6 +49,14 @@ spring:
         smtp:
           auth: true
           starttls.enable: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+springdoc:
+  swagger-ui:
+    path: /api/swagger-ui.html
 
 hibernate:
   dialect: org.hibernate.dialect.HSQLDialect
@@ -68,6 +82,14 @@ security:
   http:
     cookie:
       secure: false
+  bcrypt-password-strength: 10
+  token:
+    access-expires-in: 15m
+    refresh-expires-in: 7d
+  request-handle:
+    activate-account-expires-in: 30m
+    change-password-expires-in: 15m
+    a2f-expires-in: 1m
   auth.external:
     github.client:
       id: ${GITHUB_CLIENT_ID}
