@@ -41,8 +41,8 @@ class AuthLogInOutService(
             throw UnauthorizedException("Invalid credentials")
         }
 
-        return if (account.auth.a2f) authA2FService.requireA2F(account)
-            else tokenManagerService.requireRefreshToken(account)
+        if (account.auth.a2f) authA2FService.requireA2F(account) //Always throws A2FRequiredException
+        return tokenManagerService.requireRefreshToken(account)
     }
 
     fun logout(accountId: Long) =
