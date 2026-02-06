@@ -3,7 +3,6 @@ package com.yourRPG.chatPG.domain.account
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 import jakarta.validation.constraints.Email
-import javax.validation.constraints.NotNull
 
 @Embeddable
 class AccountCredentials {
