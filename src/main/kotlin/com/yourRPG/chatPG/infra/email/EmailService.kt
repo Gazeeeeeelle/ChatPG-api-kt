@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class EmailService(
-    val mailSender: JavaMailSender,
+    private val mailSender: JavaMailSender,
 ) {
 
     fun sendEmail(subject: String, to: String, text: String) {
