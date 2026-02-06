@@ -37,15 +37,27 @@ class TokenManagerService(
     /**
      * Refreshes both tokens in name of the account identified by [accountId].
      *
-     * @param accountId account identifier
+     * @param accountId account's identifier.
+     * @return [Pair] of [TokenDto], containing the access token, and the [String] value of the refresh token.
+     * @see AccountService.getById
+     * @see requireRefreshToken
+     */
+    @Transactional
+    fun requireRefreshToken(accountId: Long): Pair<TokenDto, String> {
+        val account = accountService.getById(accountId)
+        return requireRefreshToken(account)
+    }
+
+    /**
+     * Refreshes both tokens in name of the [account] given.
+     *
+     * @param account owner of the tokens
      * @return [Pair] of [TokenDto], containing the access token, and the [String] value of the refresh token.
      * @see AccountService.getById
      * @see signAccessToken
      */
     @Transactional
-    fun requireRefreshToken(accountId: Long): Pair<TokenDto, String> {
-        val account = accountService.getById(accountId)
-
+    fun requireRefreshToken(account: Account): Pair<TokenDto, String> {
         val newAccessToken = signAccessToken(account)
 
         return TokenDto(newAccessToken) to signRefreshToken(account)
@@ -67,11 +79,11 @@ class TokenManagerService(
      *
      * @param account where to persist the new token.
      * @return JWT's [String] value.
-     * @see AccountService.saveWithRefreshToken
+     * @see AccountService.updateRefreshToken
      */
     fun signRefreshToken(account: Account): String =
         tokenService.signTokenWithLifetime(7L.days(), account).apply {
-            accountService.saveWithRefreshToken(account, refreshToken = this)
+            accountService.updateRefreshToken(account, refreshToken = this)
         }
 
     /**
