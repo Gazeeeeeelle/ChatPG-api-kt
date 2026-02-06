@@ -2,8 +2,8 @@ package com.yourRPG.chatPG.security.filters
 
 import com.auth0.jwt.interfaces.Claim
 import com.yourRPG.chatPG.domain.account.Account
-import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
+import com.yourRPG.chatPG.exception.http.UnauthorizedException
 import com.yourRPG.chatPG.security.helper.SecurityContextHelper
 import com.yourRPG.chatPG.security.token.TokenService
 import com.yourRPG.chatPG.service.account.AccountService
@@ -22,13 +22,14 @@ import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.core.GrantedAuthority
+import java.util.*
 import java.util.stream.Stream
 
 @ExtendWith(MockitoExtension::class)
 class TokenFilterTest: FilterTest() {
 
     @InjectMocks
-    lateinit var tokenFilter: TokenFilter
+    lateinit var filter: TokenFilter
 
     @Mock lateinit var tokenService: TokenService
     @Mock lateinit var accountService: AccountService
@@ -40,12 +41,11 @@ class TokenFilterTest: FilterTest() {
     @TestFactory
     fun `valid - paths are secured`(): Stream<DynamicTest> {
         //ARRANGE
-        val name     = "username_test"
-        val email    = "email@email.com"
-        val password = "Password-test"
-        val token    = "valid-token123"
+        val token = "valid-token123"
+        val publicIdString = "019c28e0-54d1-7032-8c6d-3aa2e94c639b"
+        val publicId = UUID.fromString(publicIdString)
 
-        val account  = Account(name, email, password)
+        val account = mock(Account::class.java)
 
         return Stream.of(
             "/auth/secure/logout", "/notAuthRelatedAndCheckedByTokenFilter"
@@ -61,18 +61,21 @@ class TokenFilterTest: FilterTest() {
                 given(tokenService.getClaim(token, "id"))
                     .willReturn(claim)
 
-                given(accountService.getById(0L))
+                given(claim.asString())
+                    .willReturn(publicIdString)
+
+                given(accountService.getByPublicId(publicId))
                     .willReturn(account)
 
                 //ACT
-                tokenFilter.doFilter(request, response, filterChain)
+                filter.doFilter(request, response, filterChain)
 
                 //ASSERT
                 verify(tokenService).apply {
                     getAccessToken(request)
                     getClaim(token, "id")
                 }
-                verify(accountService).getById(0L)
+                verify(accountService).getByPublicId(publicId)
                 verify(securityContext).setPrincipal(0L, account.authorities)
 
                 reset(request, tokenService, accountService, securityContext)
@@ -91,7 +94,7 @@ class TokenFilterTest: FilterTest() {
                     .willReturn(path)
 
                 //ACT
-                tokenFilter.doFilter(request, response, filterChain)
+                filter.doFilter(request, response, filterChain)
 
                 //ASSERT
                 verify(securityContext, never())
@@ -111,10 +114,10 @@ class TokenFilterTest: FilterTest() {
             .willReturn("/somethingElse")
 
         given(tokenService.getAccessToken(request))
-            .willThrow(AccessToAccountUnauthorizedException::class.java)
+            .willThrow(UnauthorizedException::class.java)
 
         //ACT
-        tokenFilter.doFilter(request, response, filterChain)
+        filter.doFilter(request, response, filterChain)
 
         //ASSERT
         verify(response)
@@ -125,6 +128,8 @@ class TokenFilterTest: FilterTest() {
     fun `invalid - account not found`() {
         //ARRANGE
         val token = "tokenTest"
+        val publicIdString = "019c28e0-54d1-7032-8c6d-3aa2e94c639b"
+        val publicId = UUID.fromString(publicIdString)
 
         given(request.servletPath)
             .willReturn("/somethingElse")
@@ -135,21 +140,26 @@ class TokenFilterTest: FilterTest() {
         given(tokenService.getClaim(token, "id"))
             .willReturn(claim)
 
-        given(accountService.getById(0L))
+        given(claim.asString())
+            .willReturn(publicIdString)
+
+        given(accountService.getByPublicId(publicId))
             .willThrow(AccountNotFoundException::class.java)
 
         //ACT
-        tokenFilter.doFilter(request, response, filterChain)
+        filter.doFilter(request, response, filterChain)
 
         //ASSERT
         verify(response)
-            .sendError(HttpServletResponse.SC_NOT_FOUND.eq(), STRING_TYPE.any())
+            .sendError(HttpServletResponse.SC_UNAUTHORIZED.eq(), STRING_TYPE.any())
     }
 
     @Test
     fun `invalid - unhandled exception returns 500`() {
         //ARRANGE
         val token = "tokenTest"
+        val publicIdString = "019c28e0-54d1-7032-8c6d-3aa2e94c639b"
+        val publicId = UUID.fromString(publicIdString)
 
         given(request.servletPath)
             .willReturn("/somethingElse")
@@ -160,11 +170,14 @@ class TokenFilterTest: FilterTest() {
         given(tokenService.getClaim(token, "id"))
             .willReturn(claim)
 
-        given(accountService.getById(0L))
+        given(claim.asString())
+            .willReturn(publicIdString)
+
+        given(accountService.getByPublicId(publicId))
             .willThrow(RuntimeException::class.java)
 
         //ACT
-        tokenFilter.doFilter(request, response, filterChain)
+        filter.doFilter(request, response, filterChain)
 
         //ASSERT
         verify(response)
