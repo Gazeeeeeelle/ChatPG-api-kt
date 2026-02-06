@@ -9,14 +9,11 @@ import com.yourRPG.chatPG.repository.AccountRepository
 import com.yourRPG.chatPG.validator.account.AccountCreationCredentialsValidator
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
 import java.util.*
 
 @Service
 class AccountService(
-    /* Repositories */
     private val repository: AccountRepository,
     private val mapper: AccountMapper,
 
@@ -33,7 +30,7 @@ class AccountService(
      */
     fun getById(id: Long): Account =
         repository.findByIdOrNull(id)
-            ?: throw AccountNotFoundException("Account not found with id $id")
+            ?: throw AccountNotFoundException("Account not found with given")
 
     /**
      * Delegates fetching of Account to [getById] and then converts it to DTO.
@@ -59,16 +56,29 @@ class AccountService(
             ?: throw AccountNotFoundException("Account not found with name $username")
 
     /**
-     * Returns the [Account] found with [UUID] [uuid].
+     * Returns the [Account] found with [publicId].
      *
-     * @param uuid
+     * @param publicId
      * @return Account found with matching [UUID]s.
-     * @throws AccountNotFoundException if no account was found with [UUID] [uuid]
+     * @throws AccountNotFoundException if no account was found with [UUID] [publicId]
      */
-    fun getByUuid(uuid: UUID): Account {
-        return repository.qFindByUuidEquals(uuid)
-            ?: throw AccountNotFoundException("No account found with uuid given")
+    fun getByPublicId(publicId: UUID): Account {
+        return repository.qFindByPublicIdEquals(publicId)
+            ?: throw AccountNotFoundException("No account found with public ID given")
     }
+
+    /**
+     * Returns the [Account] found with its [com.yourRPG.chatPG.domain.account.AccountAuth.requestHandle].
+     *
+     * @param requestHandle UUID used to identify request.
+     * @return Account found with request handle given.
+     * @throws AccountNotFoundException
+     */
+    fun getByRequestHandle(requestHandle: String): Account {
+        return repository.qFindByRequestHandle(requestHandle)
+            ?: throw AccountNotFoundException("No account found with request handle given")
+    }
+
 
     /**
      * Returns the Account found with [email] given.
@@ -94,19 +104,17 @@ class AccountService(
             ?: throw UnauthorizedException("No account found with refresh token given")
 
     /**
-     * Updates the [account] in the DB with the given [uuid] and sets
-     * [com.yourRPG.chatPG.domain.account.AccountAuth.uuidBirth] to be [Instant.now].
+     * Updates the [account] in the DB with the given [encodedHandle].
      *
-     * @param account who is getting their uuid set.
-     * @param uuid uuid to set.
+     * @param account entity getting their [encodedHandle] changed.
+     * @param encodedHandle what to change to.
      */
-    @Transactional(propagation = Propagation.REQUIRED)
-    fun updateUuid(account: Account, uuid: UUID?) {
-        account.apply {
-            this.auth.uuid = uuid
-            this.auth.uuidBirth = uuid?.run { Instant.now() }
-        }
-        repository.save(account)
+    @Transactional
+    fun updateRequestHandle(account: Account, encodedHandle: String) {
+        val id = requireNotNull(account.id) { "Account id is null." }
+
+        account.auth.requestHandle = encodedHandle
+        repository.qUpdateRequestHandle(id, encodedHandle)
     }
 
     /**
@@ -115,9 +123,9 @@ class AccountService(
      * @param account account to change status of.
      * @param encryptedPassword encrypted password to change replace the old one.
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional
     fun updatePassword(account: Account, encryptedPassword: String) {
-        account.auth.credentials.accountPassword = encryptedPassword
+        account.auth.credentials.password = encryptedPassword
         repository.save(account)
     }
 
@@ -129,8 +137,8 @@ class AccountService(
      * @param encryptedPassword
      * @return [AccountDto] of the inserted [Account]
      */
-    @Transactional(propagation = Propagation.REQUIRED)
-    fun saveAccountWith(username: String, email: String, encryptedPassword: String): Account {
+    @Transactional
+    fun insertAccount(username: String, email: String, encryptedPassword: String): Account {
 
         accountCreationCredentialsValidator.validate(t = username to email)
 
@@ -147,12 +155,11 @@ class AccountService(
      * @param id account identifier, nullable to mitigate cluttering of null checks at usage.
      * @throws AccountNotFoundException if the id given was null.
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional
     fun deleteById(id: Long?) {
-        repository.deleteById(
-            id
-                ?: throw AccountNotFoundException("Null account id")
-        )
+        val id = requireNotNull(id) { "Account id is null." }
+
+        repository.deleteById(id)
     }
 
     /**
@@ -161,10 +168,12 @@ class AccountService(
      * @param account account to change status of.
      * @param status which of the statuses change the account's status to.
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional
     fun updateStatus(account: Account, status: AccountStatus) {
-        account.auth.status = status
-        repository.save(account)
+        val id = requireNotNull(account.id) { "Account id is null." }
+
+        account.status = status
+        repository.qUpdateStatus(id, status)
     }
 
     /**
@@ -174,10 +183,21 @@ class AccountService(
      * @param account account to change refreshToken of.
      * @param refreshToken which token to replace with.
      */
-    @Transactional(propagation = Propagation.REQUIRED)
-    fun saveWithRefreshToken(account: Account, refreshToken: String?) {
+    @Transactional
+    fun updateRefreshToken(account: Account, refreshToken: String?) {
         account.auth.refreshToken = refreshToken
         repository.save(account)
+    }
+
+    @Transactional
+    fun removeHandle(encodedHandle: String) {
+        repository.qRemoveHandle(encodedHandle)
+    }
+
+    @Transactional
+    fun removeHandle(account: Account) {
+        val id = requireNotNull(account.id) { "Account id is null." }
+        repository.qRemoveHandleById(id)
     }
 
 }
