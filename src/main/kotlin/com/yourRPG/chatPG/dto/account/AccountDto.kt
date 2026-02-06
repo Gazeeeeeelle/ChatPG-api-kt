@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull
 data class AccountDto(
 
     @field:NotNull
-    var id: Long?,
+    var publicId: Long?,
 
     @field:NotBlank
     var name: String?,
