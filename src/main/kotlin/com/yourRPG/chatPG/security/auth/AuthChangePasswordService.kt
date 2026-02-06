@@ -1,7 +1,8 @@
 package com.yourRPG.chatPG.security.auth
 
 import com.yourRPG.chatPG.domain.account.Account
-import com.yourRPG.chatPG.dto.auth.account.ConfirmChangePasswordDto
+import com.yourRPG.chatPG.dto.auth.FulfillPasswordChangeDto
+import com.yourRPG.chatPG.dto.auth.OpenPasswordChangeDto
 import com.yourRPG.chatPG.infra.email.EmailService
 import com.yourRPG.chatPG.infra.email.MimeHelper
 import com.yourRPG.chatPG.infra.uri.FrontendUriHelper
@@ -35,9 +36,9 @@ class AuthChangePasswordService(
     }
 
     @Transactional
-    fun requestChangePassword(email: String) {
+    fun openPasswordChange(dto: OpenPasswordChangeDto) {
         val account: Account =
-            accountService.getByEmail(email)
+            accountService.getByEmail(dto.email)
 
         val uuid = requestHandleService.newRequestHandle(account, subject)
 
@@ -49,14 +50,14 @@ class AuthChangePasswordService(
 
         emailService.sendMimeEmail(
             subject = "Reset password",
-            to = email,
+            to = dto.email,
             html
         )
 
     }
 
     @Transactional
-    fun confirmChangePassword(dto: ConfirmChangePasswordDto): Unit = dto.run {
+    fun fulfillPasswordChange(dto: FulfillPasswordChangeDto): Unit = dto.run {
         val uuidV7 = UUID.fromString(dto.requestHandle)
 
         val account: Account =
