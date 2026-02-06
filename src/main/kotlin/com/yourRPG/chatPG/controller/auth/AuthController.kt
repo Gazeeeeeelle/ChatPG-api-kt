@@ -5,9 +5,9 @@ import com.yourRPG.chatPG.dto.account.AccountDto
 import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.dto.auth.UuidDto
-import com.yourRPG.chatPG.dto.auth.account.ConfirmChangePasswordDto
-import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
-import com.yourRPG.chatPG.dto.auth.account.RequestChangePasswordDto
+import com.yourRPG.chatPG.dto.auth.FulfillPasswordChangeDto
+import com.yourRPG.chatPG.dto.auth.OpenAccountCreationDto
+import com.yourRPG.chatPG.dto.auth.OpenPasswordChangeDto
 import com.yourRPG.chatPG.infra.http.CookieService
 import com.yourRPG.chatPG.security.auth.AuthService
 import jakarta.validation.Valid
@@ -61,24 +61,24 @@ class AuthController(
     }
 
     /**
-     * @see AuthService.requestChangePassword
+     * @see AuthService.openPasswordChange
      */
     @PostMapping(ApplicationEndpoints.Auth.OPEN_PASSWORD_CHANGE)
     fun openPasswordChange(
-        @Valid @RequestBody dto: RequestChangePasswordDto
+        @Valid @RequestBody dto: OpenPasswordChangeDto
     ): ResponseEntity<Unit> {
-        service.requestChangePassword(dto.email)
+        service.openPasswordChange(dto)
         return ResponseEntity.noContent().build()
     }
 
     /**
-     * @see AuthService.confirmChangePassword
+     * @see AuthService.fulfillPasswordChange
      */
     @PostMapping(ApplicationEndpoints.Auth.FULFILL_PASSWORD_CHANGE)
-    fun confirmChangePassword(
-        @RequestBody dto: ConfirmChangePasswordDto
+    fun fulfillPasswordChange(
+        @RequestBody dto: FulfillPasswordChangeDto
     ): ResponseEntity<Unit> {
-        service.confirmChangePassword(dto)
+        service.fulfillPasswordChange(dto)
         return ResponseEntity.noContent().build()
     }
 
@@ -87,7 +87,7 @@ class AuthController(
      */
     @PostMapping(ApplicationEndpoints.Auth.OPEN_ACCOUNT_CREATION)
     fun openAccountCreation(
-        @Valid @RequestBody dto: CreateAccountDto
+        @Valid @RequestBody dto: OpenAccountCreationDto
     ): ResponseEntity<AccountDto> =
         ResponseEntity.ok(
             service.openAccountCreation(dto)
