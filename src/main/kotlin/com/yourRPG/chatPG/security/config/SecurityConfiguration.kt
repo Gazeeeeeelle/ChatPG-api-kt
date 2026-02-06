@@ -26,11 +26,8 @@ class SecurityConfiguration(
     private val accessToChatFilter: AccessToChatFilter,
     private val frontendUriHelper: FrontendUriHelper,
 
-    @param:Value("\${server.protocol}")
-    private val protocol: String,
-
-    @param:Value("\${server.address}")
-    private val address: String
+    @param:Value("\${security.bcrypt-password-strength}")
+    private val bCryptPasswordStrength: Int,
 ) {
 
     @Bean
@@ -41,9 +38,6 @@ class SecurityConfiguration(
         authorizeHttpRequests {
             it.requestMatchers("/auth/secure/**").authenticated()
             it.requestMatchers("/auth/**").permitAll()
-
-            it.requestMatchers("/swagger-ui/**").permitAll()
-            it.requestMatchers("/swagger-ui.html").permitAll()
 
             it.anyRequest().authenticated()
         }
@@ -56,14 +50,13 @@ class SecurityConfiguration(
     fun corsConfigurationSource(): CorsConfigurationSource = UrlBasedCorsConfigurationSource().apply {
         val configuration = CorsConfiguration().apply {
             allowedOrigins = listOf(
-                "$protocol$address:5500",
-                frontendUriHelper.getUriString()
+                frontendUriHelper.getUriString(),
             )
             allowCredentials = true
             allowedMethods =
                 listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD", "TRACE", "CONNECT")
             allowedHeaders =
-                listOf("Authorization", "Content-Type")
+                listOf("Authorization", "Content-Type", "credentials")
         }
 
         registerCorsConfiguration("/**", configuration)
@@ -74,6 +67,6 @@ class SecurityConfiguration(
         configuration.authenticationManager
 
     @Bean
-    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
+    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder(bCryptPasswordStrength)
 
 }
