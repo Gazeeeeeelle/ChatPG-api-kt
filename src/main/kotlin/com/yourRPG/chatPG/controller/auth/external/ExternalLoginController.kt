@@ -20,7 +20,8 @@ open class ExternalLoginController(
 
         val headers = HttpHeaders().apply { location = URI.create(url) }
         return ResponseEntity.status(HttpStatus.FOUND)
-            .headers(headers).build()
+            .headers(headers)
+            .build()
     }
 
     @GetMapping("/authorized")
@@ -30,11 +31,12 @@ open class ExternalLoginController(
         val accessToken = externalLoginService.loginWithCode(code)
 
         val headers = HttpHeaders().apply {
-            location = frontendUriHelper.appendUri("/login/authorized?token=$accessToken")
+            location = frontendUriHelper.run { appendUri("$authorizedUrl?token=$accessToken") }
         }
 
         return ResponseEntity.status(HttpStatus.FOUND)
-            .headers(headers).build()
+            .headers(headers)
+            .build()
     }
 
 

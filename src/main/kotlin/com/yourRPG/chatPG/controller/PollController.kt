@@ -1,5 +1,6 @@
 package com.yourRPG.chatPG.controller
 
+import com.yourRPG.chatPG.config.ApplicationEndpoints
 import com.yourRPG.chatPG.dto.poll.PollDto
 import com.yourRPG.chatPG.service.poll.PollService
 import org.springframework.http.ResponseEntity
@@ -7,7 +8,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/chats/{chatId}/polls")
+@RequestMapping(ApplicationEndpoints.Poll.BASE)
 class PollController(
     private val pollService: PollService
 ) {
@@ -15,7 +16,7 @@ class PollController(
     /**
      * @see PollService.start
      */
-    @PostMapping("/start")
+    @PostMapping(ApplicationEndpoints.Poll.START)
     fun start(
         @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
@@ -28,7 +29,7 @@ class PollController(
     /**
      * @see PollService.vote
      */
-    @PostMapping("/vote")
+    @PostMapping(ApplicationEndpoints.Poll.VOTE)
     fun vote(
         @AuthenticationPrincipal accountId: Long,
         @PathVariable chatId: Long,
@@ -41,7 +42,7 @@ class PollController(
     /**
      * @see PollService.all
      */
-    @GetMapping("/all")
+    @GetMapping(ApplicationEndpoints.Poll.ALL)
     fun getPolls(
         @PathVariable chatId: Long
     ): ResponseEntity<List<PollDto>> =

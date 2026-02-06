@@ -1,5 +1,6 @@
 package com.yourRPG.chatPG.controller.auth
 
+import com.yourRPG.chatPG.config.ApplicationEndpoints
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.infra.http.CookieService
 import com.yourRPG.chatPG.security.auth.AuthService
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController
  * [AuthSecureController] is responsible for auth related endpoints that need authentication.
  */
 @RestController
-@RequestMapping("/auth/secure")
+@RequestMapping(ApplicationEndpoints.AuthSecure.BASE)
 class AuthSecureController(
     private val service: AuthService,
     private val cookieService: CookieService
@@ -23,7 +24,7 @@ class AuthSecureController(
     /**
      * @see AuthService.logout
      */
-    @PostMapping("/logout")
+    @PostMapping(ApplicationEndpoints.AuthSecure.LOGOUT)
     fun logout(
         @AuthenticationPrincipal accountId: Long
     ): ResponseEntity<TokenDto> {
@@ -34,7 +35,7 @@ class AuthSecureController(
     /**
      * @see AuthService.requireRefreshToken
      */
-    @PostMapping("/require-refresh-token")
+    @PostMapping(ApplicationEndpoints.AuthSecure.REQUIRE_REFRESH_TOKEN)
     fun requireRefreshToken(
         @AuthenticationPrincipal accountId: Long,
     ): ResponseEntity<TokenDto> {

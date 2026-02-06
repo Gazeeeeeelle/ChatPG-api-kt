@@ -1,5 +1,6 @@
 package com.yourRPG.chatPG.controller
 
+import com.yourRPG.chatPG.config.ApplicationEndpoints
 import com.yourRPG.chatPG.dto.message.MessageDto
 import com.yourRPG.chatPG.service.message.MessageService
 import jakarta.transaction.Transactional
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
 
 @RestController
-@RequestMapping("/chats/{chatId}/messages")
+@RequestMapping(ApplicationEndpoints.Message.BASE)
 class MessageController(
     private val service: MessageService
 ) {
@@ -17,7 +18,7 @@ class MessageController(
     /**
      * @see MessageService.getNewMessagesInChat
      */
-    @GetMapping("/new/{referenceId}")
+    @GetMapping(ApplicationEndpoints.Message.NEW)
     fun getNewMessages(
         @PathVariable chatId: Long,
         @PathVariable referenceId: Long,
@@ -29,7 +30,7 @@ class MessageController(
     /**
      * @see MessageService.getOldMessagesInChat
      */
-    @GetMapping("/old/{referenceId}")
+    @GetMapping(ApplicationEndpoints.Message.OLD)
     fun getOldMessages(
         @PathVariable chatId: Long,
         @PathVariable referenceId: Long,
@@ -41,7 +42,7 @@ class MessageController(
     /**
      * @see MessageService.getDtoByChatIdAndId
      */
-    @GetMapping("/{messageId}")
+    @GetMapping(ApplicationEndpoints.Message.GET_MESSAGE)
     fun getMessage(
         @PathVariable chatId: Long,
         @PathVariable messageId: Long,
@@ -71,16 +72,18 @@ class MessageController(
     /**
      * @see MessageService.generateResponse
      */
-    @PostMapping("/generate-response")
+    @PostMapping(ApplicationEndpoints.Message.GENERATE_RESPONSE)
     fun generateResponse(
         @PathVariable chatId: Long,
         ucb: UriComponentsBuilder
     ): ResponseEntity<MessageDto> =
         service.generateResponse(chatId).let { dto ->
 
-            val uri = ucb.path("/chats/${chatId}/messages/${dto.id}")
-                .build().toUri()
+            val path = ApplicationEndpoints.Message.GET_MESSAGE
+                .replace("{chatId}", chatId.toString())
+                .replace("{messageId}", dto.id.toString())
 
+            val uri = ucb.path(path).build().toUri()
             ResponseEntity.created(uri).body(dto)
         }
 
@@ -88,12 +91,12 @@ class MessageController(
      * @see MessageService.deleteMessage
      */
     @Transactional
-    @DeleteMapping("/{id}")
+    @DeleteMapping(ApplicationEndpoints.Message.DELETE)
     fun deleteMessage(
         @PathVariable chatId: Long,
-        @PathVariable id: Long
+        @PathVariable messageId: Long
     ): ResponseEntity<Int> =
-        service.deleteMessage(chatId, id).let {
+        service.deleteMessage(chatId, messageId).let {
             ResponseEntity.noContent().build()
         }
 
@@ -101,7 +104,7 @@ class MessageController(
      * @see MessageService.bulkDeleteMessages
      */
     @Transactional
-    @DeleteMapping("/bulk-delete/{bound1}/{bound2}")
+    @DeleteMapping(ApplicationEndpoints.Message.BULK_DELETE)
     fun bulkDeleteMessages(
         @PathVariable chatId: Long,
         @PathVariable bound1: Long,

@@ -1,5 +1,6 @@
 package com.yourRPG.chatPG.controller
 
+import com.yourRPG.chatPG.config.ApplicationEndpoints
 import com.yourRPG.chatPG.dto.aimodel.AiModelDto
 import com.yourRPG.chatPG.dto.chat.ChatDto
 import com.yourRPG.chatPG.service.chat.ChatService
@@ -8,7 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/chats")
+@RequestMapping(ApplicationEndpoints.Chat.BASE)
 class ChatController(
     private val service: ChatService
 ) {
@@ -17,7 +18,7 @@ class ChatController(
      * @see ChatService.getChatsDtoByAccountId
      * FIXME: minor scalability issue
      */
-    @GetMapping("/all")
+    @GetMapping(ApplicationEndpoints.Chat.ALL)
     fun getChats(
         @AuthenticationPrincipal accountId: Long
     ): ResponseEntity<List<ChatDto>> =
@@ -28,8 +29,8 @@ class ChatController(
     /**
      * @see ChatService.getDtoByChatName
      */
-    @GetMapping("/by-name/{chatName}")
-    fun getChat(
+    @GetMapping(ApplicationEndpoints.Chat.BY_NAME)
+    fun getChatByName(
         @PathVariable chatName: String
     ): ResponseEntity<ChatDto> =
         ResponseEntity.ok(
@@ -39,7 +40,7 @@ class ChatController(
     /**
      * @see ChatService.chooseModelForChat
      */
-    @PatchMapping("/{chatId}/model")
+    @PatchMapping(ApplicationEndpoints.Chat.CHOOSE_MODEL)
     fun chooseModel(
         @PathVariable chatId: Long,
         @RequestBody modelName: String
@@ -51,7 +52,7 @@ class ChatController(
     /**
      * @see ChatService.getModelDto
      */
-    @GetMapping("/{chatId}/model")
+    @GetMapping(ApplicationEndpoints.Chat.MODEL)
     fun getChosenModel(
         @PathVariable chatId: Long
     ): ResponseEntity<AiModelDto> =

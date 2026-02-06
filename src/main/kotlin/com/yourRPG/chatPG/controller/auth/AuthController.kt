@@ -1,11 +1,13 @@
 package com.yourRPG.chatPG.controller.auth
 
+import com.yourRPG.chatPG.config.ApplicationEndpoints
 import com.yourRPG.chatPG.dto.account.AccountDto
 import com.yourRPG.chatPG.dto.auth.LoginCredentials
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.dto.auth.UuidDto
-import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
+import com.yourRPG.chatPG.dto.auth.account.ConfirmChangePasswordDto
 import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
+import com.yourRPG.chatPG.dto.auth.account.RequestChangePasswordDto
 import com.yourRPG.chatPG.infra.http.CookieService
 import com.yourRPG.chatPG.security.auth.AuthService
 import jakarta.validation.Valid
@@ -14,16 +16,16 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping(ApplicationEndpoints.Auth.BASE)
 class AuthController(
     private val service: AuthService,
-    private val cookieService: CookieService
+    private val cookieService: CookieService,
 ) {
 
     /**
      * @see AuthService.login
      */
-    @PostMapping("/login")
+    @PostMapping(ApplicationEndpoints.Auth.LOGIN)
     fun login(
         @Valid @RequestBody credentials: LoginCredentials,
     ): ResponseEntity<TokenDto> {
@@ -45,7 +47,7 @@ class AuthController(
      *      
      * @see AuthService.login
      */
-    @PostMapping("/refresh-tokens")
+    @PostMapping(ApplicationEndpoints.Auth.REFRESH_TOKENS)
     fun refreshTokens(
         @CookieValue("refresh_token") oldRefreshToken: String,
     ): ResponseEntity<TokenDto> {
@@ -61,45 +63,45 @@ class AuthController(
     /**
      * @see AuthService.requestChangePassword
      */
-    @PostMapping("/request-change-password")
-    fun requestChangePassword(
-        @RequestBody email: String
+    @PostMapping(ApplicationEndpoints.Auth.OPEN_PASSWORD_CHANGE)
+    fun openPasswordChange(
+        @Valid @RequestBody dto: RequestChangePasswordDto
     ): ResponseEntity<Unit> {
-        service.requestChangePassword(email)
+        service.requestChangePassword(dto.email)
         return ResponseEntity.noContent().build()
     }
 
     /**
-     * @see AuthService.requestChangePassword
+     * @see AuthService.confirmChangePassword
      */
-    @PostMapping("/confirm-change-password")
+    @PostMapping(ApplicationEndpoints.Auth.FULFILL_PASSWORD_CHANGE)
     fun confirmChangePassword(
-        @RequestBody dto: ChangePasswordDto
+        @RequestBody dto: ConfirmChangePasswordDto
     ): ResponseEntity<Unit> {
         service.confirmChangePassword(dto)
         return ResponseEntity.noContent().build()
     }
 
     /**
-     * @see AuthService.createAccount
+     * @see AuthService.openAccountCreation
      */
-    @PostMapping("/create-account")
-    fun createAccount(
+    @PostMapping(ApplicationEndpoints.Auth.OPEN_ACCOUNT_CREATION)
+    fun openAccountCreation(
         @Valid @RequestBody dto: CreateAccountDto
     ): ResponseEntity<AccountDto> =
         ResponseEntity.ok(
-            service.createAccount(dto)
+            service.openAccountCreation(dto)
         )
 
     /**
-     * @see AuthService.activateAccount
+     * @see AuthService.fulfillAccountCreation
      */
-    @PostMapping("/activate-account")
-    fun activateAccount(
+    @PostMapping(ApplicationEndpoints.Auth.FULFILL_ACCOUNT_CREATION)
+    fun fulfillAccountCreation(
         @Valid @RequestBody uuid: UuidDto
     ): ResponseEntity<AccountDto> =
         ResponseEntity.ok(
-            service.activateAccount(uuid)
+            service.fulfillAccountCreation(uuid)
         )
 
 }

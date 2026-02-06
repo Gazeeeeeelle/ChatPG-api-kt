@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/auth/login/with/github")
 class GithubLoginController(
     githubLoginService: GithubLoginService,
-    frontendUriHelper: FrontendUriHelper,
+    frontendUriHelper: FrontendUriHelper
 ): ExternalLoginController(githubLoginService, frontendUriHelper)
