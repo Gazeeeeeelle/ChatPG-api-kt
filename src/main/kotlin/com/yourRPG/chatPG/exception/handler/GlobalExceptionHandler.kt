@@ -1,12 +1,7 @@
 package com.yourRPG.chatPG.exception.handler
 
 import com.yourRPG.chatPG.exception.auth.A2FRequiredException
-import com.yourRPG.chatPG.exception.http.ConflictException
-import com.yourRPG.chatPG.exception.http.ForbiddenException
 import com.yourRPG.chatPG.exception.http.HttpException
-import com.yourRPG.chatPG.exception.http.NotFoundException
-import com.yourRPG.chatPG.exception.http.ServiceUnavailableException
-import com.yourRPG.chatPG.exception.http.UnauthorizedException
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
