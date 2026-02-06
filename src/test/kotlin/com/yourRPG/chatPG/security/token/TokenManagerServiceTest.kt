@@ -131,7 +131,7 @@ class TokenManagerServiceTest {
             .signTokenWithLifetime(Duration.ofDays(7L), account)
 
         verify(accountService)
-            .saveWithRefreshToken(account, token)
+            .updateRefreshToken(account, token)
 
     }
 
