@@ -1,11 +1,12 @@
 package com.yourRPG.chatPG.security.auth
 
+import com.yourRPG.chatPG.dto.auth.FulfillA2fDto
 import com.yourRPG.chatPG.dto.auth.LoginCredentials
-import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.dto.auth.UuidDto
 import com.yourRPG.chatPG.dto.auth.FulfillPasswordChangeDto
 import com.yourRPG.chatPG.dto.auth.OpenAccountCreationDto
 import com.yourRPG.chatPG.dto.auth.OpenPasswordChangeDto
+import com.yourRPG.chatPG.security.token.AccessAndRefreshTokens
 import com.yourRPG.chatPG.security.token.TokenManagerService
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -16,6 +17,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
+import java.util.UUID
 
 @ExtendWith(MockitoExtension::class)
 class AuthServiceTest {
@@ -23,6 +25,7 @@ class AuthServiceTest {
     @InjectMocks
     lateinit var service: AuthService
 
+    @Mock private lateinit var authA2fService: AuthA2fService
     @Mock private lateinit var authChangePasswordService: AuthChangePasswordService
     @Mock private lateinit var authCreateAccountService: AuthCreateAccountService
     @Mock private lateinit var authLogInOutService: AuthLogInOutService
@@ -32,10 +35,10 @@ class AuthServiceTest {
     fun login() {
         //ARRANGE
         val credentials = mock(LoginCredentials::class.java)
-        val token = "tokenTest"
+        val accessToken = "tokenTest"
         val refreshToken = "refreshTokenTest"
 
-        val pair = TokenDto(token) to refreshToken
+        val pair = AccessAndRefreshTokens(accessToken, refreshToken)
 
         given(authLogInOutService.login(credentials))
             .willReturn(pair)
@@ -44,9 +47,8 @@ class AuthServiceTest {
         val (responseTokenDto, responseRefreshToken) = service.login(credentials)
 
         //ASSERT
-        assertEquals(token, responseTokenDto.token)
+        assertEquals(accessToken, responseTokenDto.token)
         assertEquals(refreshToken, responseRefreshToken)
-
     }
 
     @Test
@@ -60,11 +62,10 @@ class AuthServiceTest {
         //ASSERT
         verify(authLogInOutService)
             .logout(accountId)
-
     }
 
     @Test
-    fun requestChangePassword() {
+    fun openPasswordChange() {
         //ARRANGE
         val email = "email@email.com"
         val openPasswordChangeDto = OpenPasswordChangeDto(email)
@@ -75,7 +76,6 @@ class AuthServiceTest {
         //ASSERT
         verify(authChangePasswordService)
             .openPasswordChange(openPasswordChangeDto)
-
     }
 
     @Test
@@ -102,7 +102,6 @@ class AuthServiceTest {
         //ASSERT
         verify(authCreateAccountService)
             .openAccountCreation(openAccountCreationDto)
-
     }
 
     @Test
@@ -116,7 +115,6 @@ class AuthServiceTest {
         //ASSERT
         verify(authCreateAccountService)
             .fulfillAccountCreation(uuidDto)
-
     }
 
     @Test
@@ -130,7 +128,32 @@ class AuthServiceTest {
         //ASSERT
         verify(tokenManagerService)
             .refreshTokens(oldRefreshToken)
+    }
 
+    @Test
+    fun fulfillA2f() {
+        //ARRANGE
+        val dto = FulfillA2fDto(UUID.randomUUID(), "code")
+
+        //ACT
+        service.fulfillA2f(dto)
+
+        //ASSERT
+        verify(authA2fService)
+            .fulfillA2f(dto)
+    }
+
+    @Test
+    fun loginWithHandle() {
+        //ARRANGE
+        val uuidDto = UuidDto(UUID.randomUUID())
+
+        //ACT
+        service.loginWithHandle(uuidDto)
+
+        //ASSERT
+        verify(authLogInOutService)
+            .loginWithHandle(uuidDto)
     }
 
 }
