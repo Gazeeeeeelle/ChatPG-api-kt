@@ -1,5 +1,6 @@
 package com.yourRPG.chatPG.security.config
 
+import com.yourRPG.chatPG.config.ApplicationEndpoints
 import com.yourRPG.chatPG.infra.uri.FrontendUriHelper
 import com.yourRPG.chatPG.security.filters.AccessToChatFilter
 import com.yourRPG.chatPG.security.filters.TokenFilter
@@ -36,8 +37,8 @@ class SecurityConfiguration(
         csrf { it.disable() }
         sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
         authorizeHttpRequests {
-            it.requestMatchers("/auth/secure/**").authenticated()
-            it.requestMatchers("/auth/**").permitAll()
+            it.requestMatchers("${ApplicationEndpoints.AuthSecure.BASE}/**").authenticated()
+            it.requestMatchers("${ApplicationEndpoints.Auth.BASE}/**").permitAll()
 
             it.anyRequest().authenticated()
         }
