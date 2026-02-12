@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 @Component
 class UsernameValidator: IValidatable<String> {
 
-    companion object {
+    private companion object {
         const val USERNAME_PATTERN = "^[a-zA-Z0-9_]{3,16}$"
         val usernameRegex = Regex(USERNAME_PATTERN)
     }
