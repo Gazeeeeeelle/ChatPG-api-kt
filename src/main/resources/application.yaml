@@ -90,6 +90,7 @@ security:
     activate-account-expires-in: 30m
     change-password-expires-in: 15m
     a2f-expires-in: 1m
+    login-with-handle-expires-in: 1m
   auth.external:
     github.client:
       id: ${GITHUB_CLIENT_ID}
