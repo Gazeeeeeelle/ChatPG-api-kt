@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(ApplicationEndpoints.AuthSecure.BASE)
 class AuthSecureController(
     private val service: AuthService,
-    private val cookieService: CookieService
 ) {
 
     /**
@@ -30,22 +29,6 @@ class AuthSecureController(
     ): ResponseEntity<TokenDto> {
         service.logout(accountId)
         return ResponseEntity.noContent().build()
-    }
-
-    /**
-     * @see AuthService.requireRefreshToken
-     */
-    @PostMapping(ApplicationEndpoints.AuthSecure.REQUIRE_REFRESH_TOKEN)
-    fun requireRefreshToken(
-        @AuthenticationPrincipal accountId: Long,
-    ): ResponseEntity<TokenDto> {
-        val (tokenDto, refreshToken) = service.requireRefreshToken(accountId)
-
-        val cookie = cookieService.refreshToken(refreshToken)
-
-        return ResponseEntity.ok()
-            .header(HttpHeaders.SET_COOKIE, cookie.toString())
-            .body(tokenDto)
     }
 
 }
