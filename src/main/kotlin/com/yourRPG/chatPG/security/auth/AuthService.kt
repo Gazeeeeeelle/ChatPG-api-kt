@@ -1,12 +1,8 @@
 package com.yourRPG.chatPG.security.auth
 
 import com.yourRPG.chatPG.dto.account.AccountDto
-import com.yourRPG.chatPG.dto.auth.LoginCredentials
-import com.yourRPG.chatPG.dto.auth.TokenDto
-import com.yourRPG.chatPG.dto.auth.UuidDto
-import com.yourRPG.chatPG.dto.auth.FulfillPasswordChangeDto
-import com.yourRPG.chatPG.dto.auth.OpenAccountCreationDto
-import com.yourRPG.chatPG.dto.auth.OpenPasswordChangeDto
+import com.yourRPG.chatPG.dto.auth.*
+import com.yourRPG.chatPG.security.token.AccessAndRefreshTokens
 import com.yourRPG.chatPG.security.token.TokenManagerService
 import org.springframework.stereotype.Service
 
@@ -16,6 +12,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class AuthService(
+    private val authA2fService: AuthA2fService,
     private val authChangePasswordService: AuthChangePasswordService,
     private val authCreateAccountService: AuthCreateAccountService,
     private val authLogInOutService: AuthLogInOutService,
@@ -26,7 +23,7 @@ class AuthService(
      * Delegates.
      * @see AuthLogInOutService.login
      */
-    fun login(credentials: LoginCredentials): Pair<TokenDto, String> =
+    fun login(credentials: LoginCredentials): AccessAndRefreshTokens =
         authLogInOutService.login(credentials)
 
     /**
@@ -46,7 +43,7 @@ class AuthService(
 
     /**
      * Delegates.
-     * @see AuthChangePasswordService.confirmChangePassword
+     * @see AuthChangePasswordService.fulfillPasswordChange
      */
     fun fulfillPasswordChange(dto: FulfillPasswordChangeDto) =
         authChangePasswordService.fulfillPasswordChange(dto)
@@ -69,14 +66,21 @@ class AuthService(
      * Delegates.
      * @see TokenManagerService.refreshTokens
      */
-    fun refreshToken(oldRefreshToken: String): Pair<TokenDto, String> =
+    fun refreshToken(oldRefreshToken: String): AccessAndRefreshTokens =
         tokenManagerService.refreshTokens(oldRefreshToken)
 
     /**
      * Delegates.
-     * @see TokenManagerService.requireRefreshToken
+     * @see AuthA2fService.fulfillA2f
      */
-    fun requireRefreshToken(accountId: Long): Pair<TokenDto, String> =
-        tokenManagerService.requireRefreshToken(accountId)
+    fun fulfillA2f(dto: FulfillA2fDto): AccessAndRefreshTokens =
+        authA2fService.fulfillA2f(dto)
+
+    /**
+     * Delegates.
+     * @see AuthLogInOutService.loginWithHandle
+     */
+    fun loginWithHandle(uuidDto: UuidDto): AccessAndRefreshTokens =
+        authLogInOutService.loginWithHandle(uuidDto)
 
 }
