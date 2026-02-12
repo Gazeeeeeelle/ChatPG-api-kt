@@ -5,6 +5,7 @@ import com.yourRPG.chatPG.exception.account.AccountNotFoundException
 import com.yourRPG.chatPG.exception.security.InvalidTokenException
 import com.yourRPG.chatPG.service.account.AccountService
 import helper.NullSafeMatchers.any
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -20,11 +21,18 @@ import kotlin.test.assertEquals
 @ExtendWith(MockitoExtension::class)
 class TokenManagerServiceTest {
 
-    @InjectMocks
     private lateinit var service: TokenManagerService
 
     @Mock private lateinit var tokenService: TokenService
     @Mock private lateinit var accountService: AccountService
+
+    private val accessTokenExpiresIn = Duration.ofMinutes(10L)
+    private val refreshTokenExpiresIn = Duration.ofDays(7L)
+
+    @BeforeEach
+    fun setUp() {
+        service = TokenManagerService(tokenService, accountService, accessTokenExpiresIn, refreshTokenExpiresIn)
+    }
 
     @Mock
     private lateinit var account: Account
@@ -49,10 +57,10 @@ class TokenManagerServiceTest {
         given(accountService.getByRefreshToken(oldRefreshToken))
             .willReturn(account)
 
-        given(tokenService.signTokenWithLifetime(Duration.ofMinutes(10L), account))
+        given(tokenService.signTokenWithLifetime(accessTokenExpiresIn, account))
             .willReturn(newAccessToken)
 
-        given(tokenService.signTokenWithLifetime(Duration.ofDays(7L), account))
+        given(tokenService.signTokenWithLifetime(refreshTokenExpiresIn, account))
             .willReturn(newRefreshToken)
 
         //ACT
@@ -69,7 +77,7 @@ class TokenManagerServiceTest {
             .getByRefreshToken(oldRefreshToken)
 
         verify(tokenService)
-            .signTokenWithLifetime(Duration.ofMinutes(10L), account)
+            .signTokenWithLifetime(refreshTokenExpiresIn, account)
 
     }
 
@@ -128,7 +136,7 @@ class TokenManagerServiceTest {
 
         //ASSERT
         verify(tokenService)
-            .signTokenWithLifetime(Duration.ofDays(7L), account)
+            .signTokenWithLifetime(refreshTokenExpiresIn, account)
 
         verify(accountService)
             .updateRefreshToken(account, token)
