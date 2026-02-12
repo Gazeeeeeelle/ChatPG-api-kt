@@ -75,7 +75,7 @@ class TokenServiceTest {
         val claim = service.getClaim(token, "id")
 
         //ASSERT
-        assertEquals(account.publicId.toString(), claim.asString())
+        assertEquals(account.publicId.toString(), claim?.asString())
     }
 
     @Test
@@ -87,9 +87,10 @@ class TokenServiceTest {
         val claim = "some_other_claim"
 
         //ACT + ASSERT
-        assertThrows<InvalidTokenException> {
-            service.getClaim(token, claim)
-        }
+        val responseClaim = service.getClaim(token, claim)
+
+        //ASSERT
+        assertEquals(null, responseClaim)
     }
 
     @Test
