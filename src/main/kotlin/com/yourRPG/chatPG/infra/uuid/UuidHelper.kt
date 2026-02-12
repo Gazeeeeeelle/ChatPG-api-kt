@@ -48,6 +48,14 @@ class UuidHelper(
     /**
      * TODO: documentation and revise purpose.
      */
-    fun assertVersion(uuid: UUID, version: Int) = assert(uuid.version() == version)
+    fun assertVersion(
+        uuid: UUID,
+        version: Int,
+        failure: () -> Nothing
+    ) {
+        if (uuid.version() != version) {
+            failure()
+        }
+    }
 
 }
