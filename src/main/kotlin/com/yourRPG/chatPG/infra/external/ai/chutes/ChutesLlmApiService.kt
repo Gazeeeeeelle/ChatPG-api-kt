@@ -1,7 +1,12 @@
-package com.yourRPG.chatPG.infra.external.chutes
+package com.yourRPG.chatPG.infra.external.ai.chutes
 
 import com.yourRPG.chatPG.dto.external.chutes.ChutesResponse
-import com.yourRPG.chatPG.exception.http.*
+import com.yourRPG.chatPG.exception.http.BadRequestException
+import com.yourRPG.chatPG.exception.http.ForbiddenException
+import com.yourRPG.chatPG.exception.http.InternalServerException
+import com.yourRPG.chatPG.exception.http.NotFoundException
+import com.yourRPG.chatPG.exception.http.ServiceUnavailableException
+import com.yourRPG.chatPG.exception.http.UnauthorizedException
 import com.yourRPG.chatPG.service.ai.providers.AiModel
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
