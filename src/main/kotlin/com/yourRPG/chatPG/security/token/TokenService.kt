@@ -63,19 +63,16 @@ class TokenService(
             withExpiresAt(expiresAt)
         }
 
-
     /**
-     * Returns the [Claim] requested in [claim] from the token [token].
+     * Returns the [Claim] requested in [claim] from the token [token]. Returns null if [Claim] could not be extracted.
      *
      * @param token where to extract the claim from.
      * @param claim which claim to extract.
-     * @return [Claim] found.
+     * @return Nullable [Claim] found.
      * @throws InvalidTokenException if the extraction of the claim was not possible.
      */
-    fun getClaim(token: String, claim: String): Claim =
-        verify(token)
-            .claims[claim]
-            ?: throw InvalidTokenException("Invalid claim")
+    fun getClaim(token: String, claim: String): Claim? =
+        verify(token).claims[claim]
 
     /**
      * Verifies the token given and returns its decoded form.
