@@ -63,10 +63,9 @@ class AccountService(
      * @return Account found with matching [UUID]s.
      * @throws AccountNotFoundException if no account was found with [UUID] [publicId]
      */
-    fun getByPublicId(publicId: UUID): Account {
-        return repository.qFindByPublicId(publicId)
+    fun getByPublicId(publicId: UUID): Account =
+        repository.qFindByPublicId(publicId)
             ?: throw AccountNotFoundException("No account found with public ID given")
-    }
 
     /**
      * Returns the Account found with [email] given.
@@ -75,10 +74,9 @@ class AccountService(
      * @return [Account] found.
      * @throws AccountNotFoundException
      */
-    fun getByEmail(email: String): Account {
-        return repository.qFindByEmail(email)
+    fun getByEmail(email: String): Account =
+        repository.qFindByEmail(email)
             ?: throw AccountNotFoundException("Account not found with email $email")
-    }
 
     /**
      * Returns the [Account] found with the *Refresh Token* given.
@@ -147,28 +145,19 @@ class AccountService(
      */
     @Transactional
     fun insertAccount(username: String, email: String, encodedPassword: String): Account {
-
         accountCreationCredentialsValidator.validate(t = username to email)
 
         val account = Account(username, email, encodedPassword)
-
-        repository.save(account)
-
-        return account
+        return repository.save(account)
     }
 
     /**
-     * Hard deletes account with id [id].
+     * Hard deletes account found with id [id].
      *
-     * @param id account identifier, nullable to mitigate cluttering of null checks at usage.
-     * @throws AccountNotFoundException if the id given was null.
+     * @param id account identifier.
      */
     @Transactional
-    fun deleteById(id: Long?) {
-        val id = requireNotNull(id) { "Account id is null." }
-
-        repository.deleteById(id)
-    }
+    fun deleteById(id: Long) = repository.deleteById(id)
 
     /**
      * Updates [AccountStatus] of the given [Account], [account], with [status].
@@ -195,17 +184,6 @@ class AccountService(
     fun updateRefreshToken(account: Account, refreshToken: String?) {
         account.auth.refreshToken = refreshToken
         repository.save(account)
-    }
-
-    @Transactional
-    fun removeHandle(encodedHandle: String) {
-        repository.qRemoveHandle(encodedHandle)
-    }
-
-    @Transactional
-    fun removeHandle(account: Account) {
-        val id = requireNotNull(account.id) { "Account id is null." }
-        repository.qRemoveHandleById(id)
     }
 
 }
