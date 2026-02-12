@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.service.ai.providers
 
-import com.yourRPG.chatPG.infra.external.chutes.ChutesLlmApiService
+import com.yourRPG.chatPG.infra.external.ai.chutes.ChutesLlmApiService
 import com.yourRPG.chatPG.service.ai.IResponsive
 import org.springframework.stereotype.Service
 
