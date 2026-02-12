@@ -9,6 +9,7 @@ import com.yourRPG.chatPG.repository.AccountRepository
 import com.yourRPG.chatPG.validator.account.AccountCreationCredentialsValidator
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
@@ -95,15 +96,15 @@ class AccountService(
      *
      * @param encodedHandle used to identify request.
      * @return Account found with request handle given.
-     * @throws AccountNotFoundException
+     * @throws AccountNotFoundException if no account was identified with the given request handle.
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun getByRequestHandleAndClear(
         encodedHandle: String,
-        failure: () -> Nothing
     ): Account {
         val account = repository.qFindByRequestHandle(encodedHandle)
-            ?: failure()
+            ?: throw AccountNotFoundException("Account not found with given")
+
         val id = requireNotNull(account.id) { "Account id can not be null" }
 
         repository.qRemoveHandleById(id)
@@ -128,7 +129,7 @@ class AccountService(
      * Updates the [account] in the DB with the given password.
      *
      * @param account account to change status of.
-     * @param encryptedPassword encrypted password to change replace the old one.
+     * @param encodedPassword encrypted password to change replace the old one.
      */
     @Transactional
     fun updatePassword(account: Account, encodedPassword: String) {
@@ -141,7 +142,7 @@ class AccountService(
      *
      * @param username
      * @param email
-     * @param encryptedPassword
+     * @param encodedPassword
      * @return [AccountDto] of the inserted [Account]
      */
     @Transactional
