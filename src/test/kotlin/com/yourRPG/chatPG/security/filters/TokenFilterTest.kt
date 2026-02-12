@@ -29,20 +29,33 @@ import java.util.stream.Stream
 class TokenFilterTest: FilterTest() {
 
     @InjectMocks
-    lateinit var filter: TokenFilter
+    private lateinit var filter: TokenFilter
 
-    @Mock lateinit var tokenService: TokenService
-    @Mock lateinit var accountService: AccountService
-    @Mock lateinit var securityContext: SecurityContextHelper
+    @Mock private lateinit var tokenService: TokenService
+    @Mock private lateinit var accountService: AccountService
+    @Mock private lateinit var securityContext: SecurityContextHelper
 
-    @Mock
-    lateinit var claim: Claim
+    //Mockito stumbles into problems with Coverage because of JVM not allowing different bytecode changes in JDK 21+.
+    private val publicIdString = "019c28e0-54d1-7032-8c6d-3aa2e94c639b"
+    private val claim = object: Claim {
+        override fun isNull(): Boolean = false
+        override fun isMissing(): Boolean = false
+        override fun asBoolean(): Boolean? = null
+        override fun asInt(): Int? = null
+        override fun asLong(): Long? = null
+        override fun asDouble(): Double? = null
+        override fun asString(): String = publicIdString
+        override fun asDate(): Date? = null
+        override fun <T> asArray(clazz: Class<T?>?): Array<out T?>? = null
+        override fun <T> asList(clazz: Class<T?>?): List<T?>? = null
+        override fun asMap(): Map<String?, Any?>? = null
+        override fun <T> `as`(clazz: Class<T?>?): T? = null
+    }
 
     @TestFactory
     fun `valid - paths are secured`(): Stream<DynamicTest> {
         //ARRANGE
-        val token = "valid-token123"
-        val publicIdString = "019c28e0-54d1-7032-8c6d-3aa2e94c639b"
+        val token = "access-token-test"
         val publicId = UUID.fromString(publicIdString)
 
         val account = mock(Account::class.java)
@@ -61,9 +74,6 @@ class TokenFilterTest: FilterTest() {
                 given(tokenService.getClaim(token, "id"))
                     .willReturn(claim)
 
-                given(claim.asString())
-                    .willReturn(publicIdString)
-
                 given(accountService.getByPublicId(publicId))
                     .willReturn(account)
 
@@ -75,6 +85,7 @@ class TokenFilterTest: FilterTest() {
                     getAccessToken(request)
                     getClaim(token, "id")
                 }
+
                 verify(accountService).getByPublicId(publicId)
                 verify(securityContext).setPrincipal(0L, account.authorities)
 
@@ -128,7 +139,6 @@ class TokenFilterTest: FilterTest() {
     fun `invalid - account not found`() {
         //ARRANGE
         val token = "tokenTest"
-        val publicIdString = "019c28e0-54d1-7032-8c6d-3aa2e94c639b"
         val publicId = UUID.fromString(publicIdString)
 
         given(request.servletPath)
@@ -139,9 +149,6 @@ class TokenFilterTest: FilterTest() {
 
         given(tokenService.getClaim(token, "id"))
             .willReturn(claim)
-
-        given(claim.asString())
-            .willReturn(publicIdString)
 
         given(accountService.getByPublicId(publicId))
             .willThrow(AccountNotFoundException::class.java)
@@ -155,10 +162,29 @@ class TokenFilterTest: FilterTest() {
     }
 
     @Test
+    fun `invalid - absent claim`() {
+        //ARRANGE
+        val token = "tokenTest"
+
+        given(request.servletPath)
+            .willReturn("/somethingElse")
+
+        given(tokenService.getAccessToken(request))
+            .willReturn(token)
+
+        //ACT
+        filter.doFilter(request, response, filterChain)
+
+        //ASSERT
+        verify(response)
+            .sendError(HttpServletResponse.SC_UNAUTHORIZED.eq(), STRING_TYPE.any())
+
+    }
+
+    @Test
     fun `invalid - unhandled exception returns 500`() {
         //ARRANGE
         val token = "tokenTest"
-        val publicIdString = "019c28e0-54d1-7032-8c6d-3aa2e94c639b"
         val publicId = UUID.fromString(publicIdString)
 
         given(request.servletPath)
@@ -169,9 +195,6 @@ class TokenFilterTest: FilterTest() {
 
         given(tokenService.getClaim(token, "id"))
             .willReturn(claim)
-
-        given(claim.asString())
-            .willReturn(publicIdString)
 
         given(accountService.getByPublicId(publicId))
             .willThrow(RuntimeException::class.java)
