@@ -37,7 +37,7 @@ interface AccountRepository: JpaRepository<Account, Long> {
     fun qUpdateStatus(id: Long, status: AccountStatus)
 
     @Modifying
-    @Query("UPDATE Account a SET a.auth.requestHandle = null WHERE a.requestHandle = :requestHandle")
+    @Query("UPDATE Account a SET a.auth.requestHandle = null WHERE a.auth.requestHandle = :requestHandle")
     fun qRemoveHandle(encodedHandle: String)
 
     @Modifying
