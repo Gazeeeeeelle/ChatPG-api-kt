@@ -6,18 +6,26 @@ object ApplicationEndpoints {
         const val BASE = "/auth"
 
         const val                    LOGIN = "/login"
-        const val           REFRESH_TOKENS = "/refreshTokens"
+        const val              FULFILL_A2F = "/fulfill-a2f"
+        const val           REFRESH_TOKENS = "/refresh-tokens"
+        const val        LOGIN_WITH_HANDLE = "/login-with-handle"
         const val     OPEN_PASSWORD_CHANGE = "/open-password-change"
         const val  FULFILL_PASSWORD_CHANGE = "/fulfill-password-change"
         const val    OPEN_ACCOUNT_CREATION = "/open-account-creation"
         const val FULFILL_ACCOUNT_CREATION = "/fulfill-account-creation"
     }
 
+    object ExternalLogin {
+        const val BASE = "${Auth.BASE}${Auth.LOGIN}/with"
+
+        const val GITHUB = "$BASE/github"
+        const val GOOGLE = "$BASE/google"
+    }
+
     object AuthSecure {
         const val BASE = "${Auth.BASE}/secure"
 
-        const val                LOGOUT = "/logout"
-        const val REQUIRE_REFRESH_TOKEN = "/require-refresh-tokens"
+        const val LOGOUT = "/logout"
     }
 
     object Account {
