@@ -4,6 +4,7 @@ import com.yourRPG.chatPG.domain.account.Account
 import com.yourRPG.chatPG.dto.auth.TokenDto
 import com.yourRPG.chatPG.service.account.AccountService
 import jakarta.transaction.Transactional
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.Duration
 
@@ -11,6 +12,12 @@ import java.time.Duration
 class TokenManagerService(
     private val tokenService: TokenService,
     private val accountService: AccountService,
+
+    @param:Value("\${security.token.access-expires-in}")
+    private val accessTokenExpiresIn: Duration,
+
+    @param:Value("\${security.token.refresh-expires-in}")
+    private val refreshTokenExpiresIn: Duration
 ) {
 
     /**
@@ -24,44 +31,17 @@ class TokenManagerService(
      * @see signAccessToken
      */
     @Transactional
-    fun refreshTokens(oldRefreshToken: String): Pair<TokenDto, String> {
+    fun refreshTokens(oldRefreshToken: String): AccessAndRefreshTokens {
         tokenService.verify(oldRefreshToken)
 
         val account = accountService.getByRefreshToken(oldRefreshToken)
 
-        val newAccessToken = signAccessToken(account)
-
-        return TokenDto(newAccessToken) to signRefreshToken(account)
+        return signAccessAndRefreshTokens(account)
     }
 
-    /**
-     * Refreshes both tokens in name of the account identified by [accountId].
-     *
-     * @param accountId account's identifier.
-     * @return [Pair] of [TokenDto], containing the access token, and the [String] value of the refresh token.
-     * @see AccountService.getById
-     * @see requireRefreshToken
-     */
     @Transactional
-    fun requireRefreshToken(accountId: Long): Pair<TokenDto, String> {
-        val account = accountService.getById(accountId)
-        return requireRefreshToken(account)
-    }
-
-    /**
-     * Refreshes both tokens in name of the [account] given.
-     *
-     * @param account owner of the tokens
-     * @return [Pair] of [TokenDto], containing the access token, and the [String] value of the refresh token.
-     * @see AccountService.getById
-     * @see signAccessToken
-     */
-    @Transactional
-    fun requireRefreshToken(account: Account): Pair<TokenDto, String> {
-        val newAccessToken = signAccessToken(account)
-
-        return TokenDto(newAccessToken) to signRefreshToken(account)
-    }
+    fun signAccessAndRefreshTokens(account: Account): AccessAndRefreshTokens =
+        AccessAndRefreshTokens(signAccessToken(account), signRefreshToken(account))
 
     /**
      * Generates and signs a new access token.
@@ -70,8 +50,8 @@ class TokenManagerService(
      * @return JWT's String value
      * @see TokenService.signTokenWithLifetime
      */
-    fun signAccessToken(account: Account): String =
-        tokenService.signTokenWithLifetime(10L.minutes(), account)
+    internal fun signAccessToken(account: Account): String =
+        tokenService.signTokenWithLifetime(accessTokenExpiresIn, account)
 
     /**
      * Creates and signs a JWT token used as *Refresh Token*, which has longer lifetime, and is persisted in the [account]
@@ -81,15 +61,9 @@ class TokenManagerService(
      * @return JWT's [String] value.
      * @see AccountService.updateRefreshToken
      */
-    fun signRefreshToken(account: Account): String =
-        tokenService.signTokenWithLifetime(7L.days(), account).apply {
+    internal fun signRefreshToken(account: Account): String =
+        tokenService.signTokenWithLifetime(refreshTokenExpiresIn, account).apply {
             accountService.updateRefreshToken(account, refreshToken = this)
         }
-
-    /**
-     * Wrappers for [Duration]'s *"of"* methods to improve readability.
-     */
-    fun (Long).minutes(): Duration = Duration.ofMinutes(this)
-    fun (Long).days()   : Duration = Duration.ofDays(this)
 
 }
