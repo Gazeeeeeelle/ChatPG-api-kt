@@ -45,39 +45,46 @@ class RequestHandleService(
         return uuid to code
     }
 
+    @Transactional
+     fun getAccountAndDiscardCheckedHandle(
+        uuid: UUID,
+        subject: RequestHandleSubject,
+        expirationTime: Duration,
+    ): Account {
+        validateUuid(uuid, expirationTime)
+
+        val encodedHandle = hashHandle(uuid, subject)
+        return getByRequestHandleAndClearElseThrow(encodedHandle)
+    }
+
+    @Transactional
     fun getAccountAndDiscardCheckedHandle(
         uuid: UUID,
         subject: RequestHandleSubject,
+        code: String,
         expirationTime: Duration,
     ): Account {
-        val account = getAccountByCheckedRequestHandle(uuid, subject, expirationTime)
-        accountService.removeHandle(account)
-        return account
+        validateUuid(uuid, expirationTime)
+
+        val encodedHandle = hashHandle(uuid, subject, code)
+        return getByRequestHandleAndClearElseThrow(encodedHandle)
     }
 
-    internal fun getAccountByCheckedRequestHandle(
-        uuid: UUID,
-        subject: RequestHandleSubject,
-        expirationTime: Duration,
-    ): Account {
-        uuidHelper.assertVersion(uuid, version = 7)
+    internal fun getByRequestHandleAndClearElseThrow(encodedHandle: String): Account =
+        accountService.getByRequestHandleAndClear(encodedHandle) {
+            throw UnauthorizedException()
+        }
 
-        val encodedHandle = hashHandle(uuid, subject)
-
-        return if (uuidHelper.isNotExpired(uuid, expirationTime)) {
-            accountService.getByRequestHandle(encodedHandle)
-        } else {
-            clearRequestHandle(encodedHandle)
-            throw UnauthorizedException("Request expired")
+    internal fun validateUuid(uuid: UUID, expirationTime: Duration) {
+        if (uuid.version() != 7 || !uuidHelper.isNotExpired(uuid, expirationTime)) {
+            throw UnauthorizedException()
         }
     }
 
     internal fun newCode(): String =
-        Random.nextLong(0L, 1_000_000L).toString()
-
-    internal fun clearRequestHandle(encodedHandle: String) {
-        accountService.removeHandle(encodedHandle)
-    }
+        Random.nextLong(0L, 1_000_000L)
+            .toString()
+            .padStart(6, '0')
 
     internal fun hash(unhashed: String): String = Hashing.sha256()
         .hashString(unhashed, Charsets.UTF_8)
