@@ -6,6 +6,7 @@ import com.yourRPG.chatPG.dto.auth.UuidDto
 import com.yourRPG.chatPG.dto.auth.OpenAccountCreationDto
 import com.yourRPG.chatPG.exception.auth.AccountActivationException
 import com.yourRPG.chatPG.exception.http.ConflictException
+import com.yourRPG.chatPG.exception.requesthandle.ExpiredRequestHandleException
 import com.yourRPG.chatPG.infra.email.EmailService
 import com.yourRPG.chatPG.infra.email.MimeHelper
 import com.yourRPG.chatPG.infra.uri.FrontendUriHelper
@@ -22,7 +23,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.Duration
-import java.util.*
 
 @Service
 class AuthCreateAccountService(
@@ -56,9 +56,9 @@ class AuthCreateAccountService(
         usernameValidator.validate(t = dto.username)
         passwordValidator.validate(t = dto.password)
 
-        val encryptedPassword = passwordEncoder.encode(dto.password)
+        val encodedPassword = passwordEncoder.encode(dto.password)
 
-        val account = accountService.insertAccount(dto.username, dto.email, encryptedPassword)
+        val account = accountService.insertAccount(dto.username, dto.email, encodedPassword)
 
         val handle = requestHandleService.newRequestHandle(
             account,
@@ -81,29 +81,30 @@ class AuthCreateAccountService(
 
     @Transactional(dontRollbackOn = [AccountActivationException::class])
     fun fulfillAccountCreation(dto: UuidDto): AccountDto {
-        val requestHandle = UUID.fromString(dto.uuid)
         val account: Account =
-            requestHandleService.getAccountByCheckedRequestHandle(
-                requestHandle,
-                subject,
-                activateAccountExpiresIn
-            )
+            try {
+                requestHandleService.getAccountAndDiscardCheckedHandle(
+                    dto.uuid,
+                    subject,
+                    expirationTime = activateAccountExpiresIn
+                )
+            } catch (ex: ExpiredRequestHandleException) {
+                accountService.deleteById(ex.accountId)
+                throw AccountActivationException("Request expired. Request will be deleted. ")
+            }
 
+        isAccountStatusDisabledElseThrow(account)
+
+        accountService.updateStatus(account, status = AccountStatus.ENABLED)
+        return accountMapper.toDto(account)
+    }
+
+    fun isAccountStatusDisabledElseThrow(account: Account) {
         when (account.status) {
             AccountStatus.DISABLED -> {}
             AccountStatus.ENABLED  -> throw ConflictException("Account already activated")
             AccountStatus.DELETED  -> throw ConflictException("This account is deleted")
         }
-
-        accountService.removeHandle(account)
-
-        if (uuidHelper.isNotExpired(uuidV7 = requestHandle, expirationTime = activateAccountExpiresIn)) {
-            accountService.updateStatus(account, status = AccountStatus.ENABLED)
-            return accountMapper.toDto(account)
-        }
-
-        accountService.deleteById(account.id)
-        throw AccountActivationException("Request expired. Request will be deleted. ")
     }
 
 }
