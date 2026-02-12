@@ -3,7 +3,9 @@ package com.yourRPG.chatPG.security.requesthandle
 import com.github.f4b6a3.uuid.UuidCreator
 import com.google.common.hash.Hashing
 import com.yourRPG.chatPG.domain.account.Account
+import com.yourRPG.chatPG.exception.account.AccountNotFoundException
 import com.yourRPG.chatPG.exception.http.UnauthorizedException
+import com.yourRPG.chatPG.exception.requesthandle.ExpiredRequestHandleException
 import com.yourRPG.chatPG.infra.uuid.UuidHelper
 import com.yourRPG.chatPG.service.account.AccountService
 import org.springframework.stereotype.Service
@@ -46,15 +48,17 @@ class RequestHandleService(
     }
 
     @Transactional
-     fun getAccountAndDiscardCheckedHandle(
+    fun getAccountAndDiscardCheckedHandle(
         uuid: UUID,
         subject: RequestHandleSubject,
         expirationTime: Duration,
     ): Account {
-        validateUuid(uuid, expirationTime)
-
         val encodedHandle = hashHandle(uuid, subject)
-        return getByRequestHandleAndClearElseThrow(encodedHandle)
+
+        val account = getByRequestHandleAndClearElseThrow(encodedHandle)
+
+        validateUuid(uuid, expirationTime, account)
+        return account
     }
 
     @Transactional
@@ -64,20 +68,29 @@ class RequestHandleService(
         code: String,
         expirationTime: Duration,
     ): Account {
-        validateUuid(uuid, expirationTime)
-
         val encodedHandle = hashHandle(uuid, subject, code)
-        return getByRequestHandleAndClearElseThrow(encodedHandle)
+
+        val account = getByRequestHandleAndClearElseThrow(encodedHandle)
+
+        validateUuid(uuid, expirationTime, account)
+        return account
     }
 
     internal fun getByRequestHandleAndClearElseThrow(encodedHandle: String): Account =
-        accountService.getByRequestHandleAndClear(encodedHandle) {
+        try {
+            accountService.getByRequestHandleAndClear(encodedHandle)
+        } catch (_: AccountNotFoundException) {
             throw UnauthorizedException()
         }
 
-    internal fun validateUuid(uuid: UUID, expirationTime: Duration) {
+    internal fun validateUuid(
+        uuid: UUID,
+        expirationTime: Duration,
+        account: Account,
+    ) {
         if (uuid.version() != 7 || !uuidHelper.isNotExpired(uuid, expirationTime)) {
-            throw UnauthorizedException()
+            val id = requireNotNull(account.id)
+            throw ExpiredRequestHandleException(accountId = id)
         }
     }
 
