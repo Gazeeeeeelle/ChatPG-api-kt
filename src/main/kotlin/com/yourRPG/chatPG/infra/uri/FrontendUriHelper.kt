@@ -9,10 +9,10 @@ class FrontendUriHelper(
     private val frontendUri: String,
 
     @param:Value("\${frontend.paths.authorized}")
-    val authorizedUrl: String,
+    val authorizedPath: String,
 
     @param:Value("\${frontend.paths.a2f}")
-    val a2fUrl: String
+    val a2fPath: String
 ): UriHelper {
 
     override fun getUriString(): String = frontendUri
