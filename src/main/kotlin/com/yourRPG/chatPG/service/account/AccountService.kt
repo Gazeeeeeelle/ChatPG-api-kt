@@ -53,7 +53,7 @@ class AccountService(
      */
     fun getByName(username: String): Account =
         repository.findByNameEquals(username)
-            ?: throw AccountNotFoundException("Account not found with name $username")
+            ?: throw AccountNotFoundException("Account not found with name given")
 
     /**
      * Returns the [Account] found with [publicId].
@@ -66,19 +66,6 @@ class AccountService(
         return repository.qFindByPublicId(publicId)
             ?: throw AccountNotFoundException("No account found with public ID given")
     }
-
-    /**
-     * Returns the [Account] found with its [com.yourRPG.chatPG.domain.account.AccountAuth.requestHandle].
-     *
-     * @param requestHandle UUID used to identify request.
-     * @return Account found with request handle given.
-     * @throws AccountNotFoundException
-     */
-    fun getByRequestHandle(requestHandle: String): Account {
-        return repository.qFindByRequestHandle(requestHandle)
-            ?: throw AccountNotFoundException("No account found with request handle given")
-    }
-
 
     /**
      * Returns the Account found with [email] given.
@@ -104,6 +91,26 @@ class AccountService(
             ?: throw UnauthorizedException("No account found with refresh token given")
 
     /**
+     * Returns the [Account] found with its [com.yourRPG.chatPG.domain.account.AccountAuth.requestHandle].
+     *
+     * @param encodedHandle used to identify request.
+     * @return Account found with request handle given.
+     * @throws AccountNotFoundException
+     */
+    @Transactional
+    fun getByRequestHandleAndClear(
+        encodedHandle: String,
+        failure: () -> Nothing
+    ): Account {
+        val account = repository.qFindByRequestHandle(encodedHandle)
+            ?: failure()
+        val id = requireNotNull(account.id) { "Account id can not be null" }
+
+        repository.qRemoveHandleById(id)
+        return account
+    }
+
+    /**
      * Updates the [account] in the DB with the given [encodedHandle].
      *
      * @param account entity getting their [encodedHandle] changed.
@@ -124,8 +131,8 @@ class AccountService(
      * @param encryptedPassword encrypted password to change replace the old one.
      */
     @Transactional
-    fun updatePassword(account: Account, encryptedPassword: String) {
-        account.auth.credentials.password = encryptedPassword
+    fun updatePassword(account: Account, encodedPassword: String) {
+        account.auth.credentials.password = encodedPassword
         repository.save(account)
     }
 
@@ -138,11 +145,11 @@ class AccountService(
      * @return [AccountDto] of the inserted [Account]
      */
     @Transactional
-    fun insertAccount(username: String, email: String, encryptedPassword: String): Account {
+    fun insertAccount(username: String, email: String, encodedPassword: String): Account {
 
         accountCreationCredentialsValidator.validate(t = username to email)
 
-        val account = Account(username, email, encryptedPassword)
+        val account = Account(username, email, encodedPassword)
 
         repository.save(account)
 
