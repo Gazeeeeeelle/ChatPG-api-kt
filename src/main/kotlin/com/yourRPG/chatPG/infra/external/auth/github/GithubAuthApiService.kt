@@ -1,9 +1,10 @@
-package com.yourRPG.chatPG.infra.external.github
+package com.yourRPG.chatPG.infra.external.auth.github
 
 import com.yourRPG.chatPG.dto.external.github.GithubAccessTokenDto
 import com.yourRPG.chatPG.dto.external.github.GithubEmailDto
 import com.yourRPG.chatPG.exception.http.*
-import com.yourRPG.chatPG.infra.external.github.GithubAuthApiService.Companion.GITHUB_URL
+import com.yourRPG.chatPG.infra.external.auth.IAuthApiService
+import com.yourRPG.chatPG.infra.external.auth.github.GithubAuthApiService.Companion.GITHUB_URL
 import com.yourRPG.chatPG.infra.uri.BackendUriHelper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -16,16 +17,16 @@ import org.springframework.web.client.RestClient
 
 @Service
 class GithubAuthApiService(
-    private val restClient: RestClient,
-
     private val backendUriHelper: BackendUriHelper,
+
+    private val restClient: RestClient,
 
     @param:Value("\${security.auth.external.github.client.id}")
     private val clientId: String,
 
     @param:Value("\${security.auth.external.github.client.secret}")
     private val clientSecret: String,
-) {
+): IAuthApiService {
 
     companion object {
         private const val GITHUB_URL = "https://github.com"
@@ -40,7 +41,7 @@ class GithubAuthApiService(
      *
      * @return URL to the OAuth GitHub page.
      */
-    fun getCodeUrl(): String =
+    override fun getCodeUrl(): String =
         "$GITHUB_URL/login/oauth/authorize" +
                 "?client_id=$clientId" +
                 "&redirect_uri=${backendUriHelper.appendString(CALLBACK_URI_PATH)}" +
@@ -77,7 +78,7 @@ class GithubAuthApiService(
      * @see getToken
      * @see emailResponseHandler
      */
-    fun getEmail(code: String): String {
+    override fun getEmail(code: String): String {
         val token = getToken(code)
 
         val headers = HttpHeaders().apply {
@@ -156,9 +157,9 @@ class GithubAuthApiService(
      * Handles status code of the response given by endpoint [/login/oauth/access_token](http://github/user/emails/login/oauth/access_token). This endpoint's
      *  documentation resides [here](https://docs.github.com/en/apps/oauth-apps/maintaining-oauth-apps/troubleshooting-oauth-app-access-token-request-errors?apiVersion=2022-11-28).
      *
-     * @param response [org.springframework.http.client.ClientHttpResponse] to be evaluated.
+     * @param response [ClientHttpResponse] to be evaluated.
      * @return A [Boolean] to satisfy [RestClient.ResponseSpec.onStatus].
-     * @throws com.yourRPG.chatPG.exception.http.HttpException of the respective status code.
+     * @throws HttpException of the respective status code.
      * @throws InternalServerException if the response's status code is unhandled.
      */
     private fun tokenResponseHandler(response: ClientHttpResponse): Unit =

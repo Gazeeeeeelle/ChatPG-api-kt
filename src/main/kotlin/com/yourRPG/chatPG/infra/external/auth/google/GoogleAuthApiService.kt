@@ -1,12 +1,11 @@
-package com.yourRPG.chatPG.infra.external.google
+package com.yourRPG.chatPG.infra.external.auth.google
 
 import com.auth0.jwt.JWT
 import com.yourRPG.chatPG.dto.external.google.GoogleAccessTokenDto
-import com.yourRPG.chatPG.exception.http.BadRequestException
-import com.yourRPG.chatPG.exception.http.ForbiddenException
-import com.yourRPG.chatPG.exception.http.InternalServerException
-import com.yourRPG.chatPG.exception.http.NotFoundException
-import com.yourRPG.chatPG.exception.http.UnauthorizedException
+import com.yourRPG.chatPG.exception.http.*
+import com.yourRPG.chatPG.infra.external.auth.IAuthApiService
+import com.yourRPG.chatPG.infra.external.auth.google.GoogleAuthApiService.Companion.GOOGLE_ACCOUNTS_AUTH_URL
+import com.yourRPG.chatPG.infra.external.auth.google.GoogleAuthApiService.Companion.GOOGLE_OAUTH_URL
 import com.yourRPG.chatPG.infra.uri.BackendUriHelper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -27,7 +26,7 @@ class GoogleAuthApiService(
 
     @param:Value("\${security.auth.external.google.client.secret}")
     private val clientSecret: String,
-) {
+): IAuthApiService {
 
     companion object {
         private const val GOOGLE_ACCOUNTS_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -42,7 +41,7 @@ class GoogleAuthApiService(
      *
      * @return URL to Google's OAuth page.
      */
-    fun getCodeUrl(): String =
+    override fun getCodeUrl(): String =
         GOOGLE_ACCOUNTS_AUTH_URL +
                 "?client_id=$clientId" +
                 "&redirect_uri=${backendUriHelper.appendString(CALLBACK_URI_PATH)}" +
@@ -77,7 +76,7 @@ class GoogleAuthApiService(
      *  deserialize.
      * @see getToken
      */
-    fun getEmail(code: String): String {
+    override fun getEmail(code: String): String {
         val token = getToken(code)
 
         val decoded = JWT.decode(token)
