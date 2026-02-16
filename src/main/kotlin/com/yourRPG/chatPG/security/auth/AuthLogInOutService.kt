@@ -28,10 +28,10 @@ class AuthLogInOutService(
     private val loginWithHandleExpiresIn: Duration
 ) {
 
-    companion object {
-        private val log = KotlinLogging.logger {}
+    private companion object {
+        val log = KotlinLogging.logger {}
 
-        private const val DUMMY_ENCODED_PASSWORD = "$2a$10$58r.Gqy1ncdfGOkov08MguLtb/G18l5wcE2BTze1wx4JPUHGYtfFC"
+        const val DUMMY_ENCODED_PASSWORD = "$2a$10$58r.Gqy1ncdfGOkov08MguLtb/G18l5wcE2BTze1wx4JPUHGYtfFC"
     }
 
     //All outcomes that change the DB's state happen at the end of the method.
@@ -39,7 +39,7 @@ class AuthLogInOutService(
         val account: Account? =
             try {
                 accountService.getByName(credentials.username)
-            } catch (ex: NotFoundException) { //Masks status for security.
+            } catch (_: NotFoundException) { //Masks status for security.
                 log.info { "Account not found for login" }
                 null
             }
@@ -57,7 +57,7 @@ class AuthLogInOutService(
         }
 
         if (account.auth.a2f) {
-            authA2FService.requireA2F(account)//Always throws A2FRequiredException
+            authA2FService.requireA2f(account)//Always throws A2FRequiredException
         }
 
         val tokens = tokenManagerService.signAccessAndRefreshTokens(account)
@@ -65,19 +65,20 @@ class AuthLogInOutService(
         return tokens
     }
 
-    fun logout(accountId: Long) =
-        accountService.getById(accountId).let { account ->
-            accountService.updateRefreshToken(account, refreshToken = null)
-        }
-
     fun loginWithHandle(uuidDto: UuidDto): AccessAndRefreshTokens {
+        log.info { "Logging in with handle..." }
         val account = requestHandleService.getAccountAndDiscardCheckedHandle(
-            uuidDto.uuid,
+            uuidDto.value,
             RequestHandleSubject.EXTERNAL_LOGIN,
             loginWithHandleExpiresIn
         )
 
         return tokenManagerService.signAccessAndRefreshTokens(account)
     }
+
+    fun logout(accountId: Long) =
+        accountService.getById(accountId).let { account ->
+            accountService.updateRefreshToken(account, refreshToken = null)
+        }
 
 }
