@@ -34,7 +34,7 @@ abstract class ExternalLoginService(
 
         val account = accountService.getByEmail(email)
 
-        return requestHandleService.newRequestHandle(account, RequestHandleSubject.EXTERNAL_LOGIN)
+        return requestHandleService.newRequestHandle(account, subject = RequestHandleSubject.EXTERNAL_LOGIN)
     }
 
 }
