@@ -207,6 +207,16 @@
 									<artifactId>mapstruct-processor</artifactId>
 									<version>1.5.5.Final</version>
 								</annotationProcessorPath>
+								<annotationProcessorPath>
+									<groupId>org.projectlombok</groupId>
+									<artifactId>lombok</artifactId>
+									<version>${lombok.version}</version>
+								</annotationProcessorPath>
+								<annotationProcessorPath>
+									<groupId>org.projectlombok</groupId>
+									<artifactId>lombok-mapstruct-binding</artifactId>
+									<version>0.2.0</version>
+								</annotationProcessorPath>
 							</annotationProcessorPaths>
 						</configuration>
 					</execution>
