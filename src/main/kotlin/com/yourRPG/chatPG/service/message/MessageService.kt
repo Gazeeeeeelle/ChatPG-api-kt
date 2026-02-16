@@ -14,6 +14,7 @@ import com.yourRPG.chatPG.service.chat.ChatService
 import com.yourRPG.chatPG.validator.message.MessageContentValidator
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
+import java.util.UUID
 import kotlin.math.max
 import kotlin.math.min
 
@@ -32,77 +33,79 @@ class MessageService(
 ) {
 
     /**
-     * Fetches 20 messages in the [Chat] identified with and [chatId]. The messages are fetched by selecting
+     * Fetches 20 messages in the [Chat] identified with and [publicChatId]. The messages are fetched by selecting
      *  the ids less than the [referenceId], and therefore, older messages than the reference.
      * If the [referenceId] equals -1, then it fetches using a [Long.MAX_VALUE], which makes
      *  [MessageRepository.qFindOldByChatIdAndReference] provide the last 20 messages of the chat, since they just need
      *  to have lesser ids than the largest possible.
      *
-     * @param chatId identifier of chat
+     * @param publicChatId identifier of chat
      * @param referenceId reference for fetching
      * @return [List] of [MessageDto]s fetched
      * @see MessageRepository.qFindOldByChatIdAndReference
      */
-    fun getOldMessagesInChat(chatId: Long, referenceId: Long): List<MessageDto> {
+    fun getOldMessagesInChat(publicChatId: UUID, referenceId: Long): List<MessageDto> {
         require(referenceId >= -1L) { "Invalid reference ID: $referenceId" }
 
         return when (referenceId) {
-            -1L -> repository.qFindOldByChatIdAndReference(chatId, reference = Long.MAX_VALUE).map(mapper::toDto)
-            else -> repository.qFindOldByChatIdAndReference(chatId, referenceId).map(mapper::toDto)
+            -1L -> repository.qFindOldByChatIdAndReference(publicChatId, reference = Long.MAX_VALUE).map(mapper::toDto)
+            else -> repository.qFindOldByChatIdAndReference(publicChatId, referenceId).map(mapper::toDto)
         }
     }
     /**
-     * Fetches 20 messages in the [Chat] identified with [chatId]. The messages are fetched by selecting
+     * Fetches 20 messages in the [Chat] identified with [publicChatId]. The messages are fetched by selecting
      *  the ids greater than the [referenceId], and therefore, newer messages than the reference.
      *
-     * @param chatId identifier of chat.
+     * @param publicChatId identifier of chat.
      * @param referenceId reference for fetching.
      * @see MessageRepository.qFindNewByChatIdAndReference
      */
-    fun getNewMessagesInChat(chatId: Long, referenceId: Long): List<MessageDto> {
+    fun getNewMessagesInChat(publicChatId: UUID, referenceId: Long): List<MessageDto> {
         require(referenceId >= -1L) { "Invalid reference ID: $referenceId" }
 
-        return repository.qFindNewByChatIdAndReference(chatId, referenceId).map(mapper::toDto)
+        return repository.qFindNewByChatIdAndReference(publicChatId, referenceId).map(mapper::toDto)
     }
 
     /**
-     * Fetches a message with id [messageId] in the [Chat] identified with [chatId].
+     * Fetches a message with id [messageId] in the [Chat] identified with [publicChatId].
      *
      * @return [Message] found
-     * @throws MessageNotFoundException if no message with id [messageId] was found in the chat with id [chatId]
-     * @see MessageRepository.findByChatIdAndId
+     * @throws MessageNotFoundException if no message with id [messageId] was found in the chat with id [publicChatId]
+     * @see MessageRepository.findByPublicChatIdAndId
      */
-    fun getByChatIdAndId(chatId: Long, messageId: Long): Message =
-        repository.findByChatIdAndId(chatId, messageId)
+    fun getByChatIdAndId(publicChatId: UUID, messageId: Long): Message =
+        repository.findByPublicChatIdAndId(publicChatId, messageId)
             ?: throw MessageNotFoundException("Unable to find message with id: $messageId")
 
     /**
      * Delegates to [getByChatIdAndId], then converts to DTO.
      *
-     * @param chatId
+     * @param publicChatId
      * @param messageId
      */
-    fun getDtoByChatIdAndId(chatId: Long, messageId: Long): MessageDto =
-        mapper.toDto(getByChatIdAndId(chatId, messageId))
+    fun getDtoByChatIdAndId(publicChatId: UUID, messageId: Long): MessageDto =
+        mapper.toDto(getByChatIdAndId(publicChatId, messageId))
 
     /**
-     * Creates a message as the account identified by [accountId] in the chat identified by [chatId] with content [content]
+     * Creates a message as the account identified by [accountId] in the chat identified by [publicChatId] with content [content]
      *
      * @param accountId account identifier.
-     * @param chatId chat identifier.
+     * @param publicChatId chat identifier.
      * @param content content of the message.
      * @return [MessageDto] of the message created.
      * @see AccountService.getById
-     * @see ChatService.getByChatId
+     * @see ChatService.getByPublicId
      * @see createMessage
      */
-    fun sendMessage(accountId: Long, chatId: Long, content: String): MessageDto =
-        mapper.toDto(createMessage(
+    fun sendMessage(accountId: Long, publicChatId: UUID, content: String): MessageDto {
+        val message = createMessage(
             accountService.getById(accountId),
-            chatService.getByChatId(chatId),
+            chatService.getByPublicId(publicChatId),
             content,
             isBot = false
-        ))
+        )
+        return mapper.toDto(message)
+    }
 
     /**
      * Validates content of message, constructs the [Message], then persists it.
@@ -113,19 +116,21 @@ class MessageService(
      * @param isBot whether the message was sent by a bot or not
      * @see MessageContentValidator.validate
      */
-    private fun createMessage(account: Account?, chat: Chat, content: String, isBot: Boolean): Message =
-        contentValidator.validate(t = content).run {
-            repository.save(Message(account, chat, content, isBot))
-        }
+    private fun createMessage(account: Account?, chat: Chat, content: String, isBot: Boolean): Message {
+        contentValidator.validate(t = content)
+
+        val message = Message(account, chat, content, isBot)
+        return repository.save(message)
+    }
 
     /**
-     * Generates an AI message on a chat identified by [chatId].
+     * Generates an AI message on a chat identified by [publicChatId].
      *
-     * @param chatId chat identifier
-     * @see ChatService.getByChatId
+     * @param publicChatId chat identifier
+     * @see ChatService.getByPublicId
      * @see createAIMessage
      */
-    fun generateResponse(chatId: Long): MessageDto = createAIMessage(chatService.getByChatId(chatId))
+    fun generateResponse(publicChatId: UUID): MessageDto = createAIMessage(chatService.getByPublicId(publicChatId))
 
     /**
      * Fetches previous messages present in the chat ([MessageRepository.qFindAllMessagesFromChat]), then treats them
@@ -159,36 +164,36 @@ class MessageService(
     }
 
     /**
-     * Deletes a single message in the chat identified by [chatId]. The message deleted is identified by its [messageId].
+     * Deletes a single message in the chat identified by [publicChatId]. The message deleted is identified by its [messageId].
      *
-     * @param chatId chat identifier
+     * @param publicChatId chat identifier
      * @param messageId message identifier
      * @throws MessageNotFoundException if no messages where deleted
      */
     @Transactional
-    fun deleteMessage(chatId: Long, messageId: Long) =
-        repository.qDeleteByChatIdAndId(chatId, messageId).let {
+    fun deleteMessage(publicChatId: UUID, messageId: Long) =
+        repository.qDeleteByChatIdAndId(publicChatId, messageId).let {
             if (it == 0) throw MessageNotFoundException("Message with id $messageId not found")
         }
 
     /**
-     * Deletes a multiple messages in the chat identified by [chatId]. The messages deleted are the ones within the
+     * Deletes a multiple messages in the chat identified by [publicChatId]. The messages deleted are the ones within the
      *  inclusive range of ids with bounds [bound1] and [bound2]. To enable any order of upper bound and lower bound,
      *  there is a check to pass the idStart and idFinish as the smallest and greater between the bounds respectively.
      *
-     * @param chatId chat identifier
+     * @param publicChatId chat identifier
      * @param bound1 one of the range's bounds
      * @param bound2 another of the range's bounds
      * @throws MessageNotFoundException if no messages where deleted
      */
     @Transactional
-    fun bulkDeleteMessages(chatId: Long, bound1: Long, bound2: Long) {
-        val (idStart, idFinish) =
-            min(a = bound1, b = bound2) to max(a = bound1, b = bound2)
+    fun bulkDeleteMessages(publicChatId: UUID, bound1: Long, bound2: Long) {
+        val idStart  = min(a = bound1, b = bound2)
+        val idFinish = max(a = bound1, b = bound2)
 
-        repository.qBulkDeleteByChatIdFromIdToId(chatId, idStart, idFinish).let {
-            if (it == 0) throw MessageNotFoundException("No messages deleted")
-        }
+        val amountDeleted = repository.qBulkDeleteByChatIdFromIdToId(publicChatId, idStart, idFinish)
+
+        if (amountDeleted == 0) throw MessageNotFoundException("No messages deleted")
     }
 
 }
