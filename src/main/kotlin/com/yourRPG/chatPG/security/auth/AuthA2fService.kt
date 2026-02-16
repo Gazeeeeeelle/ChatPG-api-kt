@@ -75,7 +75,7 @@ class AuthA2fService(
     }
 
     //Return type Nothing could not be used because it generated problem in tests.
-    fun requireA2F(account: Account) {
+    fun requireA2f(account: Account) {
         val handle = openA2f(account)
         val url = buildUrl(handle)
 
