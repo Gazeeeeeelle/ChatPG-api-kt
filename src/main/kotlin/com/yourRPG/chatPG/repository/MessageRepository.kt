@@ -2,11 +2,10 @@ package com.yourRPG.chatPG.repository
 
 import com.yourRPG.chatPG.domain.chat.Chat
 import com.yourRPG.chatPG.domain.message.Message
-import jakarta.transaction.Transactional
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
-import java.util.UUID
+import java.util.*
 
 interface MessageRepository: JpaRepository<Message, Long> {
 
@@ -32,10 +31,10 @@ interface MessageRepository: JpaRepository<Message, Long> {
     fun qFindOldByChatIdAndReference(publicChatId: UUID, reference: Long): List<Message>
 
     /**
-     * Fetches 20 messages from the [Chat] identified with [chatId]. The messages are fetched by selecting the ids
+     * Fetches 20 messages from the [Chat] identified with [publicChatId]. The messages are fetched by selecting the ids
      *  greater than the [reference] id, and therefore, 20 newer messages than the reference.
      *
-     * @param chatId chat identifier
+     * @param publicChatId chat identifier
      * @param reference reference id for fetching
      * @return [List] of [Message]s fetched
      */
@@ -53,9 +52,9 @@ interface MessageRepository: JpaRepository<Message, Long> {
     fun findByPublicChatIdAndId(publicChatId: UUID, messageId: Long): Message?
 
     /**
-     * Deletes a single message, with id [messageId], in the chat identified by [chatId].
+     * Deletes a single message, with id [messageId], in the chat identified by [publicChatId].
      *
-     * @param chatId chat identifier.
+     * @param publicChatId chat identifier.
      * @param messageId message identifier.
      * @return Integer amount of messages deleted. One if successful, zero if no message were found for deletion.
      */
@@ -64,10 +63,10 @@ interface MessageRepository: JpaRepository<Message, Long> {
     fun qDeleteByChatIdAndId(publicChatId: UUID, messageId: Long): Int
 
     /**
-     * Deletes a multiple messages within a chat. The chat is identified by [chatId]. The range of messages deleted are
+     * Deletes a multiple messages within a chat. The chat is identified by [publicChatId]. The range of messages deleted are
      *  the ones with id between and including [idStart] and [idFinish].
      *
-     * @param chatId chat identifier.
+     * @param publicChatId chat identifier.
      * @param idStart lower bound of the ids range.
      * @param idFinish upper bound of the ids range.
      * @return Integer amount of messages deleted. Bigger than zero if successful, zero if no message found for deletion.

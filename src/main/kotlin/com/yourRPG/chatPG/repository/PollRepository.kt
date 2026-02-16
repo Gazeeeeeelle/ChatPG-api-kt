@@ -1,7 +1,6 @@
 package com.yourRPG.chatPG.repository
 
 import com.yourRPG.chatPG.domain.poll.Poll
-import com.yourRPG.chatPG.dto.poll.PollDto
 import com.yourRPG.chatPG.service.poll.PollSubject
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
