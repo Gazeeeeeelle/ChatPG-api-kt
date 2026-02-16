@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 
 class ExpiredRequestHandleException(
     message: String? = null,
+
     @field:JsonIgnore
     val accountId: Long
 ): IllegalStateException(message) {
