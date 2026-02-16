@@ -25,9 +25,10 @@ class Account: UserDetails {
     var id: Long? = null
         protected set
 
-    //UuidCreator.getRandomBased outperforms java.util.UUID.randomUUID
+    //UuidCreator.getRandomBased outperforms java.util.UUID.randomUUID concurrently
     @Column(unique = true, nullable = false, updatable = false)
     var publicId: UUID = UuidCreator.getRandomBased()
+        protected set
 
     @Column(unique = true, nullable = false, updatable = false)
     var name: String? = null
@@ -39,6 +40,7 @@ class Account: UserDetails {
 
     @Embedded
     var auth: AccountAuth = AccountAuth()
+        protected set
 
     @ManyToMany(mappedBy = "accounts")
     var chats: MutableList<Chat>? = null
