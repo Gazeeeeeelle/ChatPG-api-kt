@@ -13,7 +13,9 @@ import com.yourRPG.chatPG.service.chat.ChatService
 import com.yourRPG.chatPG.service.poll.commandRunner.PollCommandRunnerService
 import com.yourRPG.chatPG.validator.poll.PollValidators
 import org.springframework.stereotype.Service
+import java.util.*
 import kotlin.jvm.optionals.getOrElse
+import kotlin.jvm.optionals.getOrNull
 
 @Service
 class PollService(
@@ -37,67 +39,67 @@ class PollService(
      */
     fun getById(chat: Chat, subject: PollSubject): Poll =
         pollRepository.findById(CompositePrimaryKey(chat, subject)).getOrElse {
-            throw PollNotFoundException("No poll with subject \"${subject.name}\" in chat with id ${chat.id}")
+            throw PollNotFoundException("No poll with subject \"${subject.name}\" in chat given")
         }
 
     /**
      * Returns all polls active in the chat.
      *
-     * @param chatId
+     * @param publicChatId
      *
      * @return Mutable list of poll DTOs.
      *
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
      */
-    fun all(chatId: Long): List<PollDto> =
-        pollRepository.findAllByChatId(chatId).map(mapper::toDto)
+    fun all(publicChatId: UUID): List<PollDto> =
+        pollRepository.qFindAllByPublicChatId(publicChatId).map(mapper::toDto)
 
     /**
      * Starts a new poll on a chat.
      * The subject given is used to determine what to do when the poll finishes successfully.
      *
      * @param accountId
-     * @param chatId
+     * @param publicChatId
      *
      * @return poll DTO
      *
      * @throws com.yourRPG.chatPG.exception.chat.ChatNotFoundException
-     * if [chatId] did not identify an existing chat
+     * if [publicChatId] did not identify an existing chat
      * or if the account identified by [accountId] did not have access to it
      */
-    fun start(accountId: Long, chatId: Long, command: String): PollDto {
-        
-        val chat = chatService.getByChatId(chatId)
+    fun start(accountId: Long, publicChatId: UUID, command: String): PollDto {
+        val chat = chatService.getByPublicId(publicChatId)
 
-        val subject = runCatching { PollSubject.valueOf(command) }
-            .getOrElse { throw BadRequestException("Invalid command: $command") }
+        val subject = try {
+            PollSubject.valueOf(command)
+        } catch (_: IllegalArgumentException) {
+           throw BadRequestException("Invalid command: $command")
+        }
 
-        val amountOfAccountsInChat = chatService.getAmountOfAccounts(chatId)
+        val amountOfAccountsInChat = chatService.getAmountOfAccounts(publicChatId)
         
         val poll = Poll(chat, subject, quota = (amountOfAccountsInChat + 1) / 2)
 
         pollValidators.validateStart(accountId, chat, poll)
 
-        pollRepository.save(poll)
-
-        return mapper.toDto(poll)
+        return mapper.toDto(pollRepository.save(poll))
     }
 
     /**
      * Adds a vote as [accountId] to the [Poll] active in [Chat] with subject of the [command], identifying a single object,
      *  since [Chat] and [PollSubject] make up a primary key for [Poll].
      *
-     * @param accountId
-     * @param chatId
+     * @param accountId account identifier
+     * @param publicChatId chat identifier
      * @param command
      * 
      * @return [PollDto] of the [Poll] identified.
      * 
      * @throws AlreadyVotedInPollException if the [accountId] is already present on the list of votes of the [Poll].
      */
-    fun vote(accountId: Long, chatId: Long, command: String): PollDto {
+    fun vote(accountId: Long, publicChatId: UUID, command: String): PollDto {
 
-        val chat = chatService.getByChatId(chatId)
+        val chat = chatService.getByPublicId(publicChatId)
 
         val subject = runCatching { PollSubject.valueOf(command) }
             .getOrElse { throw BadRequestException("No such command: $command") }
