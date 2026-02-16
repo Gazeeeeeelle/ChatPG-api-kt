@@ -2,15 +2,15 @@ package com.yourRPG.chatPG.infra.external.auth.google
 
 import com.auth0.jwt.JWT
 import com.yourRPG.chatPG.dto.external.google.GoogleAccessTokenDto
-import com.yourRPG.chatPG.exception.http.*
+import com.yourRPG.chatPG.exception.http.InternalServerException
 import com.yourRPG.chatPG.infra.external.auth.IAuthApiService
 import com.yourRPG.chatPG.infra.external.auth.google.GoogleAuthApiService.Companion.GOOGLE_ACCOUNTS_AUTH_URL
 import com.yourRPG.chatPG.infra.external.auth.google.GoogleAuthApiService.Companion.GOOGLE_OAUTH_URL
 import com.yourRPG.chatPG.infra.uri.BackendUriHelper
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.http.client.ClientHttpResponse
 import org.springframework.stereotype.Service
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestClient
@@ -28,13 +28,17 @@ class GoogleAuthApiService(
     private val clientSecret: String,
 ): IAuthApiService {
 
-    companion object {
-        private const val GOOGLE_ACCOUNTS_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
-        private const val GOOGLE_OAUTH_URL = "https://oauth2.googleapis.com"
-        private const val GOOGLE_APIS_AUTH_URL  = "https://www.googleapis.com/auth"
+    private companion object {
+        val log = KotlinLogging.logger {}
 
-        private const val CALLBACK_URI_PATH = "/auth/login/with/google/authorized"
+        const val GOOGLE_ACCOUNTS_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+        const val GOOGLE_OAUTH_URL = "https://oauth2.googleapis.com"
+        const val GOOGLE_APIS_AUTH_URL  = "https://www.googleapis.com/auth"
+
+        const val CALLBACK_URI_PATH = "/auth/login/with/google/authorized"
     }
+
+    override fun getLogger(): KLogger = log
 
     /**
      * Returns the [GOOGLE_ACCOUNTS_AUTH_URL] used to redirect the user to the Google's OAuth page.
@@ -61,10 +65,8 @@ class GoogleAuthApiService(
             .accept(MediaType.APPLICATION_JSON)
             .body(buildTokenRequestBody(code))
             .retrieve()
-            .onStatus({ it.isError }) { _, response -> tokenResponseHandler(response) }
-            .body(GoogleAccessTokenDto::class.java)
-            ?.idToken
-            ?: throw InternalServerException("Response from Github had invalid body")
+            .validateResponse(GoogleAccessTokenDto::class)
+            .validateToken()
     }
 
     /**
@@ -80,6 +82,7 @@ class GoogleAuthApiService(
         val token = getToken(code)
 
         val decoded = JWT.decode(token)
+
         return decoded.getClaim("email").asString()
     }
 
@@ -89,7 +92,7 @@ class GoogleAuthApiService(
      * @param code used to identify which request it aims to fulfill.
      * @return A name to value [Map] of the fields required.
      */
-    fun buildTokenRequestBody(code: String) =
+    internal fun buildTokenRequestBody(code: String) =
         LinkedMultiValueMap<String, String>().apply {
             add("code"         , code)
             add("client_id"    , clientId)
@@ -98,24 +101,10 @@ class GoogleAuthApiService(
             add("grant_type"   , "authorization_code")
         }
 
-    /**
-     * TODO: introduce a mapper that is able to take either HttpStatus enum or numerical code and return the respective
-     *  Exception
-     */
-    fun tokenResponseHandler(response: ClientHttpResponse) {
-        val code = response.statusCode
-        val message = "Google: $code"
-        when (response.statusCode) {
-            HttpStatus.BAD_REQUEST ->
-                throw BadRequestException("$message. Malformed token or request.")
-            HttpStatus.UNAUTHORIZED ->
-                throw UnauthorizedException("$message. Invalid or expired token sent to Google.")
-            HttpStatus.FORBIDDEN ->
-                throw ForbiddenException("$message. Rate limit exceeded or insufficient scopes.")
-            HttpStatus.NOT_FOUND ->
-                throw NotFoundException("$message. User emails endpoint not found.")
-            else -> throw InternalServerException("Could not retrieve emails from Google's endpoint.")
+    internal fun (GoogleAccessTokenDto).validateToken(): String =
+        idToken ?: run {
+            log.error { "Null idToken from deserialization" }
+            throw InternalServerException("Null idToken from deserialization")
         }
-    }
 
 }
