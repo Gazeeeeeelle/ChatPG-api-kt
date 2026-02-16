@@ -67,9 +67,8 @@ class TokenFilter(
 
     }
 
-    internal fun excludePathFromAuthentication(path: String): Boolean {
-        return !path.startsWith(ApplicationEndpoints.AuthSecure.BASE)
+    internal fun excludePathFromAuthentication(path: String): Boolean =
+        !path.startsWith(ApplicationEndpoints.AuthSecure.BASE)
                 && path.startsWith(ApplicationEndpoints.Auth.BASE)
-    }
 
 }
