@@ -23,6 +23,10 @@ class GlobalExceptionHandler {
     fun httpException(ex: HttpException): ResponseEntity<String> =
         ResponseEntity.status(ex.status).body(ex.message)
 
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun illegalArgumentException(ex: IllegalArgumentException) =
+        ResponseEntity.badRequest().body(ex.message)
+
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun methodArgumentNotValidException(ex: MethodArgumentNotValidException): ResponseEntity<String> =
         ResponseEntity.badRequest().body(ex.fieldError?.defaultMessage)
