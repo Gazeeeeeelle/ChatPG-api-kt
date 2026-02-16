@@ -1,0 +1,2 @@
+ALTER TABLE chat
+    ADD COLUMN public_id UUID UNIQUE;
