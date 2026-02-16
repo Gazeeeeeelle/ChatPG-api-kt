@@ -1,51 +1,38 @@
 package com.yourRPG.chatPG.exception.handler
 
-import com.yourRPG.chatPG.exception.http.ConflictException
-import com.yourRPG.chatPG.exception.http.ForbiddenException
-import com.yourRPG.chatPG.exception.http.NotFoundException
-import com.yourRPG.chatPG.exception.http.ServiceUnavailableException
-import com.yourRPG.chatPG.exception.http.UnauthorizedException
+import com.yourRPG.chatPG.dto.error.RedirectDto
+import com.yourRPG.chatPG.exception.auth.A2fRequiredException
+import com.yourRPG.chatPG.exception.http.HttpException
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.MissingRequestCookieException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 
 @ControllerAdvice
 class GlobalExceptionHandler {
 
-    @ExceptionHandler(MethodArgumentNotValidException::class)
-    fun methodArgumentNotValidException(ex: MethodArgumentNotValidException): ResponseEntity<String> {
-        return ResponseEntity.status(400).body(ex.fieldError?.defaultMessage)
+    @ExceptionHandler(A2fRequiredException::class)
+    fun a2fRequiredException(ex: A2fRequiredException): ResponseEntity<RedirectDto> {
+        val dto = RedirectDto("Further authentication needed.", ex.url)
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(dto)
     }
+
+    @ExceptionHandler(HttpException::class)
+    fun httpException(ex: HttpException): ResponseEntity<String> =
+        ResponseEntity.status(ex.status).body(ex.message)
 
     @ExceptionHandler(IllegalArgumentException::class)
-    fun illegalArgument(ex: IllegalArgumentException): ResponseEntity<String> {
-        return ResponseEntity.status(400).body(ex.message)
-    }
+    fun illegalArgumentException(ex: IllegalArgumentException) =
+        ResponseEntity.badRequest().body(ex.message)
 
-    @ExceptionHandler(UnauthorizedException::class)
-    fun unauthorized(ex: UnauthorizedException): ResponseEntity<String> {
-        return ResponseEntity.status(401).body(ex.message)
-    }
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun methodArgumentNotValidException(ex: MethodArgumentNotValidException): ResponseEntity<String> =
+        ResponseEntity.badRequest().body(ex.fieldError?.defaultMessage)
 
-    @ExceptionHandler(ForbiddenException::class)
-    fun forbidden(ex: ForbiddenException): ResponseEntity<String> {
-        return ResponseEntity.status(403).body(ex.message)
-    }
-
-    @ExceptionHandler(NotFoundException::class)
-    fun notFound(ex: NotFoundException): ResponseEntity<String> {
-        return ResponseEntity.status(404).body(ex.message)
-    }
-
-    @ExceptionHandler(ConflictException::class)
-    fun conflict(ex: ConflictException): ResponseEntity<String> {
-        return ResponseEntity.status(409).body(ex.message)
-    }
-
-    @ExceptionHandler(ServiceUnavailableException::class)
-    fun serviceUnavailable(ex: ServiceUnavailableException): ResponseEntity<String> {
-        return ResponseEntity.status(503).body(ex.message)
-    }
+    @ExceptionHandler(MissingRequestCookieException::class)
+    fun missingRequestCookieException(ex: MissingRequestCookieException): ResponseEntity<String> =
+        ResponseEntity.badRequest().body("${ex.cookieName} is missing.")
 
 }

@@ -1,8 +1,9 @@
 package com.yourRPG.chatPG.repository
 
-import com.yourRPG.chatPG.domain.Chat
+import com.yourRPG.chatPG.domain.chat.Chat
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import java.util.UUID
 
 interface ChatRepository: JpaRepository<Chat, Long> {
 
@@ -25,23 +26,47 @@ interface ChatRepository: JpaRepository<Chat, Long> {
     fun qFindByName(chatName: String): Chat?
 
     /**
-     * Returns [Boolean] based on whether a [Chat] is found in the chats that the [com.yourRPG.chatPG.domain.Account] has
-     *  access to and has id of [id].
+     * Returns [Boolean] based on whether a [Chat] is found in the chats that the [com.yourRPG.chatPG.domain.account.Account] has
+     *  access to and has id of [].
      *
      * @param accountId account identifier.
-     * @param id chat identifier.
+     * @param publicId chat identifier.
      * @return [Boolean] based on whether such chat exists for the account or not.
      */
-    @Query("SELECT CASE WHEN (COUNT(c) > 0) THEN true ELSE false END FROM Chat c JOIN c.accounts a ON a.id = :accountId AND c.id = :id")
-    fun qExistsByAccountNameAndId(accountId: Long, id: Long): Boolean
+    @Query("""
+        SELECT 
+            CASE 
+                WHEN COUNT(c) > 0 THEN true 
+                ELSE false 
+            END 
+        FROM Chat c 
+        JOIN c.accounts a 
+            ON a.id = :accountId 
+        WHERE c.publicId = :publicId
+    """)
+    fun qExistsByAccountNameAndId(accountId: Long, publicId: UUID): Boolean
 
     /**
-     * Returns the amount of accounts with access to the chat identified by [chatId].
+     * Returns the amount of accounts with access to the chat identified by [publicId].
      *
-     * @param chatId chat identifier.
+     * @param publicId chat identifier.
      * @return amount of accounts with access to the chat.
      */
-    @Query("SELECT COUNT(a) FROM Chat c JOIN c.accounts a WHERE c.id = :chatId")
-    fun countAccounts(chatId: Long): Int
+    @Query("SELECT COUNT(a) FROM Chat c JOIN c.accounts a WHERE c.publicId = :publicId")
+    fun countAccounts(publicId: UUID): Int
+
+    @Query("SELECT c FROM Chat c WHERE c.publicId = :publicId")
+    fun qFindByPublicId(publicId: UUID): Chat?
+
+    @Query("""
+        SELECT 
+            CASE 
+                WHEN COUNT(c) > 0 THEN true 
+                ELSE false 
+            END 
+        FROM Chat c 
+        WHERE c.publicId = :publicId
+    """)
+    fun qExistsByPublicId(publicId: UUID): Boolean
 
 }

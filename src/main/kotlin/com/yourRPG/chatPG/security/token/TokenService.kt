@@ -4,11 +4,13 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTCreator
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.JWTVerificationException
+import com.auth0.jwt.exceptions.TokenExpiredException
 import com.auth0.jwt.interfaces.Claim
 import com.auth0.jwt.interfaces.DecodedJWT
-import com.yourRPG.chatPG.domain.Account
-import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
+import com.yourRPG.chatPG.domain.account.Account
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
+import com.yourRPG.chatPG.exception.http.UnauthorizedException
 import com.yourRPG.chatPG.exception.security.InvalidTokenException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
@@ -41,8 +43,7 @@ class TokenService(
 
             withSubject(account.username)
 
-            withClaim("id", account.id
-                ?: throw AccountNotFoundException("ID not found"))
+            withClaim("id", account.publicId.toString())
 
         }.sign(algorithm)
 
@@ -62,19 +63,16 @@ class TokenService(
             withExpiresAt(expiresAt)
         }
 
-
     /**
-     * Returns the [Claim] requested in [claim] from the token [token].
+     * Returns the [Claim] requested in [claim] from the token [token]. Returns null if [Claim] could not be extracted.
      *
      * @param token where to extract the claim from.
      * @param claim which claim to extract.
-     * @return [Claim] found.
+     * @return Nullable [Claim] found.
      * @throws InvalidTokenException if the extraction of the claim was not possible.
      */
-    fun getClaim(token: String, claim: String): Claim =
-        verify(token)
-            .claims[claim]
-            ?: throw InvalidTokenException("Invalid claim")
+    fun getClaim(token: String, claim: String): Claim? =
+        verify(token).claims[claim]
 
     /**
      * Verifies the token given and returns its decoded form.
@@ -84,10 +82,12 @@ class TokenService(
      * @throws InvalidTokenException if the verification failed.
      */
     fun verify(token: String): DecodedJWT =
-        runCatching {
+        try {
             buildJWTVerifier().verify(token)
-        }.getOrElse { ex ->
-            throw InvalidTokenException(ex.message ?: "Token verification failed")
+        } catch (_: TokenExpiredException) {
+            throw UnauthorizedException("Token expired")
+        } catch (_: JWTVerificationException) {
+            throw InvalidTokenException("Malformed token")
         }
 
     fun buildJWTVerifier(): JWTVerifier =
@@ -100,11 +100,11 @@ class TokenService(
      *
      * @param request where to extract the bearer token from.
      * @return Bearer token's [String] value.
-     * @throws AccessToAccountUnauthorizedException if no *Authorization* header was found.
+     * @throws UnauthorizedException if no *Authorization* header was found.
      */
     fun getAccessToken(request: HttpServletRequest): String =
         request.getHeader("Authorization")
             ?.replace("Bearer ", "")
-            ?: throw AccessToAccountUnauthorizedException("Authorization header is missing")
+            ?: throw UnauthorizedException("Authorization header is missing")
 
 }

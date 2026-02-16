@@ -1,114 +1,113 @@
 package com.yourRPG.chatPG.controller.auth
 
+import com.yourRPG.chatPG.config.ApplicationEndpoints
 import com.yourRPG.chatPG.dto.account.AccountDto
-import com.yourRPG.chatPG.dto.auth.LoginCredentials
-import com.yourRPG.chatPG.dto.auth.TokenDto
-import com.yourRPG.chatPG.dto.auth.UuidDto
-import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
-import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
-import com.yourRPG.chatPG.helper.http.CookieService
+import com.yourRPG.chatPG.dto.auth.*
+import com.yourRPG.chatPG.infra.http.CookieService
 import com.yourRPG.chatPG.security.auth.AuthService
-import jakarta.servlet.http.HttpServletResponse
+import com.yourRPG.chatPG.security.token.AccessAndRefreshTokens
 import jakarta.validation.Valid
+import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.CookieValue
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping(ApplicationEndpoints.Auth.BASE)
 class AuthController(
     private val service: AuthService,
-
     private val cookieService: CookieService,
 ) {
 
     /**
      * @see AuthService.login
      */
-    @PostMapping("/login")
+    @PostMapping(ApplicationEndpoints.Auth.LOGIN)
     fun login(
         @Valid @RequestBody credentials: LoginCredentials,
-        response: HttpServletResponse
-    ): ResponseEntity<TokenDto> {
-        val (tokenDto, refreshToken) = service.login(credentials)
-
-        cookieService.appendRefreshToken(response, refreshToken)
-
-        return ResponseEntity.ok(tokenDto)
-    }
+    ): ResponseEntity<TokenDto> =
+        service.login(credentials).tokensToResponse()
 
     /**
-     * @see AuthService.logout
+     * @see AuthService.fulfillA2f
      */
-    @PostMapping("/logout")
-    fun logout(
-        @AuthenticationPrincipal accountId: Long
-    ): ResponseEntity<TokenDto> {
-        service.logout(accountId)
-        return ResponseEntity.noContent().build()
-    }
+    @PostMapping(ApplicationEndpoints.Auth.FULFILL_A2F)
+    fun fulfillA2F(
+        @Valid @RequestBody dto: FulfillA2fDto
+    ): ResponseEntity<TokenDto> =
+        service.fulfillA2f(dto).tokensToResponse()
 
     /**
-     * @see AuthService.login
+     * Returns a [TokenDto] containing the generated access token, together with the refresh token inside an http-only
+     *  cookie.
+     *
+     * @param oldRefreshToken the refresh token that will be used to identify the account requiring the refresh, and
+     *  authorize that to be done.
      */
-    @PostMapping("/refreshToken")
-    fun refreshToken(
+    @PostMapping(ApplicationEndpoints.Auth.REFRESH_TOKENS)
+    fun refreshTokens(
         @CookieValue("refresh_token") oldRefreshToken: String,
-        response: HttpServletResponse
-    ): ResponseEntity<TokenDto> {
-        val (tokenDto, newRefreshToken) = service.refreshToken(oldRefreshToken)
-
-        cookieService.appendRefreshToken(response, newRefreshToken)
-
-        return ResponseEntity.ok(tokenDto)
-    }
+    ): ResponseEntity<TokenDto> =
+        service.refreshToken(oldRefreshToken).tokensToResponse()
 
     /**
-     * @see AuthService.requestChangePassword
+     * @see AuthService.loginWithHandle
      */
-    @PostMapping("/requestChangePassword")
-    fun requestChangePassword(
-        @RequestBody email: String
+    @PostMapping(ApplicationEndpoints.Auth.LOGIN_WITH_HANDLE)
+    fun loginWithHandle(
+        @RequestBody uuidDto: UuidDto
+    ): ResponseEntity<TokenDto> =
+        service.loginWithHandle(uuidDto).tokensToResponse()
+
+    /**
+     * @see AuthService.openPasswordChange
+     */
+    @PostMapping(ApplicationEndpoints.Auth.OPEN_PASSWORD_CHANGE)
+    fun openPasswordChange(
+        @Valid @RequestBody dto: OpenPasswordChangeDto
     ): ResponseEntity<Unit> {
-        service.requestChangePassword(email)
+        service.openPasswordChange(dto)
         return ResponseEntity.noContent().build()
     }
 
     /**
-     * @see AuthService.requestChangePassword
+     * @see AuthService.fulfillPasswordChange
      */
-    @PostMapping("/confirmChangePassword")
-    fun confirmChangePassword(
-        @RequestBody dto: ChangePasswordDto
+    @PostMapping(ApplicationEndpoints.Auth.FULFILL_PASSWORD_CHANGE)
+    fun fulfillPasswordChange(
+        @RequestBody dto: FulfillPasswordChangeDto
     ): ResponseEntity<Unit> {
-        service.confirmChangePassword(dto)
+        service.fulfillPasswordChange(dto)
         return ResponseEntity.noContent().build()
     }
 
     /**
-     * @see AuthService.createAccount
+     * @see AuthService.openAccountCreation
      */
-    @PostMapping("/createAccount")
-    fun createAccount(
-        @Valid @RequestBody dto: CreateAccountDto
+    @PostMapping(ApplicationEndpoints.Auth.OPEN_ACCOUNT_CREATION)
+    fun openAccountCreation(
+        @Valid @RequestBody dto: OpenAccountCreationDto
     ): ResponseEntity<AccountDto> =
         ResponseEntity.ok(
-            service.createAccount(dto)
+            service.openAccountCreation(dto)
         )
 
     /**
-     * @see AuthService.activateAccount
+     * @see AuthService.fulfillAccountCreation
      */
-    @PostMapping("/activateAccount")
-    fun activateAccount(
+    @PostMapping(ApplicationEndpoints.Auth.FULFILL_ACCOUNT_CREATION)
+    fun fulfillAccountCreation(
         @Valid @RequestBody uuid: UuidDto
     ): ResponseEntity<AccountDto> =
         ResponseEntity.ok(
-            service.activateAccount(uuid)
+            service.fulfillAccountCreation(uuid)
         )
+
+    internal fun (AccessAndRefreshTokens).tokensToResponse(): ResponseEntity<TokenDto> {
+        val cookie = cookieService.refreshToken(refreshToken)
+
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, cookie.toString())
+            .body(accessToken)
+    }
 
 }

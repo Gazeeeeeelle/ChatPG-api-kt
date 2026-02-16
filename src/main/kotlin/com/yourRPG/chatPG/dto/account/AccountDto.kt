@@ -1,19 +1,15 @@
 package com.yourRPG.chatPG.dto.account
 
-import com.yourRPG.chatPG.domain.Account
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
+import java.util.UUID
 
 data class AccountDto(
 
     @field:NotNull
-    var id: Long?,
+    var publicId: UUID?,
 
     @field:NotBlank
     var name: String?,
 
-) {
-
-    constructor(account: Account): this(account.id, account.name)
-
-}
+)

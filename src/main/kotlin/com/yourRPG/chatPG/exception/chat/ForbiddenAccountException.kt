@@ -1,5 +1,5 @@
 package com.yourRPG.chatPG.exception.chat
 
-import com.yourRPG.chatPG.exception.http.UnauthorizedException
+import com.yourRPG.chatPG.exception.http.ForbiddenException
 
-class ForbiddenAccountException(message: String): UnauthorizedException(message)
+class ForbiddenAccountException(message: String): ForbiddenException(message)

@@ -1,7 +1,7 @@
 package com.yourRPG.chatPG.service.message
 
-import com.yourRPG.chatPG.domain.Account
-import com.yourRPG.chatPG.domain.Message
+import com.yourRPG.chatPG.domain.account.Account
+import com.yourRPG.chatPG.domain.message.Message
 import org.springframework.stereotype.Service
 import javax.security.auth.login.AccountNotFoundException
 

@@ -1,187 +1,189 @@
 package com.yourRPG.chatPG.security.auth
 
-import com.yourRPG.chatPG.domain.Account
-import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
+import com.yourRPG.chatPG.domain.account.Account
+import com.yourRPG.chatPG.dto.auth.FulfillPasswordChangeDto
+import com.yourRPG.chatPG.dto.auth.OpenPasswordChangeDto
 import com.yourRPG.chatPG.exception.account.AccountNotFoundException
-import com.yourRPG.chatPG.exception.auth.password.PasswordResetException
-import com.yourRPG.chatPG.helper.email.MimeHelper
-import com.yourRPG.chatPG.helper.uri.FrontendUriHelper
+import com.yourRPG.chatPG.exception.auth.password.BadPasswordException
+import com.yourRPG.chatPG.infra.email.EmailService
+import com.yourRPG.chatPG.infra.email.MimeHelper
+import com.yourRPG.chatPG.infra.uri.FrontendUriHelper
+import com.yourRPG.chatPG.security.requesthandle.RequestHandleService
+import com.yourRPG.chatPG.security.requesthandle.RequestHandleSubject
 import com.yourRPG.chatPG.service.account.AccountService
-import com.yourRPG.chatPG.service.email.EmailService
+import com.yourRPG.chatPG.validator.account.PasswordValidator
 import helper.NullSafeMatchers.STRING_TYPE
 import helper.NullSafeMatchers.any
 import helper.NullSafeMatchers.eq
+import helper.NullSafeMatchers.that
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.BDDMockito.*
-import org.mockito.InjectMocks
+import org.mockito.BDDMockito.given
 import org.mockito.Mock
+import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
+import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.Duration
-import java.time.Instant
 import java.util.*
 
 @ExtendWith(MockitoExtension::class)
 class AuthChangePasswordServiceTest {
 
-    @InjectMocks
     private lateinit var service: AuthChangePasswordService
 
+    @Mock private lateinit var passwordEncoder: PasswordEncoder
     @Mock private lateinit var accountService: AccountService
-    @Mock private lateinit var mimeHelper: MimeHelper
-    @Mock private lateinit var frontendUriHelper: FrontendUriHelper
     @Mock private lateinit var emailService: EmailService
-    @Mock private lateinit var passwordService: AuthPasswordService
+    @Mock private lateinit var requestHandleService: RequestHandleService
+    @Mock private lateinit var frontendUriHelper: FrontendUriHelper
+    @Mock private lateinit var mimeHelper: MimeHelper
+    @Mock private lateinit var passwordValidator: PasswordValidator
+
+    private val changePasswordExpiresIn = Duration.ofMinutes(10L)
+
+    @BeforeEach
+    fun setUp() {
+        service = AuthChangePasswordService(
+            passwordEncoder,
+            accountService,
+            emailService,
+            requestHandleService,
+            frontendUriHelper,
+            mimeHelper,
+            changePasswordExpiresIn,
+            passwordValidator,
+        )
+    }
 
     @Test
-    fun `requestChangePassword - success`() {
+    fun `openPasswordChange - success`() {
         //ARRANGE
-        val email   = "email@email.com"
-        val account = Account("username_test", email, "encrypted-password-test")
-
-        val html    = "html-test"
-        val url     = "url-test"
+        val email = "email@email.com"
+        val dto = OpenPasswordChangeDto(email)
+        val account = Account("username_test", "email@email.com", "Password-test")
+        val subject = RequestHandleSubject.CHANGE_PASSWORD
+        val uuid = UUID.randomUUID()
+        val url = "url/containing/$uuid"
+        val html = "html"
 
         given(accountService.getByEmail(email))
             .willReturn(account)
 
-        given(frontendUriHelper.append(STRING_TYPE.any()))
+        given(requestHandleService.newRequestHandle(account, subject))
+            .willReturn(uuid)
+
+        given(frontendUriHelper.appendString(STRING_TYPE.any()))
             .willReturn(url)
 
         given(mimeHelper.getTemplate(STRING_TYPE.any(), ("url" to url).eq()))
             .willReturn(html)
 
         //ACT
-        service.requestChangePassword(email)
+        service.openPasswordChange(dto)
 
         //ASSERT
+        verify(mimeHelper)
+            .getTemplate(STRING_TYPE.any(), ("" to "").any())
+
         verify(accountService)
-            .updateUuid(account = account.eq(), any(UUID::class.java))
+            .getByEmail(email)
+
+        verify(requestHandleService)
+            .newRequestHandle(account, subject)
+
+        verify(frontendUriHelper)
+            .appendString(STRING_TYPE.that { it.contains(uuid.toString()) })
 
         verify(emailService)
-            .sendMimeEmail(subject = "Reset password", to = email, html)
+            .sendMimeEmail("Reset password", email, html)
     }
 
     @Test
-    fun `requestChangePassword - account not found with email given`() {
+    fun `openPasswordChange - failure - account not found`() {
         //ARRANGE
         val email = "email@email.com"
+        val dto = OpenPasswordChangeDto(email)
+
         given(accountService.getByEmail(email))
-            .willThrow(AccountNotFoundException("Account not found with email $email"))
-
-        //ACT + ASSERT
-        assertThrows<AccountNotFoundException> {
-            service.requestChangePassword(email)
-        }
-    }
-
-    @Test
-    fun `confirmChangePassword - success`() {
-        //ARRANGE
-        val uuidString = "1ffa5d78-ab2d-e3de-ae5d-ab1fdabcfdde"
-        val uuid = UUID.fromString(uuidString)
-
-        val username          = "username_test"
-        val email             = "email@email.com"
-        val rawPassword       = "password-test"
-        val encryptedPassword = "encrypted-password-test"
-
-        val changePassword = ChangePasswordDto(uuidString, rawPassword)
-        val account = Account(username, email, encryptedPassword)
-
-        given(accountService.getByUuid(uuid))
-            .willReturn(account)
-
-        account.uuidBirth = Instant.now()
-
-        given(passwordService.encrypt(rawPassword))
-            .willReturn(encryptedPassword)
+            .willThrow(AccountNotFoundException::class.java)
 
         //ACT
-        service.confirmChangePassword(changePassword)
-
-        //ASSERT
-        verify(accountService).apply {
-            updateUuid(account, null)
-            updatePassword(account, encryptedPassword)
+        assertThrows<AccountNotFoundException> {
+            service.openPasswordChange(dto)
         }
-
     }
 
     @Test
-    fun `confirmChangePassword - expired uuid`() {
+    fun `fulfillPasswordChange - success`() {
         //ARRANGE
-        val uuidString = "1ffa5d78-ab2d-e3de-ae5d-ab1fdabcfdde"
-        val uuid = UUID.fromString(uuidString)
+        val requestHandleString = "019c477c-6d06-70a8-bcc5-eab25612b96c"
+        val requestHandle = UUID.fromString(requestHandleString)
+        val password = "Password-test"
+        val encodedPassword = "EncodedPassword-test"
 
-        val username          = "username_test"
-        val email             = "email@email.com"
-        val rawPassword       = "password-test"
-        val encryptedPassword = "encrypted-password-test"
+        val dto = FulfillPasswordChangeDto(requestHandleString, password)
 
-        val changePassword = ChangePasswordDto(uuidString, rawPassword)
-        val account = Account(username, email, encryptedPassword)
+        val account = Account("username_test", "email@email.com", "Password-test")
 
-        given(accountService.getByUuid(uuid))
-            .willReturn(account)
+        given(requestHandleService.getAccountAndDiscardCheckedHandle(
+                uuid = requestHandle,
+                subject = RequestHandleSubject.CHANGE_PASSWORD,
+                expirationTime = changePasswordExpiresIn
+        )).willReturn(account)
 
-        val twentyMinutes = Duration.ofMinutes(15)
-
-        account.uuidBirth = Instant.now().minus(twentyMinutes)
+        given(passwordEncoder.encode(password))
+            .willReturn(encodedPassword)
 
         //ACT
-        service.confirmChangePassword(changePassword)
+        service.fulfillPasswordChange(dto)
 
         //ASSERT
-        verify(accountService).
-            updateUuid(account, null)
-        verify(accountService, never())
-            .updatePassword(account, encryptedPassword)
-    }
-
-    @Test
-    fun `confirmChangePassword - account not found with uuid given`() {
-        //ARRANGE
-        val uuidString = "1ffa5d78-ab2d-e3de-ae5d-ab1fdabcfdde"
-        val uuid = UUID.fromString(uuidString)
-
-        val rawPassword = "password-test"
-        val changePassword = ChangePasswordDto(uuidString, rawPassword)
-
-        given(accountService.getByUuid(uuid))
-            .willThrow(AccountNotFoundException("No account found with uuid given"))
-
-        //ACT + ASSERT
-        assertThrows<AccountNotFoundException> {
-            service.confirmChangePassword(changePassword)
-        }
-
-    }
-
-    @Test
-    fun `confirmChangePassword - abnormal absence of uuid birth`() {
-        //ARRANGE
-        val uuidString  = "1ffa5d78-ab2d-e3de-ae5d-ab1fdabcfdde"
-        val uuid        = UUID.fromString(uuidString)
-
-        val username    = "username_test"
-        val email       = "email@email.com"
-        val rawPassword = "password-test"
-
-        val changePassword = ChangePasswordDto(uuidString, rawPassword)
-        val account = Account(username, email, "encrypted-password-test")
-
-        given(accountService.getByUuid(uuid))
-            .willReturn(account)
-
-        //ACT + ASSERT
-        assertThrows<PasswordResetException> {
-            service.confirmChangePassword(changePassword)
-        }
+        verify(passwordValidator)
+            .validate(password)
 
         verify(accountService)
-            .updateUuid(account, null)
+            .updatePassword(account, encodedPassword)
+    }
+
+    @Test
+    fun `fulfillPasswordChange - failure - account not found`() {
+        //ARRANGE
+        val requestHandleString = "019c477c-6d06-70a8-bcc5-eab25612b96c"
+        val requestHandle = UUID.fromString(requestHandleString)
+        val password = "Password-test"
+
+        val dto = FulfillPasswordChangeDto(requestHandleString, password)
+
+        given(requestHandleService.getAccountAndDiscardCheckedHandle(
+            uuid = requestHandle,
+            subject = RequestHandleSubject.CHANGE_PASSWORD,
+            expirationTime = changePasswordExpiresIn
+        )).willThrow(AccountNotFoundException::class.java)
+
+        //ACT
+        assertThrows<AccountNotFoundException> {
+            service.fulfillPasswordChange(dto)
+        }
+
+    }
+
+    @Test
+    fun `fulfillPasswordChange - failure - password invalid`() {
+        //ARRANGE
+        val requestHandleString = "019c477c-6d06-70a8-bcc5-eab25612b96c"
+        val password = "Password-test"
+
+        val dto = FulfillPasswordChangeDto(requestHandleString, password)
+
+        given(passwordValidator.validate(password))
+            .willThrow(BadPasswordException::class.java)
+
+        //ACT + ASSERT
+        assertThrows<BadPasswordException> {
+            service.fulfillPasswordChange(dto)
+        }
 
     }
 

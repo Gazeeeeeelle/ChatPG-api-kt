@@ -1,3 +1,3 @@
 package com.yourRPG.chatPG.exception.http
 
-class ForbiddenException(message: String): HttpException(message)
+open class ForbiddenException(message: String): HttpException(403, message)

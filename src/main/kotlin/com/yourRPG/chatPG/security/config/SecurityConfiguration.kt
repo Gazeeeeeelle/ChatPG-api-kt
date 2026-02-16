@@ -1,6 +1,7 @@
 package com.yourRPG.chatPG.security.config
 
-import com.yourRPG.chatPG.helper.uri.FrontendUriHelper
+import com.yourRPG.chatPG.config.ApplicationEndpoints
+import com.yourRPG.chatPG.infra.uri.FrontendUriHelper
 import com.yourRPG.chatPG.security.filters.AccessToChatFilter
 import com.yourRPG.chatPG.security.filters.TokenFilter
 import org.springframework.beans.factory.annotation.Value
@@ -26,11 +27,8 @@ class SecurityConfiguration(
     private val accessToChatFilter: AccessToChatFilter,
     private val frontendUriHelper: FrontendUriHelper,
 
-    @param:Value("\${server.protocol}")
-    private val protocol: String,
-
-    @param:Value("\${server.address}")
-    private val address: String
+    @param:Value("\${security.bcrypt-password-strength}")
+    private val bCryptPasswordStrength: Int,
 ) {
 
     @Bean
@@ -39,8 +37,8 @@ class SecurityConfiguration(
         csrf { it.disable() }
         sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
         authorizeHttpRequests {
-            it.requestMatchers("/auth/logout").authenticated()
-            it.requestMatchers("/auth/**").permitAll()
+            it.requestMatchers("${ApplicationEndpoints.AuthSecure.BASE}/**").authenticated()
+            it.requestMatchers("${ApplicationEndpoints.Auth.BASE}/**").permitAll()
 
             it.anyRequest().authenticated()
         }
@@ -53,14 +51,13 @@ class SecurityConfiguration(
     fun corsConfigurationSource(): CorsConfigurationSource = UrlBasedCorsConfigurationSource().apply {
         val configuration = CorsConfiguration().apply {
             allowedOrigins = listOf(
-                "$protocol$address:5500",
-                frontendUriHelper.getUriString()
+                frontendUriHelper.getUriString(),
             )
             allowCredentials = true
             allowedMethods =
                 listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD", "TRACE", "CONNECT")
             allowedHeaders =
-                listOf("Authorization", "Content-Type")
+                listOf("Authorization", "Content-Type", "credentials")
         }
 
         registerCorsConfiguration("/**", configuration)
@@ -71,6 +68,6 @@ class SecurityConfiguration(
         configuration.authenticationManager
 
     @Bean
-    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
+    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder(bCryptPasswordStrength)
 
 }

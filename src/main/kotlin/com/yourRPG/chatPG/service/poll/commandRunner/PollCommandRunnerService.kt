@@ -1,6 +1,6 @@
 package com.yourRPG.chatPG.service.poll.commandRunner
 
-import com.yourRPG.chatPG.domain.Poll
+import com.yourRPG.chatPG.domain.poll.Poll
 import com.yourRPG.chatPG.service.message.MessageService
 import com.yourRPG.chatPG.service.poll.PollSubject
 import org.springframework.stereotype.Service

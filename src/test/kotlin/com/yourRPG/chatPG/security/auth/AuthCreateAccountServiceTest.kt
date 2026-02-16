@@ -1,283 +1,249 @@
 package com.yourRPG.chatPG.security.auth
 
-import com.yourRPG.chatPG.domain.Account
+import com.yourRPG.chatPG.domain.account.Account
+import com.yourRPG.chatPG.dto.auth.OpenAccountCreationDto
 import com.yourRPG.chatPG.dto.auth.UuidDto
-import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
-import com.yourRPG.chatPG.exception.auth.AccountActivationException
-import com.yourRPG.chatPG.exception.auth.password.*
+import com.yourRPG.chatPG.exception.auth.password.BadPasswordException
 import com.yourRPG.chatPG.exception.auth.username.BadUsernameException
-import com.yourRPG.chatPG.exception.auth.username.UsernameContainsIllegalCharactersException
-import com.yourRPG.chatPG.exception.auth.username.UsernameTooLongException
-import com.yourRPG.chatPG.exception.auth.username.UsernameTooShortException
 import com.yourRPG.chatPG.exception.http.ConflictException
-import com.yourRPG.chatPG.helper.email.MimeHelper
-import com.yourRPG.chatPG.helper.uri.FrontendUriHelper
+import com.yourRPG.chatPG.exception.http.UnauthorizedException
+import com.yourRPG.chatPG.infra.email.EmailService
+import com.yourRPG.chatPG.infra.email.MimeHelper
+import com.yourRPG.chatPG.infra.uri.FrontendUriHelper
+import com.yourRPG.chatPG.mapper.AccountMapper
+import com.yourRPG.chatPG.security.requesthandle.RequestHandleService
+import com.yourRPG.chatPG.security.requesthandle.RequestHandleSubject
 import com.yourRPG.chatPG.service.account.AccountService
 import com.yourRPG.chatPG.service.account.AccountStatus
-import com.yourRPG.chatPG.service.email.EmailService
 import com.yourRPG.chatPG.validator.account.PasswordValidator
 import com.yourRPG.chatPG.validator.account.UsernameValidator
-import helper.NullSafeMatchers.LONG_TYPE
 import helper.NullSafeMatchers.STRING_TYPE
 import helper.NullSafeMatchers.any
 import helper.NullSafeMatchers.eq
-import org.junit.jupiter.api.DynamicTest
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.assertThrows
+import helper.NullSafeMatchers.that
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.BDDMockito.given
-import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
-import java.time.Instant
-import java.time.temporal.ChronoUnit
+import org.springframework.security.crypto.password.PasswordEncoder
+import java.time.Duration
 import java.util.*
 import java.util.stream.Stream
 
 @ExtendWith(MockitoExtension::class)
 class AuthCreateAccountServiceTest {
 
-    @InjectMocks
     private lateinit var service: AuthCreateAccountService
 
-    @Mock private lateinit var passwordService: AuthPasswordService
+    @Mock private lateinit var passwordEncoder: PasswordEncoder
     @Mock private lateinit var accountService: AccountService
     @Mock private lateinit var emailService: EmailService
-
+    @Mock private lateinit var requestHandleService: RequestHandleService
     @Mock private lateinit var usernameValidator: UsernameValidator
     @Mock private lateinit var passwordValidator: PasswordValidator
-
     @Mock private lateinit var mimeHelper: MimeHelper
     @Mock private lateinit var frontendUriHelper: FrontendUriHelper
+    @Mock private lateinit var accountMapper: AccountMapper
+
+    private val activateAccountExpiresIn: Duration = Duration.ofMinutes(30L)
+    private val activateAccountUrl: String = "/login/activate-account"
+
+    @BeforeEach
+    fun setUp() {
+        service = AuthCreateAccountService(
+            passwordEncoder,
+            accountService,
+            emailService,
+            requestHandleService,
+            usernameValidator,
+            passwordValidator,
+            mimeHelper,
+            frontendUriHelper,
+            accountMapper,
+            activateAccountExpiresIn,
+            activateAccountUrl
+        )
+    }
 
     @Test
-    fun `createAccount - success`() {
+    fun `openAccountCreation - success`() {
         //ARRANGE
         val username = "username_test"
-        val email    = "email@email.com"
-        val password = "Password-test"
-        val encryptedPassword = "encrypted-password-test"
+        val email = "email@email.com"
+        val password = "Password_test"
+        val openAccountCreationDto = OpenAccountCreationDto(username, email, password)
 
-        val dto = CreateAccountDto(username, email, password)
-        val account = Account(username, email, encryptedPassword)
+        val encodedPassword = "encoded-password-test"
+        val account = Account(username, email, password)
+        val handle = UUID.randomUUID()
 
-        given(passwordService.encrypt(rawPassword = dto.password))
-            .willReturn(encryptedPassword)
+        val html = "html"
+        val url = "url"
 
-        given(accountService.saveAccountWith(dto.username, dto.email, encryptedPassword))
+        given(passwordEncoder.encode(password))
+            .willReturn(encodedPassword)
+
+        given(accountService.insertAccount(username, email, encodedPassword))
             .willReturn(account)
 
+        given(requestHandleService.newRequestHandle(account, RequestHandleSubject.ACTIVATE_ACCOUNT))
+            .willReturn(handle)
+
+        given(
+            frontendUriHelper.appendString(
+            STRING_TYPE.that { it.contains(handle.toString()) }
+        )).willReturn(url)
+
+        given(
+            mimeHelper.getTemplate(
+                template = STRING_TYPE.any(),
+                ("url" to url).eq()
+            )
+        ).willReturn(html)
+
         //ACT
-        service.createAccount(dto)
+        service.openAccountCreation(openAccountCreationDto)
 
         //ASSERT
-        verify(usernameValidator).validate(t = username)
-        verify(passwordValidator).validate(t = password)
-
-        verify(passwordService)
-            .encrypt(password)
-
-        verify(accountService)
-            .saveAccountWith(username, email, encryptedPassword)
-
-        verify(accountService)
-            .updateUuid(account.eq(), UUID.randomUUID().any())
+        verify(usernameValidator).validate(username)
+        verify(passwordValidator).validate(password)
 
         verify(emailService)
-            .sendMimeEmail(STRING_TYPE.any(), email.eq(), STRING_TYPE.any())
+            .sendMimeEmail(
+                subject = "Activate account",
+                to = email,
+                html
+            )
 
-        verify(accountService)
-            .dtoOf(c = account)
-    }
-
-    @TestFactory
-    fun `createAccount - thrown by UsernameValidator does propagate`(): Stream<DynamicTest> {
-        //ARRANGE
-        val username = "username_test"
-        val email    = "email@email.com"
-        val password = "Password-test"
-        val dto = CreateAccountDto(username, email, password)
-
-        return Stream.of(
-            UsernameTooShortException("test"),
-            UsernameTooLongException("test"),
-            UsernameContainsIllegalCharactersException("test")
-        ).map { exception ->
-            DynamicTest.dynamicTest("Exception: $exception") {
-                //ARRANGE
-                given(usernameValidator.validate(t = username))
-                    .willThrow(exception)
-
-                //ACT + ASSERT
-                assertThrows<BadUsernameException> {
-                    service.createAccount(dto)
-                }
-
-                reset(usernameValidator)
-            }
-        }
-    }
-
-    @TestFactory
-    fun `createAccount - thrown by PasswordValidator does propagate`(): Stream<DynamicTest> {
-        //ARRANGE
-        val username = "username_test"
-        val email    = "email@email.com"
-        val password = "Password-test"
-        val dto = CreateAccountDto(username, email, password)
-
-        return Stream.of(
-            PasswordTooShortException("test"),
-            PasswordTooLongException("test"),
-            PasswordDoesNotMeetCharactersOccurrenceCriteriaException("test"),
-            PasswordContainsIllegalCharactersException("test")
-        ).map { exception ->
-            DynamicTest.dynamicTest("Exception: $exception") {
-                //ARRANGE
-                given(passwordValidator.validate(t = password))
-                    .willThrow(exception)
-
-                //ACT + ASSERT
-                assertThrows<BadPasswordException> {
-                    service.createAccount(dto)
-                }
-
-                reset(passwordValidator)
-            }
-        }
+        verify(accountMapper)
+            .toDto(account)
     }
 
     @Test
-    fun `activateAccount - success`() {
+    fun `openAccountCreation - failure - invalid username`() {
         //ARRANGE
-        val dto = UuidDto("b22ef8ea-bd27-48fe-994c-568e6a4e58e4")
-        val uuid = UUID.fromString(dto.uuid)
-        val account = mock(Account::class.java)
+        val username = "username_test"
+        val email = "email@email.com"
+        val password = "Password_test"
+        val openAccountCreationDto = OpenAccountCreationDto(username, email, password)
 
-        given(accountService.getByUuid(uuid))
-            .willReturn(account)
+        given(usernameValidator.validate(username))
+            .willThrow(BadUsernameException::class.java)
 
-        given(account.status)
-            .willReturn(AccountStatus.DISABLED)
+        //ACT + ASSERT
+        assertThrows<BadUsernameException> {
+            service.openAccountCreation(openAccountCreationDto)
+        }
 
-        given(account.uuidBirth)
-            .willReturn(Instant.now())
+    }
+
+    @Test
+    fun `openAccountCreation - failure - invalid password`() {
+        //ARRANGE
+        val username = "username_test"
+        val email = "email@email.com"
+        val password = "Password_test"
+        val openAccountCreationDto = OpenAccountCreationDto(username, email, password)
+
+        given(passwordValidator.validate(password))
+            .willThrow(BadPasswordException::class.java)
+
+        //ACT + ASSERT
+        assertThrows<BadPasswordException> {
+            service.openAccountCreation(openAccountCreationDto)
+        }
+
+    }
+
+    @Test
+    fun `fulfillAccountCreation - success`() {
+        //ARRANGE
+        val uuidString = "019c479c-f26e-7d4d-931b-360c5b831a39"
+        val uuidDto = UuidDto(uuidString)
+
+        val username = "username_test"
+        val email = "email@email.com"
+        val password = "Password_test"
+        val account = Account(username, email, password)
+
+        given(
+            requestHandleService.getAccountAndDiscardCheckedHandle(
+                uuidDto.value,
+                subject = RequestHandleSubject.ACTIVATE_ACCOUNT,
+                expirationTime = activateAccountExpiresIn
+            )
+        ).willReturn(account)
 
         //ACT
-        service.activateAccount(dto)
+        service.fulfillAccountCreation(uuidDto)
 
         //ASSERT
-        verify(accountService)
-            .updateUuid(account, null)
-
         verify(accountService)
             .updateStatus(account, AccountStatus.ENABLED)
 
+        verify(accountMapper)
+            .toDto(account)
+
         verify(accountService, never())
-            .deleteById(LONG_TYPE.any())
+            .deleteById(0L)
+    }
+
+    @Test
+    fun `fulfillAccountCreation - failure - account not found`() {
+        //ARRANGE
+        val uuidString = "019c479c-f26e-7d4d-931b-360c5b831a39"
+        val uuidDto = UuidDto(uuidString)
+
+        given(
+            requestHandleService.getAccountAndDiscardCheckedHandle(
+                uuidDto.value,
+                subject = RequestHandleSubject.ACTIVATE_ACCOUNT,
+                expirationTime = activateAccountExpiresIn
+            )
+        ).willThrow(UnauthorizedException::class.java)
+
+        //ACT + ASSERT
+        assertThrows<UnauthorizedException> {
+            service.fulfillAccountCreation(uuidDto)
+        }
+
     }
 
     @TestFactory
-    fun `activateAccount - failure - abnormal - account is not disabled`(): Stream<DynamicTest> {
+    fun `fulfillAccountCreation - failure - abnormal - unallowed state`(): Stream<DynamicTest> {
         //ARRANGE
-        val dto = UuidDto("b22ef8ea-bd27-48fe-994c-568e6a4e58e4")
-        val uuid = UUID.fromString(dto.uuid)
-        val account = mock(Account::class.java)
+        val uuidString = "019c479c-f26e-7d4d-931b-360c5b831a39"
+        val uuidDto = UuidDto(uuidString)
+
+        val username = "username_test"
+        val email = "email@email.com"
+        val password = "Password_test"
+        val account = Account(username, email, password)
 
         return Stream.of(
-            AccountStatus.ENABLED,
-            AccountStatus.DELETED,
+            AccountStatus.ENABLED, AccountStatus.DELETED
         ).map { status ->
             DynamicTest.dynamicTest("Status: $status") {
-                given(accountService.getByUuid(uuid))
-                    .willReturn(account)
+                //ARRANGE
+                account.status = status
 
-                given(account.status)
-                    .willReturn(status)
+                given(
+                    requestHandleService.getAccountAndDiscardCheckedHandle(
+                        uuidDto.value,
+                        subject = RequestHandleSubject.ACTIVATE_ACCOUNT,
+                        expirationTime = activateAccountExpiresIn
+                    )
+                ).willReturn(account)
 
                 //ACT + ASSERT
                 assertThrows<ConflictException> {
-                    service.activateAccount(dto)
+                    service.fulfillAccountCreation(uuidDto)
                 }
-
-                verify(accountService)
-                    .updateUuid(account, uuid = null)
-
-                verify(accountService, never())
-                    .updateStatus(account.eq(), status = AccountStatus.entries.random().any())
-
-                verify(accountService, never())
-                    .deleteById(LONG_TYPE.any())
-
-                reset(accountService)
             }
         }
-    }
-
-    @Test
-    fun `activateAccount - failure - abnormal - absence of uuid birth`() {
-        //ARRANGE
-        val dto = UuidDto("b22ef8ea-bd27-48fe-994c-568e6a4e58e4")
-        val uuid = UUID.fromString(dto.uuid)
-        val account = mock(Account::class.java)
-
-        given(accountService.getByUuid(uuid))
-            .willReturn(account)
-
-        given(account.status)
-            .willReturn(AccountStatus.DISABLED)
-
-        //ACT + ASSERT
-        assertThrows<AccountActivationException> {
-            service.activateAccount(dto)
-        }
-
-        //ASSERT
-        verify(accountService)
-            .updateUuid(account, null)
-
-        verify(accountService, never())
-            .updateStatus(account.eq(), AccountStatus.entries.random().any())
-
-        verify(accountService, never())
-            .deleteById(LONG_TYPE.any())
-
-    }
-
-
-    @Test
-    fun `activateAccount - failure - expired`() {
-        //ARRANGE
-        val dto = UuidDto("b22ef8ea-bd27-48fe-994c-568e6a4e58e4")
-        val uuid = UUID.fromString(dto.uuid)
-        val account = mock(Account::class.java)
-
-        given(accountService.getByUuid(uuid))
-            .willReturn(account)
-
-        given(account.status)
-            .willReturn(AccountStatus.DISABLED)
-
-        val thirtyMinutesAgo = Instant.now()
-            .minus(30, ChronoUnit.MINUTES)
-
-        given(account.uuidBirth)
-            .willReturn(thirtyMinutesAgo)
-
-        //ACT + ASSERT
-        assertThrows<AccountActivationException> {
-            service.activateAccount(dto)
-        }
-
-        //ASSERT
-        verify(accountService)
-            .updateUuid(account, null)
-
-        verify(accountService)
-            .deleteById(LONG_TYPE.any())
-
     }
 
 }

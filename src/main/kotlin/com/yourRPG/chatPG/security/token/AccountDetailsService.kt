@@ -13,10 +13,10 @@ class AccountDetailsService(
 ): UserDetailsService {
 
     /**
-     * Returns [UserDetails] of [com.yourRPG.chatPG.domain.Account] found by [username].
+     * Returns [UserDetails] of [com.yourRPG.chatPG.domain.account.Account] found by [username].
      *
      * @param username
-     * @return [UserDetails] of the found [com.yourRPG.chatPG.domain.Account] by [username].
+     * @return [UserDetails] of the found [com.yourRPG.chatPG.domain.account.Account] by [username].
      * @see AccountService.getByName
      */
     override fun loadUserByUsername(username: String): UserDetails {

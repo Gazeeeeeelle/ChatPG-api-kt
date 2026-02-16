@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 @Component
 class PasswordValidator: IValidatable<String> {
 
-    companion object {
+    private companion object {
         const val SPECIAL_CHARACTERS = "\\\\\\$\\^\\*\\?\\.\\{\\}\\[\\]\\|@#!%&<>,;:/~=-"
         const val LEGAL_CHARACTERS = "A-Za-z\\d$SPECIAL_CHARACTERS"
         const val LEGAL_CHARACTERS_PATTERN = "^[$LEGAL_CHARACTERS]+$"

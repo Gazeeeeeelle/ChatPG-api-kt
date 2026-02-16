@@ -1,7 +1,7 @@
 package com.yourRPG.chatPG.validator.poll
 
-import com.yourRPG.chatPG.domain.Chat
-import com.yourRPG.chatPG.domain.Poll
+import com.yourRPG.chatPG.domain.chat.Chat
+import com.yourRPG.chatPG.domain.poll.Poll
 import com.yourRPG.chatPG.validator.chat.AccountIsOwnerOfChatValidator
 import com.yourRPG.chatPG.validator.poll.start.StartPollCredentialsValidator
 import com.yourRPG.chatPG.validator.poll.vote.VotePollValidator

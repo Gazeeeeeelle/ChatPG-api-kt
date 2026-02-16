@@ -1,23 +1,14 @@
 package com.yourRPG.chatPG.service.ai
 
-import com.yourRPG.chatPG.dto.ai.model.AiModelDto
 import com.yourRPG.chatPG.exception.ai.NullAiResponse
-import com.yourRPG.chatPG.service.IConvertible
 import com.yourRPG.chatPG.service.ai.providers.AiModel
 import com.yourRPG.chatPG.service.ai.providers.AiProvider
 import org.springframework.stereotype.Service
 
 @Service
 class AiService(
-    /* Inject providers */
     private val providers: List<IResponsive>
-): IConvertible<AiModel, AiModelDto> {
-
-    /**
-     * Conversion.
-     * @see IConvertible
-     */
-    override fun dtoOf(c: AiModel): AiModelDto = AiModelDto(c)
+) {
 
     /**
      * Directs a request to an AI model based on [AiModel] and such request has content [prompt].

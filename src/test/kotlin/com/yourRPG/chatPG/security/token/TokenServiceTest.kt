@@ -4,9 +4,8 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.Claim
 import com.auth0.jwt.interfaces.DecodedJWT
-import com.yourRPG.chatPG.domain.Account
-import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
-import com.yourRPG.chatPG.exception.account.AccountNotFoundException
+import com.yourRPG.chatPG.domain.account.Account
+import com.yourRPG.chatPG.exception.http.UnauthorizedException
 import com.yourRPG.chatPG.exception.security.InvalidTokenException
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -15,7 +14,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.BDDMockito.given
-import org.mockito.Mock
 import org.mockito.Mockito.mock
 import org.mockito.junit.jupiter.MockitoExtension
 import java.time.Clock
@@ -32,34 +30,31 @@ class TokenServiceTest {
 
     private val clock = Clock.fixed(Instant.now(), ZoneId.of("UTC"))
 
-    @Mock
-    private lateinit var account: Account
-
     @BeforeEach
     fun setup() {
         service = TokenService(secret, clock)
     }
 
     @Test
-    fun signTokenWithLifetime() {
+    fun `signTokenWithLifetime - success`() {
         //ARRANGE
-        val username = "username_test"
-
-        given(account.username)
-            .willReturn(username)
+        val account = Account("username_test", "email@email.com", "password")
 
         //ACT
         val token = service.signTokenWithLifetime(Duration.ofMinutes(10L), account)
 
         //ASSERT
-        assertEquals(getIdClaim(token).toString(), "0")
+        assertEquals(account.publicId.toString(), getIdClaim(token).asString())
 
-        assertEquals(getSubject(token), account.username)
+        assertEquals(account.username, getSubject(token))
 
     }
 
     @Test
     fun `signTokenWithLifetime - expired`() {
+        //ARRANGE
+        val account = Account("username_test", "email@email.com", "password")
+
         //ACT
         val token = service.signTokenWithLifetime(Duration.ofSeconds(0L), account)
 
@@ -70,40 +65,32 @@ class TokenServiceTest {
     }
 
     @Test
-    fun `signTokenWithLifetime - failure - abnormal - null account id`() {
-        //ARRANGE
-        given(account.id)
-            .willReturn(null)
-
-        //ACT + ASSERT
-        assertThrows<AccountNotFoundException> {
-            service.signTokenWithLifetime(Duration.ofSeconds(0L), account)
-        }
-    }
-
-    @Test
     fun `getClaim - success`() {
         //ARRANGE
+        val account = Account("username_test", "email@email.com", "password")
+
         val token = service.signTokenWithLifetime(Duration.ofSeconds(10L), account)
-        val claimName = "id"
 
         //ACT
-        val claim = service.getClaim(token, claimName)
+        val claim = service.getClaim(token, "id")
 
         //ASSERT
-        assertEquals("0", claim.toString())
+        assertEquals(account.publicId.toString(), claim?.asString())
     }
 
     @Test
     fun `getClaim - failure`() {
         //ARRANGE
+        val account = Account("username_test", "email@email.com", "password")
+
         val token = service.signTokenWithLifetime(Duration.ofSeconds(10L), account)
         val claim = "some_other_claim"
 
         //ACT + ASSERT
-        assertThrows<InvalidTokenException> {
-            service.getClaim(token, claim)
-        }
+        val responseClaim = service.getClaim(token, claim)
+
+        //ASSERT
+        assertEquals(null, responseClaim)
     }
 
     @Test
@@ -149,7 +136,7 @@ class TokenServiceTest {
             .willReturn(null)
 
         //ACT + ASSERT
-        assertThrows<AccessToAccountUnauthorizedException> {
+        assertThrows<UnauthorizedException> {
             service.getAccessToken(request)
         }
 
@@ -159,9 +146,7 @@ class TokenServiceTest {
     fun `verify - success`() {
         //ARRANGE
         val username = "username_test"
-
-        given(account.username)
-            .willReturn(username)
+        val account = Account(username, "email@email.com", "password")
 
         val token = service.signTokenWithLifetime(Duration.ofSeconds(10L), account)
 
@@ -169,7 +154,7 @@ class TokenServiceTest {
         val decoded = service.verify(token)
 
         //ASSERT
-        assertEquals("0", decoded.claims["id"].toString())
+        assertEquals(account.publicId.toString(), decoded.claims["id"]?.asString())
 
         assertEquals(username, decoded.subject)
 
@@ -180,10 +165,12 @@ class TokenServiceTest {
     @Test
     fun `verify - failure - expired`() {
         //ARRANGE
+        val account = Account("username_test", "email@email.com", "password")
+
         val token = service.signTokenWithLifetime(Duration.ofSeconds(0L), account)
 
         //ACT + ASSERT
-        assertThrows<InvalidTokenException> {
+        assertThrows<UnauthorizedException> {
             service.verify(token)
         }
 

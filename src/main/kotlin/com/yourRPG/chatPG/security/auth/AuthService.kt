@@ -1,11 +1,8 @@
 package com.yourRPG.chatPG.security.auth
 
 import com.yourRPG.chatPG.dto.account.AccountDto
-import com.yourRPG.chatPG.dto.auth.LoginCredentials
-import com.yourRPG.chatPG.dto.auth.TokenDto
-import com.yourRPG.chatPG.dto.auth.UuidDto
-import com.yourRPG.chatPG.dto.auth.account.ChangePasswordDto
-import com.yourRPG.chatPG.dto.auth.account.CreateAccountDto
+import com.yourRPG.chatPG.dto.auth.*
+import com.yourRPG.chatPG.security.token.AccessAndRefreshTokens
 import com.yourRPG.chatPG.security.token.TokenManagerService
 import org.springframework.stereotype.Service
 
@@ -15,6 +12,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class AuthService(
+    private val authA2fService: AuthA2fService,
     private val authChangePasswordService: AuthChangePasswordService,
     private val authCreateAccountService: AuthCreateAccountService,
     private val authLogInOutService: AuthLogInOutService,
@@ -25,7 +23,7 @@ class AuthService(
      * Delegates.
      * @see AuthLogInOutService.login
      */
-    fun login(credentials: LoginCredentials): Pair<TokenDto, String> =
+    fun login(credentials: LoginCredentials): AccessAndRefreshTokens =
         authLogInOutService.login(credentials)
 
     /**
@@ -38,38 +36,51 @@ class AuthService(
 
     /**
      * Delegates.
-     * @see AuthChangePasswordService.requestChangePassword
+     * @see AuthChangePasswordService.openPasswordChange
      */
-    fun requestChangePassword(email: String) =
-        authChangePasswordService.requestChangePassword(email)
+    fun openPasswordChange(dto: OpenPasswordChangeDto) =
+        authChangePasswordService.openPasswordChange(dto)
 
     /**
      * Delegates.
-     * @see AuthChangePasswordService.confirmChangePassword
+     * @see AuthChangePasswordService.fulfillPasswordChange
      */
-    fun confirmChangePassword(dto: ChangePasswordDto) =
-        authChangePasswordService.confirmChangePassword(dto)
+    fun fulfillPasswordChange(dto: FulfillPasswordChangeDto) =
+        authChangePasswordService.fulfillPasswordChange(dto)
 
     /**
      * Delegates.
-     * @see AuthCreateAccountService.createAccount
+     * @see AuthCreateAccountService.openAccountCreation
      */
-    fun createAccount(dto: CreateAccountDto): AccountDto =
-        authCreateAccountService.createAccount(dto)
+    fun openAccountCreation(dto: OpenAccountCreationDto): AccountDto =
+        authCreateAccountService.openAccountCreation(dto)
 
     /**
      * Delegates.
-     * @see AuthCreateAccountService.activateAccount
+     * @see AuthCreateAccountService.fulfillAccountCreation
      */
-    fun activateAccount(uuid: UuidDto): AccountDto =
-        authCreateAccountService.activateAccount(uuid)
+    fun fulfillAccountCreation(dto: UuidDto): AccountDto =
+        authCreateAccountService.fulfillAccountCreation(dto)
 
     /**
      * Delegates.
      * @see TokenManagerService.refreshTokens
      */
-    fun refreshToken(oldRefreshToken: String): Pair<TokenDto, String> {
-        return tokenManagerService.refreshTokens(oldRefreshToken)
-    }
+    fun refreshToken(oldRefreshToken: String): AccessAndRefreshTokens =
+        tokenManagerService.refreshTokens(oldRefreshToken)
+
+    /**
+     * Delegates.
+     * @see AuthA2fService.fulfillA2f
+     */
+    fun fulfillA2f(dto: FulfillA2fDto): AccessAndRefreshTokens =
+        authA2fService.fulfillA2f(dto)
+
+    /**
+     * Delegates.
+     * @see AuthLogInOutService.loginWithHandle
+     */
+    fun loginWithHandle(uuidDto: UuidDto): AccessAndRefreshTokens =
+        authLogInOutService.loginWithHandle(uuidDto)
 
 }

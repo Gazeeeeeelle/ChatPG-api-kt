@@ -3,6 +3,7 @@ package helper
 import helper.NullSafeMatchers.eq
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.eq
+import org.springframework.context.annotation.Fallback
 
 /**
  * This becomes very a very important feature that enables to adopt the presented testing strategy offered in PROCEDURE.md
@@ -29,5 +30,8 @@ object NullSafeMatchers {
     fun <O> (O).any(): O {
         return ArgumentMatchers.any() ?: this
     }
+
+    fun <O> (O).that(satisfies: (o: O) -> Boolean): O =
+        ArgumentMatchers.argThat(satisfies) ?: this
 
 }

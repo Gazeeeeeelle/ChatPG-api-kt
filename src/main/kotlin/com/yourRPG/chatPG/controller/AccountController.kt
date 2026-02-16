@@ -1,5 +1,6 @@
 package com.yourRPG.chatPG.controller
 
+import com.yourRPG.chatPG.config.ApplicationEndpoints
 import com.yourRPG.chatPG.dto.account.AccountDto
 import com.yourRPG.chatPG.service.account.AccountService
 import org.springframework.http.ResponseEntity
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/account")
+@RequestMapping(ApplicationEndpoints.Account.BASE)
 class AccountController(
     private val accountService: AccountService
 ) {
@@ -17,7 +18,7 @@ class AccountController(
     /**
      * @see AccountService.getDtoById
      */
-    @GetMapping("/current")
+    @GetMapping(ApplicationEndpoints.Account.CURRENT)
     fun getAccount(
         @AuthenticationPrincipal accountId: Long,
     ): ResponseEntity<AccountDto> =

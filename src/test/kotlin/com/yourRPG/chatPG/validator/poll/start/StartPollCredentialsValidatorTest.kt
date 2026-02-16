@@ -2,8 +2,8 @@ package com.yourRPG.chatPG.validator.poll.start
 
 import com.yourRPG.chatPG.exception.chat.ChatNotFoundException
 import com.yourRPG.chatPG.exception.poll.PollAlreadyExistsException
-import com.yourRPG.chatPG.domain.Chat
-import com.yourRPG.chatPG.domain.Poll
+import com.yourRPG.chatPG.domain.chat.Chat
+import com.yourRPG.chatPG.domain.poll.Poll
 import com.yourRPG.chatPG.repository.PollRepository
 import com.yourRPG.chatPG.service.poll.PollSubject
 import org.junit.jupiter.api.Test

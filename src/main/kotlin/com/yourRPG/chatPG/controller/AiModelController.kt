@@ -1,5 +1,6 @@
 package com.yourRPG.chatPG.controller
 
+import com.yourRPG.chatPG.config.ApplicationEndpoints
 import com.yourRPG.chatPG.service.ai.AiService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -8,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/models")
+@RequestMapping(ApplicationEndpoints.AiModel.BASE)
 class AiModelController(
     private val aiService: AiService
 ) {
@@ -16,7 +17,7 @@ class AiModelController(
     /**
      * @see isModelAvailable
      */
-    @GetMapping("/isModelAvailable/{modelName}")
+    @GetMapping(ApplicationEndpoints.AiModel.IS_MODEL_AVAILABLE)
     fun isModelAvailable(
         @PathVariable modelName: String
     ): ResponseEntity<Boolean> =
@@ -27,7 +28,7 @@ class AiModelController(
     /**
      * @see AiService.getModels
      */
-    @GetMapping("/all")
+    @GetMapping(ApplicationEndpoints.AiModel.ALL)
     fun all(): ResponseEntity<List<String>> =
         ResponseEntity.ok(
             aiService.getModels()

@@ -1,33 +1,47 @@
 package com.yourRPG.chatPG.security.auth
 
-import com.yourRPG.chatPG.domain.Account
+import com.yourRPG.chatPG.domain.account.Account
 import com.yourRPG.chatPG.dto.auth.LoginCredentials
-import com.yourRPG.chatPG.exception.account.AccessToAccountUnauthorizedException
+import com.yourRPG.chatPG.exception.auth.A2fRequiredException
+import com.yourRPG.chatPG.exception.http.UnauthorizedException
+import com.yourRPG.chatPG.security.requesthandle.RequestHandleService
 import com.yourRPG.chatPG.security.token.TokenManagerService
 import com.yourRPG.chatPG.service.account.AccountService
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.BDDMockito.given
-import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.crypto.password.PasswordEncoder
-import kotlin.test.assertEquals
+import java.time.Duration
 
 @ExtendWith(MockitoExtension::class)
 class AuthLogInOutServiceTest {
 
-    @InjectMocks
     private lateinit var service: AuthLogInOutService
 
-    @Mock private lateinit var authPasswordService: AuthPasswordService
+    @Mock private lateinit var passwordEncoder: PasswordEncoder
     @Mock private lateinit var tokenManagerService: TokenManagerService
     @Mock private lateinit var accountService: AccountService
+    @Mock private lateinit var authA2fService: AuthA2fService
+    @Mock private lateinit var requestHandleService: RequestHandleService
 
-    @Mock
-    private lateinit var passwordEncoder: PasswordEncoder
+    private val loginWithHandleExpiresIn: Duration = Duration.ofMinutes(1L)
+
+    @BeforeEach
+    fun setUp() {
+        service = AuthLogInOutService(
+            passwordEncoder,
+            tokenManagerService,
+            accountService,
+            authA2fService,
+            requestHandleService,
+            loginWithHandleExpiresIn
+        )
+    }
 
     @Test
     fun `login - success`() {
@@ -37,34 +51,76 @@ class AuthLogInOutServiceTest {
         val rawPassword     = "Password-test"
         val encodedPassword = "encoded-Password-test"
 
-        val accessToken = "access_token_test"
-        val refreshToken = "refresh_token_test"
-
         val credentials = LoginCredentials(username, rawPassword)
         val account     = Account(username, email, encodedPassword)
 
         given(accountService.getByName(username))
             .willReturn(account)
 
-        given(authPasswordService.passwordEncoder)
-            .willReturn(passwordEncoder)
-
-        given(passwordEncoder.matches(rawPassword, encodedPassword))
+        given(passwordEncoder.matches(credentials.password, account.password))
             .willReturn(true)
 
-        given(tokenManagerService.signAccessToken(account))
-            .willReturn(accessToken)
-
-        given(tokenManagerService.newRefreshToken(account))
-            .willReturn(refreshToken)
-
         //ACT
-        val (responseAccessToken, responseRefreshToken) = service.login(credentials)
+        service.login(credentials)
 
         //ASSERT
-        assertEquals(accessToken, responseAccessToken.token)
-        assertEquals(refreshToken, responseRefreshToken)
+        verify(tokenManagerService)
+            .signAccessAndRefreshTokens(account)
+    }
 
+    @Test
+    fun `login - success - a2f`() {
+        //ARRANGE
+        val username        = "username_test"
+        val email           = "email@email.com"
+        val rawPassword     = "Password-test"
+        val encodedPassword = "encoded-Password-test"
+
+        val credentials = LoginCredentials(username, rawPassword)
+        val account     = Account(username, email, encodedPassword)
+        account.auth.a2f = true
+
+        given(accountService.getByName(username))
+            .willReturn(account)
+
+        given(passwordEncoder.matches(credentials.password, account.password))
+            .willReturn(true)
+
+        given(authA2fService.requireA2f(account))
+            .willThrow(A2fRequiredException::class.java)
+
+        //ACT
+        assertThrows<A2fRequiredException> {
+            service.login(credentials)
+        }
+
+        //ASSERT
+        verify(authA2fService)
+            .requireA2f(account)
+
+        verify(tokenManagerService, never())
+            .signAccessAndRefreshTokens(account)
+
+    }
+
+    @Test
+    fun  `login - account not found`() {
+        //ARRANGE
+        val username        = "username_test"
+        val email           = "email@email.com"
+        val rawPassword     = "Password-test"
+        val encodedPassword = "encoded-Password-test"
+
+        val credentials = LoginCredentials(username, rawPassword)
+        val account     = Account(username, email, encodedPassword)
+
+        assertThrows<UnauthorizedException> {
+            service.login(credentials)
+        }
+
+        //ASSERT
+        verify(tokenManagerService, never())
+            .signAccessAndRefreshTokens(account)
     }
 
     @Test
@@ -81,21 +137,14 @@ class AuthLogInOutServiceTest {
         given(accountService.getByName(username))
             .willReturn(account)
 
-        given(authPasswordService.passwordEncoder)
-            .willReturn(passwordEncoder)
-
         //ACT
-        assertThrows<AccessToAccountUnauthorizedException> {
+        assertThrows<UnauthorizedException> {
             service.login(credentials)
         }
 
         //ASSERT
         verify(tokenManagerService, never())
-            .signAccessToken(account)
-
-        verify(tokenManagerService, never())
-            .newRefreshToken(account)
-
+            .signAccessAndRefreshTokens(account)
     }
 
     @Test
@@ -111,7 +160,7 @@ class AuthLogInOutServiceTest {
 
         //ASSERT
         verify(accountService)
-            .saveWithRefreshToken(account, refreshToken = null)
+            .updateRefreshToken(account, refreshToken = null)
 
     }
 

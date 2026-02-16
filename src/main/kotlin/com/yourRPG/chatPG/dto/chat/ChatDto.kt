@@ -1,22 +1,15 @@
 package com.yourRPG.chatPG.dto.chat
 
-import com.yourRPG.chatPG.domain.Chat
 import jakarta.validation.constraints.NotBlank
 import org.jetbrains.annotations.NotNull
+import java.util.*
 
 data class ChatDto (
 
     @field:NotNull
-    val id: Long?,
+    val publicId: UUID?,
 
     @field:NotBlank
     val name: String?
 
-){
-
-    constructor(chat: Chat): this(
-        id   = chat.id,
-        name = chat.name
-    )
-
-}
+)
