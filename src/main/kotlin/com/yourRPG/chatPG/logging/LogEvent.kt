@@ -1,11 +1,13 @@
 package com.yourRPG.chatPG.logging
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.slf4j.event.Level
+import java.time.Instant
 
 data class LogEvent(
-    val timestamp: String,
+    val timestamp: Instant,
 
-    val level: String,
+    val level: Level,
 
     val message: String,
 
