@@ -1,5 +1,6 @@
 package com.yourRPG.chatPG.domain.chat
 
+import com.github.f4b6a3.uuid.UuidCreator
 import com.yourRPG.chatPG.domain.message.Message
 import com.yourRPG.chatPG.domain.poll.Poll
 import com.yourRPG.chatPG.domain.account.Account
@@ -16,6 +17,7 @@ import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import java.util.UUID
 
 //Since the IDE does not check if the class is implicitly open because of @Entity decorator, we shall suppress the
 // misleading warning.
@@ -29,6 +31,10 @@ class Chat {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(nullable = false)
     var id: Long? = null
+        protected set
+
+    @Column(name = "public_id", unique = true, nullable = false, updatable = false)
+    var publicId: UUID = UuidCreator.getRandomBased()
         protected set
 
     @Column(nullable = false)
