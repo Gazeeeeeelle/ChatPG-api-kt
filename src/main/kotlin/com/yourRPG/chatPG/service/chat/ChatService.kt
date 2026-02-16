@@ -10,6 +10,8 @@ import com.yourRPG.chatPG.mapper.ChatMapper
 import com.yourRPG.chatPG.repository.ChatRepository
 import com.yourRPG.chatPG.service.ai.providers.AiModel
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.util.*
 
 @Service
 class ChatService(
@@ -38,28 +40,28 @@ class ChatService(
         getChatsByAccountId(accountId).map(mapper::toDto)
 
     /**
-     * Returns the [AiModelDto] of the [AiModel] active on the chat identified with [chatId].
+     * Returns the [AiModelDto] of the [AiModel] active on the chat identified with [publicId].
      *
-     * @param chatId
+     * @param publicId
      * @return [AiModelDto]
      * @throws ChatNotFoundException
      */
-    fun getModelDto(chatId: Long): AiModelDto =
-        aiModelMapper.toDto(getByChatId(chatId).model)
+    fun getModelDto(publicId: UUID): AiModelDto =
+        aiModelMapper.toDto(getByPublicId(publicId).model)
 
     /**
-     * Returns a [Chat] identified by [chatId].
+     * Returns a [Chat] identified by [publicId].
      *
-     * @param chatId
+     * @param publicId
      * @return [Chat]
      * @throws ChatNotFoundException
      */
-    fun getByChatId(chatId: Long): Chat =
-        repository.findById(chatId).orElse(null)
-            ?: throw ChatNotFoundException("Chat with id $chatId not found")
+    fun getByPublicId(publicId: UUID): Chat =
+        repository.qFindByPublicId(publicId)
+            ?: throw ChatNotFoundException("Chat not found with public id given")
 
     /**
-     * Similar to [getByChatId], though, the chat is identified by its name.
+     * Similar to [getByPublicId], though, the chat is identified by its name.
      *
      * @param chatName
      * @return [Chat] found by [chatName].
@@ -70,21 +72,22 @@ class ChatService(
             ?: throw ChatNotFoundException("Chat '$chatName' not found")
 
     /**
-     * Changes the model active on a given chat, identified by [chatId], to the model found via [modelNickname].
+     * Updates the model active on a given chat, identified by [publicId], to the model found via [modelNickname].
      *
-     * @param chatId
+     * @param publicId
      * @param modelNickname
      * @throws AiModelNotFoundException if [AiModel.findByNickName] returned null, meaning the [modelNickname] did not correspond to any model supported.
-     * @see getByChatId
+     * @see getByPublicId
      * @see AiModel.findByNickName
      */
-    fun chooseModelForChat(chatId: Long, modelNickname: String) {
-        getByChatId(chatId).run {
-            this.model = AiModel.findByNickName(modelNickname)
-                ?: throw AiModelNotFoundException("AI model not found")
+    @Transactional
+    fun updateChatModel(publicId: UUID, modelNickname: String) {
+        val chat = getByPublicId(publicId)
 
-            repository.save(this)
-        }
+        chat.model = AiModel.findByNickName(modelNickname)
+            ?: throw AiModelNotFoundException("AI model not found")
+
+        repository.save(chat)
     }
 
     /**
@@ -98,12 +101,12 @@ class ChatService(
         mapper.toDto(getByChatName(chatName))
 
     /**
-     * Returns the amount of accounts with access to chat with id [chatId]
+     * Returns the amount of accounts with access to chat with id [publicId]
      *
-     * @param chatId
+     * @param publicId
      * @see ChatRepository.countAccounts
      */
-    fun getAmountOfAccounts(chatId: Long): Int =
-        repository.countAccounts(chatId)
+    fun getAmountOfAccounts(publicId: UUID): Int =
+        repository.countAccounts(publicId)
 
 }
