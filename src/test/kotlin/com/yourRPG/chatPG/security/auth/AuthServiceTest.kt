@@ -146,7 +146,9 @@ class AuthServiceTest {
     @Test
     fun loginWithHandle() {
         //ARRANGE
-        val uuidDto = UuidDto(UUID.randomUUID())
+        val uuid = UUID.randomUUID()
+        val uuidString = uuid.toString()
+        val uuidDto = UuidDto(uuidString)
 
         //ACT
         service.loginWithHandle(uuidDto)
