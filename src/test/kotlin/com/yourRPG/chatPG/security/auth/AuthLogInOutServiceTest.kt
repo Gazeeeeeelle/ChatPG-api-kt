@@ -2,30 +2,46 @@ package com.yourRPG.chatPG.security.auth
 
 import com.yourRPG.chatPG.domain.account.Account
 import com.yourRPG.chatPG.dto.auth.LoginCredentials
-import com.yourRPG.chatPG.exception.auth.A2FRequiredException
+import com.yourRPG.chatPG.exception.auth.A2fRequiredException
 import com.yourRPG.chatPG.exception.http.UnauthorizedException
+import com.yourRPG.chatPG.security.requesthandle.RequestHandleService
 import com.yourRPG.chatPG.security.token.TokenManagerService
 import com.yourRPG.chatPG.service.account.AccountService
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.BDDMockito.given
-import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.crypto.password.PasswordEncoder
+import java.time.Duration
 
 @ExtendWith(MockitoExtension::class)
 class AuthLogInOutServiceTest {
 
-    @InjectMocks
     private lateinit var service: AuthLogInOutService
 
     @Mock private lateinit var passwordEncoder: PasswordEncoder
     @Mock private lateinit var tokenManagerService: TokenManagerService
     @Mock private lateinit var accountService: AccountService
-    @Mock private lateinit var authA2FService: AuthA2FService
+    @Mock private lateinit var authA2fService: AuthA2fService
+    @Mock private lateinit var requestHandleService: RequestHandleService
+
+    private val loginWithHandleExpiresIn: Duration = Duration.ofMinutes(1L)
+
+    @BeforeEach
+    fun setUp() {
+        service = AuthLogInOutService(
+            passwordEncoder,
+            tokenManagerService,
+            accountService,
+            authA2fService,
+            requestHandleService,
+            loginWithHandleExpiresIn
+        )
+    }
 
     @Test
     fun `login - success`() {
@@ -49,7 +65,7 @@ class AuthLogInOutServiceTest {
 
         //ASSERT
         verify(tokenManagerService)
-            .requireRefreshToken(account)
+            .signAccessAndRefreshTokens(account)
     }
 
     @Test
@@ -70,20 +86,20 @@ class AuthLogInOutServiceTest {
         given(passwordEncoder.matches(credentials.password, account.password))
             .willReturn(true)
 
-        given(authA2FService.requireA2F(account))
-            .willThrow(A2FRequiredException::class.java)
+        given(authA2fService.requireA2f(account))
+            .willThrow(A2fRequiredException::class.java)
 
         //ACT
-        assertThrows<A2FRequiredException> {
+        assertThrows<A2fRequiredException> {
             service.login(credentials)
         }
 
         //ASSERT
-        verify(authA2FService)
-            .requireA2F(account)
+        verify(authA2fService)
+            .requireA2f(account)
 
         verify(tokenManagerService, never())
-            .requireRefreshToken(account)
+            .signAccessAndRefreshTokens(account)
 
     }
 
@@ -104,7 +120,7 @@ class AuthLogInOutServiceTest {
 
         //ASSERT
         verify(tokenManagerService, never())
-            .requireRefreshToken(account)
+            .signAccessAndRefreshTokens(account)
     }
 
     @Test
@@ -128,7 +144,7 @@ class AuthLogInOutServiceTest {
 
         //ASSERT
         verify(tokenManagerService, never())
-            .requireRefreshToken(account)
+            .signAccessAndRefreshTokens(account)
     }
 
     @Test
