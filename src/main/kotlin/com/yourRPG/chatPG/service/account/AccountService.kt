@@ -7,6 +7,7 @@ import com.yourRPG.chatPG.exception.http.UnauthorizedException
 import com.yourRPG.chatPG.mapper.AccountMapper
 import com.yourRPG.chatPG.repository.AccountRepository
 import com.yourRPG.chatPG.validator.account.AccountCreationCredentialsValidator
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
@@ -21,6 +22,8 @@ class AccountService(
     private val accountCreationCredentialsValidator: AccountCreationCredentialsValidator
 ) {
 
+    private companion object val log = KotlinLogging.logger {}
+
     /**
      * Returns an [Account] by its id.
      *
@@ -31,7 +34,7 @@ class AccountService(
      */
     fun getById(id: Long): Account =
         repository.findByIdOrNull(id)
-            ?: throw AccountNotFoundException("Account not found with given")
+            ?: throwAccountNotFoundException("Account not found with given")
 
     /**
      * Delegates fetching of Account to [getById] and then converts it to DTO.
@@ -54,7 +57,7 @@ class AccountService(
      */
     fun getByName(username: String): Account =
         repository.findByNameEquals(username)
-            ?: throw AccountNotFoundException("Account not found with name given")
+            ?: throwAccountNotFoundException("Account not found with name given")
 
     /**
      * Returns the [Account] found with [publicId].
@@ -65,7 +68,10 @@ class AccountService(
      */
     fun getByPublicId(publicId: UUID): Account =
         repository.qFindByPublicId(publicId)
-            ?: throw AccountNotFoundException("No account found with public ID given")
+            ?: run {
+                log.warn { "No account found with public ID given" }
+                throwAccountNotFoundException("No account found with public ID given")
+            }
 
     /**
      * Returns the Account found with [email] given.
@@ -76,7 +82,7 @@ class AccountService(
      */
     fun getByEmail(email: String): Account =
         repository.qFindByEmail(email)
-            ?: throw AccountNotFoundException("Account not found with email $email")
+            ?: throwAccountNotFoundException("Account not found with email $email")
 
     /**
      * Returns the [Account] found with the *Refresh Token* given.
@@ -184,6 +190,11 @@ class AccountService(
     fun updateRefreshToken(account: Account, refreshToken: String?) {
         account.auth.refreshToken = refreshToken
         repository.save(account)
+    }
+
+    internal fun throwAccountNotFoundException(message: String): Nothing {
+        log.warn { message }
+        throw AccountNotFoundException(message)
     }
 
 }
