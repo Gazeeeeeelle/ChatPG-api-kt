@@ -2,25 +2,27 @@ package com.yourRPG.chatPG.controller.auth.external
 
 import com.yourRPG.chatPG.infra.uri.FrontendUriHelper
 import com.yourRPG.chatPG.security.auth.external.ExternalLoginService
+import io.github.oshai.kotlinlogging.KLogger
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
-import java.net.URI
 
 open class ExternalLoginController(
+    private val log: KLogger,
+
     private val externalLoginService: ExternalLoginService,
     private val frontendUriHelper: FrontendUriHelper,
 ) {
 
     @GetMapping
     fun codeUrl(): ResponseEntity<Unit> {
+        log.info { "External login requested" }
         val url = externalLoginService.getCodeUrl()
 
-        val headers = HttpHeaders().apply { location = URI.create(url) }
         return ResponseEntity.status(HttpStatus.FOUND)
-            .headers(headers)
+            .header(HttpHeaders.LOCATION, url)
             .build()
     }
 
@@ -28,16 +30,13 @@ open class ExternalLoginController(
     fun authorized(
         @RequestParam code: String
     ): ResponseEntity<Unit> {
+        log.info { "External login authorized" }
         val requestHandle = externalLoginService.loginWithCode(code)
 
-        val headers = HttpHeaders().apply {
-            location = frontendUriHelper.run { appendUri("$authorizedPath?uuid=$requestHandle") }
-        }
-
+        val location = frontendUriHelper.run { appendString("$authorizedPath?uuid=$requestHandle") }
         return ResponseEntity.status(HttpStatus.FOUND)
-            .headers(headers)
+            .header(HttpHeaders.LOCATION, location)
             .build()
     }
-
 
 }
