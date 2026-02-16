@@ -36,7 +36,6 @@ class AuthCreateAccountService(
 
     private val mimeHelper: MimeHelper,
     private val frontendUriHelper: FrontendUriHelper,
-    private val uuidHelper: UuidHelper,
 
     private val accountMapper: AccountMapper,
 
@@ -84,7 +83,7 @@ class AuthCreateAccountService(
         val account: Account =
             try {
                 requestHandleService.getAccountAndDiscardCheckedHandle(
-                    dto.uuid,
+                    dto.value,
                     subject,
                     expirationTime = activateAccountExpiresIn
                 )
