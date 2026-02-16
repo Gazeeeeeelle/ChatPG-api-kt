@@ -6,7 +6,6 @@ import com.yourRPG.chatPG.dto.auth.*
 import com.yourRPG.chatPG.infra.http.CookieService
 import com.yourRPG.chatPG.security.auth.AuthService
 import com.yourRPG.chatPG.security.token.AccessAndRefreshTokens
-import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.validation.Valid
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
