@@ -2,15 +2,14 @@ package com.yourRPG.chatPG.security.auth
 
 import com.yourRPG.chatPG.domain.account.Account
 import com.yourRPG.chatPG.dto.account.AccountDto
-import com.yourRPG.chatPG.dto.auth.UuidDto
 import com.yourRPG.chatPG.dto.auth.OpenAccountCreationDto
+import com.yourRPG.chatPG.dto.auth.UuidDto
 import com.yourRPG.chatPG.exception.auth.AccountActivationException
 import com.yourRPG.chatPG.exception.http.ConflictException
 import com.yourRPG.chatPG.exception.requesthandle.ExpiredRequestHandleException
 import com.yourRPG.chatPG.infra.email.EmailService
 import com.yourRPG.chatPG.infra.email.MimeHelper
 import com.yourRPG.chatPG.infra.uri.FrontendUriHelper
-import com.yourRPG.chatPG.infra.uuid.UuidHelper
 import com.yourRPG.chatPG.mapper.AccountMapper
 import com.yourRPG.chatPG.security.requesthandle.RequestHandleService
 import com.yourRPG.chatPG.security.requesthandle.RequestHandleSubject
