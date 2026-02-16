@@ -1,3 +1,3 @@
 package com.yourRPG.chatPG.exception.http
 
-abstract class HttpException(val status: Int, message: String): RuntimeException(message)
+open class HttpException(val status: Int, message: String): RuntimeException(message)
