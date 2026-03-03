@@ -1,0 +1,17 @@
+package com.chatpg.domain.account
+
+import jakarta.persistence.Column
+import jakarta.persistence.Embeddable
+import jakarta.validation.constraints.Email
+
+@Embeddable
+class AccountCredentials {
+
+    @Email
+    @Column(unique = true, nullable = false)
+    var email: String? = null
+
+    @Column(nullable = false)
+    var password: String? = null
+
+}

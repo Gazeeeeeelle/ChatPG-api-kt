@@ -1,4 +1,4 @@
-target/
+../../../kotlin/chatpg/target/
 !target/*.jar
 .git/
 .mvn/wrapper/maven-wrapper.jar

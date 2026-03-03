@@ -9,6 +9,7 @@ server:
   servlet:
     context-path: /api
 
+
 frontend:
   address: "http://127.0.0.1:5500"
   paths:
@@ -54,12 +55,15 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+
 springdoc:
   swagger-ui:
     path: /api/swagger-ui.html
 
+
 hibernate:
   dialect: org.hibernate.dialect.HSQLDialect
+
 
 logging:
   level:
@@ -78,12 +82,10 @@ logging:
                   ExceptionHandlerExceptionResolver: ERROR
 
 security:
-  token.secret: ${API_SECURITY_KEY_SECRET}
-  http:
-    cookie:
-      secure: false
+  http.cookie.secure: false
   bcrypt-password-strength: 10
   token:
+    secret: ${API_SECURITY_KEY_SECRET}
     access-expires-in: 15m
     refresh-expires-in: 7d
   request-handle:
@@ -98,7 +100,3 @@ security:
     google.client:
       id: ${GOOGLE_CLIENT_ID}
       secret: ${GOOGLE_CLIENT_SECRET}
-
-
-
-
