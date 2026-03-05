@@ -22,7 +22,7 @@ class RequestHandleService(
 ) {
 
     private companion object {
-        val log = LoggingUtils(this);
+        val log = LoggingUtils(this) //TODO implement usage later
     }
 
     @Transactional

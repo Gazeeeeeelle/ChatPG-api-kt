@@ -6,14 +6,13 @@ import com.chatpg.exception.http.UnauthorizedException
 import com.chatpg.logging.LoggingUtils
 import com.chatpg.security.helper.SecurityContextHelper
 import com.chatpg.validator.chat.AccountHasAccessToChatValidator
-import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.event.Level
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
-import java.util.UUID
+import java.util.*
 
 @Component
 class AccessToChatFilter(
