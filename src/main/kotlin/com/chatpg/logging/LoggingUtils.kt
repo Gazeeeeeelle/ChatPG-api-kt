@@ -1,7 +1,6 @@
 package com.chatpg.logging
 
 import com.chatpg.exception.LoggableException
-import com.chatpg.service.ai.providers.AiModel
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.slf4j.event.Level
@@ -12,15 +11,13 @@ class LoggingUtils<S : Any>(
 
     private val log: KLogger = KotlinLogging.logger(
         name = getName(singletonInstance)
-            ?: throw IllegalArgumentException("Instance given does not have a qualified name.")
     )
 
-    private fun getName(singletonInstance: S): String? =
+    private fun getName(singletonInstance: S): String =
         singletonInstance::class
-            .takeIf { it.isCompanion }
-            ?.java
-            ?.enclosingClass
-            ?.name
+            .java
+            .enclosingClass
+            .name
 
     fun (Int).ifZeroInteractedLogAndThrow(exceptionSupplier: () -> LoggableException) {
         if (this == 0) logAndThrow(exceptionSupplier)
@@ -37,16 +34,17 @@ class LoggingUtils<S : Any>(
     fun <T : LoggableException> exception(loggableException: T) =
         at(loggableException.level) { loggableException.internalMessage }
 
-    fun at(level: Level, message: String?) {
-        val method: (() -> Any?) -> Unit = log.run {
-            when (level) {
-                Level.WARN  -> ::warn
-                Level.ERROR -> ::error
-                Level.INFO  -> ::info
-                Level.DEBUG -> ::debug
-                Level.TRACE -> ::trace
+    internal fun at(level: Level, message: String?) {
+        val method: (() -> Any?) -> Unit =
+            log.run {
+                when (level) {
+                    Level.WARN  -> ::warn
+                    Level.ERROR -> ::error
+                    Level.INFO  -> ::info
+                    Level.DEBUG -> ::debug
+                    Level.TRACE -> ::trace
+                }
             }
-        }
 
         method { message }
     }
@@ -54,12 +52,12 @@ class LoggingUtils<S : Any>(
     fun at(level: Level, messageSupplier: () -> String?) =
         at(level, messageSupplier())
 
-    fun logAndThrowAt(level: Level, throwable: Throwable): AiModel {
+    internal fun logAndThrowAt(level: Level, throwable: Throwable): Nothing {
         at(level) { throwable.message }
         throw throwable
     }
 
-    fun logAndThrowAt(level: Level, throwableSupplier: () -> Throwable): AiModel =
+    fun logAndThrowAt(level: Level, throwableSupplier: () -> Throwable): Nothing =
         logAndThrowAt(level, throwableSupplier())
 
 }

@@ -10,6 +10,7 @@ import com.chatpg.exception.requesthandle.ExpiredRequestHandleException
 import com.chatpg.infra.email.EmailService
 import com.chatpg.infra.email.MimeHelper
 import com.chatpg.infra.uri.FrontendUriHelper
+import com.chatpg.logging.LoggingUtils
 import com.chatpg.mapper.AccountMapper
 import com.chatpg.security.helper.NullSafePasswordEncoder
 import com.chatpg.security.requesthandle.RequestHandleService
@@ -45,8 +46,10 @@ class AuthCreateAccountService(
     private val activateAccountUrl: String,
 ) {
 
-    companion object {
-        private val subject = RequestHandleSubject.ACTIVATE_ACCOUNT
+    private companion object {
+        val log = LoggingUtils(this)
+
+        val subject = RequestHandleSubject.ACTIVATE_ACCOUNT
     }
 
     @Transactional
@@ -101,9 +104,14 @@ class AuthCreateAccountService(
     fun isAccountStatusDisabledElseThrow(account: Account) {
         when (account.status) {
             AccountStatus.DISABLED -> {}
-            AccountStatus.ENABLED  -> throw ConflictException("Account already activated")
-            AccountStatus.DELETED  -> throw ConflictException("This account is deleted")
+            AccountStatus.ENABLED  -> throwAndLogConflictException("Account already activated")
+            AccountStatus.DELETED  -> throwAndLogConflictException("This account is deleted")
         }
     }
+
+    internal fun throwAndLogConflictException(message: String): Nothing =
+        log.logAndThrow {
+            ConflictException(message)
+        }
 
 }
