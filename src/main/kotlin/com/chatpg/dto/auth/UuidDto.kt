@@ -1,11 +1,11 @@
 package com.chatpg.dto.auth
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-import java.util.UUID
+import com.fasterxml.jackson.annotation.JsonProperty
+import java.util.*
 
 data class UuidDto(
-    private val uuid: String,
-
-    @field:JsonIgnore
-    val value: UUID = UUID.fromString(uuid)
-)
+    @field:JsonProperty("uuid")
+    private val uuidString: String,
+) {
+    val uuid: UUID = UUID.fromString(uuidString)
+}
