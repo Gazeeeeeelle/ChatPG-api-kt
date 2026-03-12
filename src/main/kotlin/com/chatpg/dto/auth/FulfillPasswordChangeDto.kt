@@ -6,7 +6,7 @@ import org.hibernate.validator.constraints.UUID
 data class FulfillPasswordChangeDto (
 
     @field:UUID
-    val requestHandle: String,
+    val uuid: String,
 
     @field:Pattern(regexp = ".{8,255}")
     val password: String
