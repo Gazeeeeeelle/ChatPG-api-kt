@@ -2,9 +2,10 @@ package com.chatpg.security.filters
 
 import com.chatpg.config.ApplicationEndpoints
 import com.chatpg.exception.account.AccountIdNotFoundException
-import com.chatpg.exception.http.BadRequestException
 import com.chatpg.exception.http.HttpException
+import com.chatpg.exception.http.sc4xx.BadRequestException
 import com.chatpg.logging.LoggingUtils
+import com.chatpg.security.config.SwaggerDocSecurityConfigurer
 import com.chatpg.security.helper.SecurityContextHelper
 import com.chatpg.security.token.TokenService
 import com.chatpg.service.account.AccountService
@@ -21,6 +22,8 @@ class TokenFilter(
     private val tokenService: TokenService,
     private val accountService: AccountService,
     private val securityContext: SecurityContextHelper,
+
+    private val swaggerDocSecurityConfigurer: SwaggerDocSecurityConfigurer,
 ): OncePerRequestFilter() {
 
      private companion object {
@@ -42,7 +45,8 @@ class TokenFilter(
         try {
             val token = tokenService.getAccessToken(request)
 
-            val claim: String? = tokenService.getClaim(token, "id")?.asString()
+            val claim: String? = tokenService.getClaim(token, "id")
+                ?.asString()
 
             val publicId = try {
                 UUID.fromString(claim.toString())
@@ -64,14 +68,17 @@ class TokenFilter(
             else log.at(Level.WARN) { "HttpException: ${ex.message}" }
 
             response.sendError(
-                HttpServletResponse.SC_UNAUTHORIZED, //Masks status for security.
+                HttpServletResponse.SC_UNAUTHORIZED,
                 "Unauthorized"
             )
         }
-
     }
 
     internal fun excludePathFromAuthentication(path: String): Boolean =
+        isAuthSecure(path)
+                || swaggerDocSecurityConfigurer.isSwaggerDocPath(path)
+
+    internal fun isAuthSecure(path: String): Boolean =
         !path.startsWith(ApplicationEndpoints.AuthSecure.BASE)
                 && path.startsWith(ApplicationEndpoints.Auth.BASE)
 
