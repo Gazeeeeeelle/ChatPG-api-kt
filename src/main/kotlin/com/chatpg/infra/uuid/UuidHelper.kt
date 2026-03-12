@@ -18,7 +18,7 @@ class UuidHelper(
      *  by shifting the microseconds, which takes 2 bytes, out to the right, leaving only the value of time elapsed
      *  since January 1st, 1970 at UTC in milliseconds.
      *
-     * * FIXME: any uuid given is treated as UUIDv7.
+     * * IMPORTANT: This method does not perform check the type of UUID given, it is assumed to be UUIDv7.
      *
      * @param uuidV7 UUID version 7 where the instant shall be extracted from.
      * @return [Long] amount of milliseconds stored in the UUID version 7 given.
