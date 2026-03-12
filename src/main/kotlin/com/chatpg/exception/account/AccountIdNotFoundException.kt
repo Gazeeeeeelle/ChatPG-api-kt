@@ -1,11 +1,11 @@
 package com.chatpg.exception.account
 
-import com.chatpg.exception.http.HttpException
+import com.chatpg.exception.http.FullDetailHttpException
 import org.slf4j.event.Level
 
-class AccountIdNotFoundException: HttpException(
-    404,
-    "Account ID not found",
-    Level.ERROR,
-    "Inconsistency with database constraint 'NOT NULL' for column 'id' on table 'account'"
+class AccountIdNotFoundException: FullDetailHttpException(
+    status          = 404,
+    message         = "Account ID not found",
+    level           = Level.ERROR,
+    internalMessage = "Inconsistency with database constraint 'NOT NULL' for column 'id' on table 'account'"
 )
