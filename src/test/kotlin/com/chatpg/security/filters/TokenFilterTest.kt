@@ -3,7 +3,7 @@ package com.chatpg.security.filters
 import com.auth0.jwt.interfaces.Claim
 import com.chatpg.domain.account.Account
 import com.chatpg.exception.account.AccountNotFoundException
-import com.chatpg.exception.http.UnauthorizedException
+import com.chatpg.exception.http.sc4xx.UnauthorizedException
 import com.chatpg.security.helper.SecurityContextHelper
 import com.chatpg.security.token.TokenService
 import com.chatpg.service.account.AccountService

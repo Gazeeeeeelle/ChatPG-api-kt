@@ -2,7 +2,7 @@ package com.chatpg.security.filters
 
 import com.chatpg.config.ApplicationEndpoints
 import com.chatpg.exception.http.HttpException
-import com.chatpg.exception.http.UnauthorizedException
+import com.chatpg.exception.http.sc4xx.UnauthorizedException
 import com.chatpg.logging.LoggingUtils
 import com.chatpg.security.helper.SecurityContextHelper
 import com.chatpg.validator.chat.AccountHasAccessToChatValidator

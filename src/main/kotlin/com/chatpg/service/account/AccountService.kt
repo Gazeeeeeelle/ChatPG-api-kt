@@ -4,7 +4,7 @@ import com.chatpg.domain.account.Account
 import com.chatpg.dto.account.AccountDto
 import com.chatpg.exception.account.AccountIdNotFoundException
 import com.chatpg.exception.account.AccountNotFoundException
-import com.chatpg.exception.http.UnauthorizedException
+import com.chatpg.exception.http.sc4xx.UnauthorizedException
 import com.chatpg.logging.LoggingUtils
 import com.chatpg.mapper.AccountMapper
 import com.chatpg.repository.AccountRepository

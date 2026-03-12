@@ -2,7 +2,7 @@ package com.chatpg.security.token
 
 import com.chatpg.domain.account.Account
 import com.chatpg.exception.account.AccountNotFoundException
-import com.chatpg.exception.http.UnauthorizedException
+import com.chatpg.exception.http.sc4xx.UnauthorizedException
 import com.chatpg.exception.security.InvalidTokenException
 import com.chatpg.service.account.AccountService
 import helper.NullSafeMatchers.any

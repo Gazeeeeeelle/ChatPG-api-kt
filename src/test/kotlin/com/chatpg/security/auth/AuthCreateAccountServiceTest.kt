@@ -5,8 +5,8 @@ import com.chatpg.dto.auth.OpenAccountCreationDto
 import com.chatpg.dto.auth.UuidDto
 import com.chatpg.exception.auth.password.BadPasswordException
 import com.chatpg.exception.auth.username.BadUsernameException
-import com.chatpg.exception.http.ConflictException
-import com.chatpg.exception.http.UnauthorizedException
+import com.chatpg.exception.http.sc4xx.ConflictException
+import com.chatpg.exception.http.sc4xx.UnauthorizedException
 import com.chatpg.infra.email.EmailService
 import com.chatpg.infra.email.MimeHelper
 import com.chatpg.infra.uri.FrontendUriHelper
@@ -177,7 +177,7 @@ class AuthCreateAccountServiceTest {
 
         given(
             requestHandleService.getAccountAndDiscardCheckedHandle(
-                uuidDto.value,
+                uuidDto.uuid,
                 subject = RequestHandleSubject.ACTIVATE_ACCOUNT,
                 expirationTime = activateAccountExpiresIn
             )
@@ -205,7 +205,7 @@ class AuthCreateAccountServiceTest {
 
         given(
             requestHandleService.getAccountAndDiscardCheckedHandle(
-                uuidDto.value,
+                uuidDto.uuid,
                 subject = RequestHandleSubject.ACTIVATE_ACCOUNT,
                 expirationTime = activateAccountExpiresIn
             )
@@ -238,7 +238,7 @@ class AuthCreateAccountServiceTest {
 
                 given(
                     requestHandleService.getAccountAndDiscardCheckedHandle(
-                        uuidDto.value,
+                        uuidDto.uuid,
                         subject = RequestHandleSubject.ACTIVATE_ACCOUNT,
                         expirationTime = activateAccountExpiresIn
                     )

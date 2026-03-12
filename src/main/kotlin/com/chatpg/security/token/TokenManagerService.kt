@@ -3,7 +3,7 @@ package com.chatpg.security.token
 import com.chatpg.domain.account.Account
 import com.chatpg.dto.auth.TokenDto
 import com.chatpg.exception.account.AccountNotFoundException
-import com.chatpg.exception.http.UnauthorizedException
+import com.chatpg.exception.http.sc4xx.UnauthorizedException
 import com.chatpg.service.account.AccountService
 import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Value
@@ -27,7 +27,7 @@ class TokenManagerService(
      *
      * @param oldRefreshToken refresh token used to check authenticity of the request.
      * @return [Pair] of [TokenDto], containing the access token, and the [String] value of the refresh token.
-     * @throws com.chatpg.exception.http.UnauthorizedException if the [oldRefreshToken] refresh token given did not identify
+     * @throws UnauthorizedException if the [oldRefreshToken] refresh token given did not identify
      *  an account.
      * @see AccountService.getByRefreshToken
      * @see signAccessToken

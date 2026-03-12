@@ -4,7 +4,7 @@ import com.chatpg.domain.chat.Chat
 import com.chatpg.domain.poll.Poll
 import com.chatpg.domain.poll.Poll.CompositePrimaryKey
 import com.chatpg.dto.poll.PollDto
-import com.chatpg.exception.http.BadRequestException
+import com.chatpg.exception.http.sc4xx.BadRequestException
 import com.chatpg.exception.poll.AlreadyVotedInPollException
 import com.chatpg.exception.poll.PollNotFoundException
 import com.chatpg.mapper.PollMapper

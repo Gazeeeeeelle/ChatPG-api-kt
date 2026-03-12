@@ -3,7 +3,7 @@ package com.chatpg.validator.account
 import com.chatpg.domain.account.Account
 import com.chatpg.exception.auth.username.UsernameAlreadyRegisteredException
 import com.chatpg.exception.email.EmailAlreadyRegisteredException
-import com.chatpg.exception.http.BadRequestException
+import com.chatpg.exception.http.sc4xx.BadRequestException
 import com.chatpg.repository.AccountRepository
 import com.chatpg.validator.IValidatable
 import io.github.oshai.kotlinlogging.KotlinLogging
