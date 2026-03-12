@@ -5,7 +5,7 @@ import com.chatpg.dto.account.AccountDto
 import com.chatpg.dto.auth.OpenAccountCreationDto
 import com.chatpg.dto.auth.UuidDto
 import com.chatpg.exception.auth.AccountActivationException
-import com.chatpg.exception.http.ConflictException
+import com.chatpg.exception.http.sc4xx.ConflictException
 import com.chatpg.exception.requesthandle.ExpiredRequestHandleException
 import com.chatpg.infra.email.EmailService
 import com.chatpg.infra.email.MimeHelper
@@ -34,7 +34,6 @@ class AuthCreateAccountService(
     private val usernameValidator: UsernameValidator,
     private val passwordValidator: PasswordValidator,
 
-    private val mimeHelper: MimeHelper,
     private val frontendUriHelper: FrontendUriHelper,
 
     private val accountMapper: AccountMapper,
@@ -67,15 +66,11 @@ class AuthCreateAccountService(
             subject
         )
 
-        val html = mimeHelper.getTemplate(
-            template = "mime-activate-account",
-            "url" to frontendUriHelper.appendString("$activateAccountUrl?uuid=$handle")
-        )
-
-        emailService.sendMimeEmail(
+        emailService.sendMimeEmailWithTemplate(
             subject = "Activate account",
             to = dto.email,
-            html
+            templateName = "mime-activate-account",
+            "url" to frontendUriHelper.appendString("$activateAccountUrl?uuid=$handle")
         )
 
         return accountMapper.toDto(account)
@@ -86,7 +81,7 @@ class AuthCreateAccountService(
         val account: Account =
             try {
                 requestHandleService.getAccountAndDiscardCheckedHandle(
-                    dto.value,
+                    dto.uuid,
                     subject,
                     expirationTime = activateAccountExpiresIn
                 )

@@ -26,7 +26,6 @@ class AuthChangePasswordService(
     private val requestHandleService: RequestHandleService,
 
     private val frontendUriHelper: FrontendUriHelper,
-    private val mimeHelper: MimeHelper,
 
     @param:Value($$"${security.request-handle.change-password-expires-in}")
     private val changePasswordExpiresIn: Duration,
@@ -38,6 +37,9 @@ class AuthChangePasswordService(
         val subject = RequestHandleSubject.CHANGE_PASSWORD
     }
 
+    /**
+     * TODO
+     */
     @Transactional
     fun openPasswordChange(dto: OpenPasswordChangeDto) {
         val account: Account = try {
@@ -53,30 +55,32 @@ class AuthChangePasswordService(
         sendOpenPasswordChangeEmail(dto.email, url)
     }
 
-    //Should be done asynchronously
+    /**
+     * TODO
+     */
     fun sendOpenPasswordChangeEmail(email: String, url: String) {
-        emailService.sendMimeEmail(
+        emailService.sendMimeEmailWithTemplate(
             subject = "Reset password",
             to = email,
-            html =
-                mimeHelper.getTemplate(
-                    template  = "mime-change-password",
-                    variables = arrayOf("url" to url)
-                )
+            templateName = "mime-change-password",
+            "url" to url
         )
     }
 
+    /**
+     * TODO
+     */
     @Transactional
     fun fulfillPasswordChange(dto: FulfillPasswordChangeDto) {
         passwordValidator.validate(dto.password)
 
-        val requestHandle = UUID.fromString(dto.requestHandle)
+        val uuid = UUID.fromString(dto.uuid)
 
         val account: Account =
             requestHandleService.getAccountAndDiscardCheckedHandle(
-                requestHandle,
+                uuid,
                 subject,
-                changePasswordExpiresIn
+                expirationTime = changePasswordExpiresIn
             )
 
         val encodedPassword = passwordEncoder.encode(dto.password)
