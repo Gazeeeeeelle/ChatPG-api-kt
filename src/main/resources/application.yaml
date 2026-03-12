@@ -1,5 +1,4 @@
 server:
-  protocol: "http://"
   address: 127.0.0.1
   port: 8080
   radmin:
@@ -55,10 +54,12 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
-
 springdoc:
+  api-docs:
+    path: /doc
+    enabled: true
   swagger-ui:
-    path: /api/swagger-ui.html
+    path: /doc/swagger-ui.html
 
 
 hibernate:

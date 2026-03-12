@@ -3,8 +3,8 @@ package com.chatpg.security.auth
 import com.chatpg.domain.account.Account
 import com.chatpg.dto.auth.LoginCredentials
 import com.chatpg.dto.auth.UuidDto
-import com.chatpg.exception.http.NotFoundException
-import com.chatpg.exception.http.UnauthorizedException
+import com.chatpg.exception.http.sc4xx.NotFoundException
+import com.chatpg.exception.http.sc4xx.UnauthorizedException
 import com.chatpg.security.requesthandle.RequestHandleService
 import com.chatpg.security.requesthandle.RequestHandleSubject
 import com.chatpg.security.token.AccessAndRefreshTokens
@@ -71,7 +71,7 @@ class AuthLogInOutService(
     fun loginWithHandle(uuidDto: UuidDto): AccessAndRefreshTokens {
         log.info { "Logging in with handle..." }
         val account = requestHandleService.getAccountAndDiscardCheckedHandle(
-            uuidDto.value,
+            uuidDto.uuid,
             RequestHandleSubject.EXTERNAL_LOGIN,
             loginWithHandleExpiresIn
         )

@@ -27,18 +27,22 @@ class SecurityConfiguration(
     private val accessToChatFilter: AccessToChatFilter,
     private val frontendUriHelper: FrontendUriHelper,
 
+    private val swaggerDocSecurityConfigurer: SwaggerDocumentationSecurityConfigurer,
+
     @param:Value($$"${security.bcrypt-password-strength}")
     private val bCryptPasswordStrength: Int,
 ) {
 
     @Bean
-    fun securityFilterChain(httpSecurity: HttpSecurity): SecurityFilterChain = with(httpSecurity) {
+    fun securityFilterChain(httpSecurity: HttpSecurity): SecurityFilterChain = httpSecurity.run {
         cors { it.configurationSource(corsConfigurationSource()) }
         csrf { it.disable() }
         sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
         authorizeHttpRequests {
             it.requestMatchers("${ApplicationEndpoints.AuthSecure.BASE}/**").authenticated()
             it.requestMatchers("${ApplicationEndpoints.Auth.BASE}/**").permitAll()
+
+            swaggerDocSecurityConfigurer.configure(it)
 
             it.anyRequest().authenticated()
         }

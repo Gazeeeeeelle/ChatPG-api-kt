@@ -1,4 +1,6 @@
-package com.chatpg.exception.http
+package com.chatpg.exception.http.sc4xx
+
+import com.chatpg.exception.http.HttpException
 
 open class NotFoundException(
     message: String,

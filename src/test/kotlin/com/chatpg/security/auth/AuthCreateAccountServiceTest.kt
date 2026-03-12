@@ -5,10 +5,9 @@ import com.chatpg.dto.auth.OpenAccountCreationDto
 import com.chatpg.dto.auth.UuidDto
 import com.chatpg.exception.auth.password.BadPasswordException
 import com.chatpg.exception.auth.username.BadUsernameException
-import com.chatpg.exception.http.ConflictException
-import com.chatpg.exception.http.UnauthorizedException
+import com.chatpg.exception.http.sc4xx.ConflictException
+import com.chatpg.exception.http.sc4xx.UnauthorizedException
 import com.chatpg.infra.email.EmailService
-import com.chatpg.infra.email.MimeHelper
 import com.chatpg.infra.uri.FrontendUriHelper
 import com.chatpg.mapper.AccountMapper
 import com.chatpg.security.helper.NullSafePasswordEncoder
@@ -19,8 +18,6 @@ import com.chatpg.service.account.AccountStatus
 import com.chatpg.validator.account.PasswordValidator
 import com.chatpg.validator.account.UsernameValidator
 import helper.NullSafeMatchers.STRING_TYPE
-import helper.NullSafeMatchers.any
-import helper.NullSafeMatchers.eq
 import helper.NullSafeMatchers.that
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
@@ -44,7 +41,6 @@ class AuthCreateAccountServiceTest {
     @Mock private lateinit var requestHandleService: RequestHandleService
     @Mock private lateinit var usernameValidator: UsernameValidator
     @Mock private lateinit var passwordValidator: PasswordValidator
-    @Mock private lateinit var mimeHelper: MimeHelper
     @Mock private lateinit var frontendUriHelper: FrontendUriHelper
     @Mock private lateinit var accountMapper: AccountMapper
 
@@ -60,7 +56,6 @@ class AuthCreateAccountServiceTest {
             requestHandleService,
             usernameValidator,
             passwordValidator,
-            mimeHelper,
             frontendUriHelper,
             accountMapper,
             activateAccountExpiresIn,
@@ -80,7 +75,6 @@ class AuthCreateAccountServiceTest {
         val account = Account(username, email, password)
         val handle = UUID.randomUUID()
 
-        val html = "html"
         val url = "url"
 
         given(passwordEncoder.encode(password))
@@ -103,13 +97,6 @@ class AuthCreateAccountServiceTest {
             STRING_TYPE.that { it.contains(handle.toString()) }
         )).willReturn(url)
 
-        given(
-            mimeHelper.getTemplate(
-                template = STRING_TYPE.any(),
-                ("url" to url).eq()
-            )
-        ).willReturn(html)
-
         //ACT
         service.openAccountCreation(openAccountCreationDto)
 
@@ -118,10 +105,11 @@ class AuthCreateAccountServiceTest {
         verify(passwordValidator).validate(password)
 
         verify(emailService)
-            .sendMimeEmail(
+            .sendMimeEmailWithTemplate(
                 subject = "Activate account",
                 to = email,
-                html
+                templateName = "mime-activate-account",
+                "url" to url,
             )
 
         verify(accountMapper)
@@ -177,7 +165,7 @@ class AuthCreateAccountServiceTest {
 
         given(
             requestHandleService.getAccountAndDiscardCheckedHandle(
-                uuidDto.value,
+                uuidDto.uuid,
                 subject = RequestHandleSubject.ACTIVATE_ACCOUNT,
                 expirationTime = activateAccountExpiresIn
             )
@@ -205,7 +193,7 @@ class AuthCreateAccountServiceTest {
 
         given(
             requestHandleService.getAccountAndDiscardCheckedHandle(
-                uuidDto.value,
+                uuidDto.uuid,
                 subject = RequestHandleSubject.ACTIVATE_ACCOUNT,
                 expirationTime = activateAccountExpiresIn
             )
@@ -238,7 +226,7 @@ class AuthCreateAccountServiceTest {
 
                 given(
                     requestHandleService.getAccountAndDiscardCheckedHandle(
-                        uuidDto.value,
+                        uuidDto.uuid,
                         subject = RequestHandleSubject.ACTIVATE_ACCOUNT,
                         expirationTime = activateAccountExpiresIn
                     )

@@ -4,7 +4,7 @@ import com.github.f4b6a3.uuid.UuidCreator
 import com.google.common.hash.Hashing
 import com.chatpg.domain.account.Account
 import com.chatpg.exception.account.AccountNotFoundException
-import com.chatpg.exception.http.UnauthorizedException
+import com.chatpg.exception.http.sc4xx.UnauthorizedException
 import com.chatpg.exception.requesthandle.ExpiredRequestHandleException
 import com.chatpg.infra.uuid.UuidHelper
 import com.chatpg.logging.LoggingUtils

@@ -3,7 +3,7 @@ package com.chatpg.infra.external.ai.chutes
 import com.chatpg.dto.external.chutes.ChutesChoice
 import com.chatpg.dto.external.chutes.ChutesResponse
 import com.chatpg.exception.http.HttpException
-import com.chatpg.exception.http.ServiceUnavailableException
+import com.chatpg.exception.http.sc5xx.ServiceUnavailableException
 import com.chatpg.logging.LoggingUtils
 import com.chatpg.service.ai.providers.AiModel
 import org.slf4j.event.Level

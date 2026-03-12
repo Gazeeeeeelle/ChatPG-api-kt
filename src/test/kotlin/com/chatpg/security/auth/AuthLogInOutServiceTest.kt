@@ -3,7 +3,7 @@ package com.chatpg.security.auth
 import com.chatpg.domain.account.Account
 import com.chatpg.dto.auth.LoginCredentials
 import com.chatpg.exception.auth.A2fRequiredException
-import com.chatpg.exception.http.UnauthorizedException
+import com.chatpg.exception.http.sc4xx.UnauthorizedException
 import com.chatpg.security.requesthandle.RequestHandleService
 import com.chatpg.security.token.TokenManagerService
 import com.chatpg.service.account.AccountService

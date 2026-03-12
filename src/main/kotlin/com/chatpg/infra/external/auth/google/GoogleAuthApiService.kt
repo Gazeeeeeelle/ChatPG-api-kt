@@ -2,7 +2,7 @@ package com.chatpg.infra.external.auth.google
 
 import com.auth0.jwt.JWT
 import com.chatpg.dto.external.google.GoogleAccessTokenDto
-import com.chatpg.exception.http.InternalServerException
+import com.chatpg.exception.http.sc5xx.InternalServerException
 import com.chatpg.infra.external.auth.IAuthApiService
 import com.chatpg.infra.external.auth.google.GoogleAuthApiService.Companion.GOOGLE_ACCOUNTS_AUTH_URL
 import com.chatpg.infra.external.auth.google.GoogleAuthApiService.Companion.GOOGLE_OAUTH_URL

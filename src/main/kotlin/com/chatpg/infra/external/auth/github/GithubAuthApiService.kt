@@ -2,8 +2,8 @@ package com.chatpg.infra.external.auth.github
 
 import com.chatpg.dto.external.github.GithubAccessTokenDto
 import com.chatpg.dto.external.github.GithubEmailDto
-import com.chatpg.exception.http.InternalServerException
-import com.chatpg.exception.http.UnauthorizedException
+import com.chatpg.exception.http.sc5xx.InternalServerException
+import com.chatpg.exception.http.sc4xx.UnauthorizedException
 import com.chatpg.infra.external.auth.IAuthApiService
 import com.chatpg.infra.external.auth.github.GithubAuthApiService.Companion.GITHUB_URL
 import com.chatpg.infra.uri.BackendUriHelper

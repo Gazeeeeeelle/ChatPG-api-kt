@@ -1,7 +1,7 @@
 package com.chatpg.infra.external.auth
 
 import com.chatpg.exception.http.HttpException
-import com.chatpg.exception.http.InternalServerException
+import com.chatpg.exception.http.sc5xx.InternalServerException
 import io.github.oshai.kotlinlogging.KLogger
 import org.springframework.http.client.ClientHttpResponse
 import org.springframework.web.client.RestClient

@@ -22,7 +22,6 @@ class AuthA2fService(
     private val emailService: EmailService,
     private val tokenManagerService: TokenManagerService,
 
-    private val mimeHelper: MimeHelper,
     private val frontendUriHelper: FrontendUriHelper,
 
     @param:Value($$"${security.request-handle.a2f-expires-in}")
@@ -50,14 +49,11 @@ class AuthA2fService(
     }
 
     internal fun sendA2FEmail(to: String, code: String) {
-        emailService.sendMimeEmail(
+        emailService.sendMimeEmailWithTemplate(
             subject = "Two-factor Authentication",
             to,
-            html =
-                mimeHelper.getTemplate(
-                    template  = "mime-a2f",
-                    "code" to code
-                )
+            templateName = "mime-a2f",
+            "code" to code
         )
     }
 
