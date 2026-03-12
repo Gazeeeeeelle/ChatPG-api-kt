@@ -6,7 +6,6 @@ import com.chatpg.dto.auth.OpenPasswordChangeDto
 import com.chatpg.exception.account.AccountNotFoundException
 import com.chatpg.exception.auth.password.BadPasswordException
 import com.chatpg.infra.email.EmailService
-import com.chatpg.infra.email.MimeHelper
 import com.chatpg.infra.uri.FrontendUriHelper
 import com.chatpg.security.helper.NullSafePasswordEncoder
 import com.chatpg.security.requesthandle.RequestHandleService
@@ -15,7 +14,6 @@ import com.chatpg.service.account.AccountService
 import com.chatpg.validator.account.PasswordValidator
 import helper.NullSafeMatchers.STRING_TYPE
 import helper.NullSafeMatchers.any
-import helper.NullSafeMatchers.eq
 import helper.NullSafeMatchers.that
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -40,7 +38,6 @@ class AuthChangePasswordServiceTest {
     @Mock private lateinit var emailService: EmailService
     @Mock private lateinit var requestHandleService: RequestHandleService
     @Mock private lateinit var frontendUriHelper: FrontendUriHelper
-    @Mock private lateinit var mimeHelper: MimeHelper
     @Mock private lateinit var passwordValidator: PasswordValidator
 
     private val changePasswordExpiresIn = Duration.ofMinutes(10L)
@@ -53,7 +50,6 @@ class AuthChangePasswordServiceTest {
             emailService,
             requestHandleService,
             frontendUriHelper,
-            mimeHelper,
             changePasswordExpiresIn,
             passwordValidator,
         )
@@ -68,7 +64,6 @@ class AuthChangePasswordServiceTest {
         val subject = RequestHandleSubject.CHANGE_PASSWORD
         val uuid = UUID.randomUUID()
         val url = "url/containing/$uuid"
-        val html = "html"
 
         given(accountService.getByEmail(email))
             .willReturn(account)
@@ -79,16 +74,10 @@ class AuthChangePasswordServiceTest {
         given(frontendUriHelper.appendString(STRING_TYPE.any()))
             .willReturn(url)
 
-        given(mimeHelper.getTemplate(STRING_TYPE.any(), ("url" to url).eq()))
-            .willReturn(html)
-
         //ACT
         service.openPasswordChange(dto)
 
         //ASSERT
-        verify(mimeHelper)
-            .getTemplate(STRING_TYPE.any(), ("" to "").any())
-
         verify(accountService)
             .getByEmail(email)
 
@@ -99,7 +88,12 @@ class AuthChangePasswordServiceTest {
             .appendString(STRING_TYPE.that { it.contains(uuid.toString()) })
 
         verify(emailService)
-            .sendMimeEmail("Reset password", email, html)
+            .sendMimeEmailWithTemplate(
+                "Reset password",
+                email,
+                "mime-change-password",
+                "url" to url
+            )
     }
 
     @Test
