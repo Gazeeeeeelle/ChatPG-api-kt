@@ -4,6 +4,7 @@ import com.auth0.jwt.interfaces.Claim
 import com.chatpg.domain.account.Account
 import com.chatpg.exception.account.AccountNotFoundException
 import com.chatpg.exception.http.sc4xx.UnauthorizedException
+import com.chatpg.security.config.SwaggerDocumentationSecurityConfigurer
 import com.chatpg.security.helper.SecurityContextHelper
 import com.chatpg.security.token.TokenService
 import com.chatpg.service.account.AccountService
@@ -34,10 +35,11 @@ class TokenFilterTest: FilterTest() {
     @Mock private lateinit var tokenService: TokenService
     @Mock private lateinit var accountService: AccountService
     @Mock private lateinit var securityContext: SecurityContextHelper
+    @Mock private lateinit var swaggerDocSecurityConfigurer: SwaggerDocumentationSecurityConfigurer
 
     //Mockito stumbles into problems with Coverage because of JVM not allowing different bytecode changes in JDK 21+.
     private val publicIdString = "019c28e0-54d1-7032-8c6d-3aa2e94c639b"
-    private val claim = object: Claim {
+    private val claim = object : Claim {
         override fun isNull(): Boolean = false
         override fun isMissing(): Boolean = false
         override fun asBoolean(): Boolean? = null
@@ -119,13 +121,35 @@ class TokenFilterTest: FilterTest() {
         }
 
     @Test
+    fun `valid - Swagger Documentation paths are not filtered`() {
+        //ARRANGE
+        val docPath = "/doc/swagger-ui.html"
+
+        given(request.servletPath)
+            .willReturn(docPath)
+
+        given(swaggerDocSecurityConfigurer.isPathSwaggerRelated(docPath))
+            .willReturn(true)
+
+        //ACT
+        filter.doFilter(request, response, filterChain)
+
+        //ASSERT
+        verify(securityContext, never())
+            .setPrincipal(LONG_TYPE.any(), listOf<GrantedAuthority>().any())
+
+        verify(filterChain)
+            .doFilter(request, response)
+    }
+
+    @Test
     fun `invalid - Authorization header is missing`() {
         //ARRANGE
         given(request.servletPath)
             .willReturn("/somethingElse")
 
         given(tokenService.getAccessToken(request))
-            .willThrow(UnauthorizedException::class.java)
+            .willThrow(UnauthorizedException())
 
         //ACT
         filter.doFilter(request, response, filterChain)
@@ -151,7 +175,7 @@ class TokenFilterTest: FilterTest() {
             .willReturn(claim)
 
         given(accountService.getByPublicId(publicId))
-            .willThrow(AccountNotFoundException::class.java)
+            .willThrow(AccountNotFoundException("account not found"))
 
         //ACT
         filter.doFilter(request, response, filterChain)
