@@ -27,7 +27,7 @@ class SecurityConfiguration(
     private val accessToChatFilter: AccessToChatFilter,
     private val frontendUriHelper: FrontendUriHelper,
 
-    private val swaggerDocSecurityConfigurer: SwaggerDocSecurityConfigurer,
+    private val swaggerDocSecurityConfigurer: SwaggerDocumentationSecurityConfigurer,
 
     @param:Value($$"${security.bcrypt-password-strength}")
     private val bCryptPasswordStrength: Int,
