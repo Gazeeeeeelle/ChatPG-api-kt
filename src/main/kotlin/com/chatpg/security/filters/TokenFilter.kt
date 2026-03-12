@@ -5,14 +5,13 @@ import com.chatpg.exception.account.AccountIdNotFoundException
 import com.chatpg.exception.http.HttpException
 import com.chatpg.exception.http.sc4xx.BadRequestException
 import com.chatpg.logging.LoggingUtils
-import com.chatpg.security.config.SwaggerDocSecurityConfigurer
+import com.chatpg.security.config.SwaggerDocumentationSecurityConfigurer
 import com.chatpg.security.helper.SecurityContextHelper
 import com.chatpg.security.token.TokenService
 import com.chatpg.service.account.AccountService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.slf4j.event.Level
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import java.util.*
@@ -23,7 +22,7 @@ class TokenFilter(
     private val accountService: AccountService,
     private val securityContext: SecurityContextHelper,
 
-    private val swaggerDocSecurityConfigurer: SwaggerDocSecurityConfigurer,
+    private val swaggerDocSecurityConfigurer: SwaggerDocumentationSecurityConfigurer,
 ): OncePerRequestFilter() {
 
      private companion object {
@@ -48,11 +47,7 @@ class TokenFilter(
             val claim: String? = tokenService.getClaim(token, "id")
                 ?.asString()
 
-            val publicId = try {
-                UUID.fromString(claim.toString())
-            } catch (_: IllegalArgumentException) {
-                throw BadRequestException("Malformed UUID")
-            }
+            val publicId = parseUuidElseThrowBadRequestException(uuidString = claim.toString())
 
             val account = accountService.getByPublicId(publicId)
             val accountId = account.id
@@ -64,8 +59,7 @@ class TokenFilter(
 
             filterChain.doFilter(request, response)
         } catch (ex: HttpException) {
-            if (ex is BadRequestException) log.at(Level.WARN) { "BadRequest: ${ex.message}" }
-            else log.at(Level.WARN) { "HttpException: ${ex.message}" }
+            log.exception(loggableException = ex)
 
             response.sendError(
                 HttpServletResponse.SC_UNAUTHORIZED,
@@ -74,11 +68,38 @@ class TokenFilter(
         }
     }
 
-    internal fun excludePathFromAuthentication(path: String): Boolean =
-        isAuthSecure(path)
-                || swaggerDocSecurityConfigurer.isSwaggerDocPath(path)
+    /**
+     * Parses [String] given into a UUID.
+     *
+     * @param uuidString [String] to be parsed.
+     * @return [UUID] parsed UUID.
+     * @throws BadRequestException if [String] given could not be parsed into a UUID.
+     */
+    internal fun parseUuidElseThrowBadRequestException(uuidString: String): UUID =
+        try {
+            UUID.fromString(uuidString)
+        } catch (_: IllegalArgumentException) {
+            throw BadRequestException("Malformed UUID")
+        }
 
-    internal fun isAuthSecure(path: String): Boolean =
+    /**
+     * Returns a [Boolean] on whether the path should be excluded from authentication filter or not.
+     *
+     * @param path Path trying to be accessed.
+     * @return True if no authentication is needed for the endpoint trying to be accessed.
+     */
+    internal fun excludePathFromAuthentication(path: String): Boolean =
+        isPublicAuthRelated(path)
+                || swaggerDocSecurityConfigurer.isPathSwaggerRelated(path)
+
+    /**
+     * Returns a [Boolean] on whether the path is included in [ApplicationEndpoints.Auth], but not in
+     *  [ApplicationEndpoints.AuthSecure].
+     *
+     * @param path Path to be evaluated.
+     * @return True if path is included in [ApplicationEndpoints.Auth] but not in [ApplicationEndpoints.AuthSecure].
+     */
+    internal fun isPublicAuthRelated(path: String): Boolean =
         !path.startsWith(ApplicationEndpoints.AuthSecure.BASE)
                 && path.startsWith(ApplicationEndpoints.Auth.BASE)
 
