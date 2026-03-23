@@ -1,13 +1,9 @@
 server:
-  address: 127.0.0.1
   port: 8080
-  radmin:
-    address: ${RADMIN_ADDRESS}
   error:
     include-stacktrace: never
   servlet:
     context-path: /api
-
 
 frontend:
   address: "http://127.0.0.1:5500"
@@ -16,11 +12,10 @@ frontend:
     activate-account: "/login/activate-account"
     a2f: "/login/a2f"
 
-
 spring:
-  config:
-    import: application.yaml
-    name: chatPG
+  application.name: chatpg
+  output.ansi.enabled: always
+  config.import: application.yaml
   datasource:
     url: ${CHATPG_DB}
     username: ${DB_USER}
@@ -31,28 +26,28 @@ spring:
       ddl-auto: validate
     show-sql: false
   ai:
-    google:
-      genai:
-        project-id: ${GOOGLE_CLOUD_PROJECT}
-        location: southamerica-east1
-    chutes:
-      llm:
-        url: https://llm.chutes.ai/v1/chat/completions
-        api-key: ${CHUTES_API_KEY}
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${CHATPG_EMAIL_ADDRESS}
-    password: ${CHATPG_EMAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls.enable: true
+    google.genai:
+      project-id: ${GOOGLE_CLOUD_PROJECT}
+      location: southamerica-east1
+    chutes.llm:
+      url: https://llm.chutes.ai/v1/chat/completions
+      api-key: ${CHUTES_API_KEY}
   flyway:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
+  amqp:
+    publisher-returns: true
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+eureka:
+  client.serviceUrl.defaultZone: http://localhost:8081/eureka/
+  instance.instance-id: ${spring.application.name}:${random.value}
+  metadata-map:
+    context-path: ${server.servlet.context-path}
 
 springdoc:
   api-docs:
@@ -61,26 +56,17 @@ springdoc:
   swagger-ui:
     path: /doc/swagger-ui.html
 
-
 hibernate:
   dialect: org.hibernate.dialect.HSQLDialect
 
-
-logging:
-  level:
-    org:
-      hibernate:
-        SQL: WARN
-        type.descriptor.sql.BasicBinder: WARN
-      springframework:
-        web:
-          servlet:
-            handler:
-              AbstractHandlerExceptionResolver: ERROR
-            mvc:
-              method:
-                annotation:
-                  ExceptionHandlerExceptionResolver: ERROR
+logging.level.org:
+  hibernate:
+    SQL: WARN
+    type.descriptor.sql.BasicBinder: WARN
+  springframework.web.servlet:
+    handler.AbstractHandlerExceptionResolver: ERROR
+    mvc.method.annotation:
+      ExceptionHandlerExceptionResolver: ERROR
 
 security:
   http.cookie.secure: false
