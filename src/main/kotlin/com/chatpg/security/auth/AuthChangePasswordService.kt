@@ -5,7 +5,6 @@ import com.chatpg.dto.auth.FulfillPasswordChangeDto
 import com.chatpg.dto.auth.OpenPasswordChangeDto
 import com.chatpg.exception.account.AccountNotFoundException
 import com.chatpg.infra.email.EmailService
-import com.chatpg.infra.email.MimeHelper
 import com.chatpg.infra.uri.FrontendUriHelper
 import com.chatpg.security.helper.NullSafePasswordEncoder
 import com.chatpg.security.requesthandle.RequestHandleService

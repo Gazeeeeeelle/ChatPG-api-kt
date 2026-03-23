@@ -4,7 +4,6 @@ import com.chatpg.domain.account.Account
 import com.chatpg.dto.auth.FulfillA2fDto
 import com.chatpg.exception.auth.A2fRequiredException
 import com.chatpg.infra.email.EmailService
-import com.chatpg.infra.email.MimeHelper
 import com.chatpg.infra.uri.FrontendUriHelper
 import com.chatpg.security.requesthandle.RequestHandleService
 import com.chatpg.security.requesthandle.RequestHandleSubject
