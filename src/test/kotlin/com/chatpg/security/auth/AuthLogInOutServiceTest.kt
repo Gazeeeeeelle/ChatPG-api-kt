@@ -23,11 +23,11 @@ class AuthLogInOutServiceTest {
 
     private lateinit var service: AuthLogInOutService
 
-    @Mock private lateinit var passwordEncoder: PasswordEncoder
-    @Mock private lateinit var tokenManagerService: TokenManagerService
-    @Mock private lateinit var accountService: AccountService
-    @Mock private lateinit var authA2fService: AuthA2fService
-    @Mock private lateinit var requestHandleService: RequestHandleService
+    private val passwordEncoder      = mock<PasswordEncoder>()
+    private val tokenManagerService  = mock<TokenManagerService>()
+    private val accountService       = mock<AccountService>()
+    private val authA2fService       = mock<AuthA2fService>()
+    private val requestHandleService = mock<RequestHandleService>()
 
     private val loginWithHandleExpiresIn: Duration = Duration.ofMinutes(1L)
 

@@ -1,12 +1,13 @@
 package com.chatpg.infra.external.auth.github
 
+import com.chatpg.config.ApplicationEndpoints
 import com.chatpg.dto.external.github.GithubAccessTokenDto
 import com.chatpg.dto.external.github.GithubEmailDto
-import com.chatpg.exception.http.sc5xx.InternalServerException
 import com.chatpg.exception.http.sc4xx.UnauthorizedException
+import com.chatpg.exception.http.sc5xx.InternalServerException
 import com.chatpg.infra.external.auth.IAuthApiService
 import com.chatpg.infra.external.auth.github.GithubAuthApiService.Companion.GITHUB_URL
-import com.chatpg.infra.uri.BackendUriHelper
+import com.chatpg.infra.uri.GatewayUriHelper
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
@@ -18,7 +19,7 @@ import org.springframework.web.client.RestClient
 
 @Service
 class GithubAuthApiService(
-    private val backendUriHelper: BackendUriHelper,
+    gatewayUriHelper: GatewayUriHelper,
 
     private val restClient: RestClient,
 
@@ -27,6 +28,9 @@ class GithubAuthApiService(
 
     @param:Value($$"${security.auth.external.github.client.secret}")
     private val clientSecret: String,
+
+    @param:Value($$"${spring.application.name}")
+    val applicationName: String,
 ) : IAuthApiService {
 
     private companion object {
@@ -34,8 +38,10 @@ class GithubAuthApiService(
 
         const val GITHUB_URL = "https://github.com"
         const val GITHUB_API_URL = "https://api.github.com"
-        const val CALLBACK_URI_PATH = "/auth/login/with/github/authorized"
     }
+
+    private val redirectUri =
+        gatewayUriHelper.appendString("$applicationName${ApplicationEndpoints.Auth.LoginWith.GITHUB_AUTHORIZED}")
 
     override fun getLogger(): KLogger = log
 
@@ -47,7 +53,7 @@ class GithubAuthApiService(
     override fun getCodeUrl(): String =
         "$GITHUB_URL/login/oauth/authorize" +
                 "?client_id=$clientId" +
-                "&redirect_uri=${backendUriHelper.appendString(CALLBACK_URI_PATH)}" +
+                "&redirect_uri=$redirectUri" +
                 "&scope=read:user,user:email"
 
 
@@ -92,7 +98,7 @@ class GithubAuthApiService(
 
         return emails.find { email -> email.primary && email.verified }
             ?.email
-            ?: throw UnauthorizedException("No suitable email found between those registered in the account",)
+            ?: throw UnauthorizedException("No suitable email found between those registered in the account")
     }
 
     /**
@@ -126,7 +132,7 @@ class GithubAuthApiService(
             add("code", code)
             add("client_id", clientId)
             add("client_secret", clientSecret)
-            add("redirect_uri", backendUriHelper.appendString(CALLBACK_URI_PATH))
+            add("redirect_uri", redirectUri)
         }
 
 }

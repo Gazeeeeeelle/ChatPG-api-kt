@@ -1,12 +1,13 @@
 package com.chatpg.infra.external.auth.google
 
 import com.auth0.jwt.JWT
+import com.chatpg.config.ApplicationEndpoints
 import com.chatpg.dto.external.google.GoogleAccessTokenDto
 import com.chatpg.exception.http.sc5xx.InternalServerException
 import com.chatpg.infra.external.auth.IAuthApiService
 import com.chatpg.infra.external.auth.google.GoogleAuthApiService.Companion.GOOGLE_ACCOUNTS_AUTH_URL
 import com.chatpg.infra.external.auth.google.GoogleAuthApiService.Companion.GOOGLE_OAUTH_URL
-import com.chatpg.infra.uri.BackendUriHelper
+import com.chatpg.infra.uri.GatewayUriHelper
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
@@ -17,7 +18,7 @@ import org.springframework.web.client.RestClient
 
 @Service
 class GoogleAuthApiService(
-    private val backendUriHelper: BackendUriHelper,
+    gatewayUriHelper: GatewayUriHelper,
 
     private val restClient: RestClient,
 
@@ -26,6 +27,9 @@ class GoogleAuthApiService(
 
     @param:Value($$"${security.auth.external.google.client.secret}")
     private val clientSecret: String,
+
+    @param:Value($$"${spring.application.name}")
+    val applicationName: String,
 ): IAuthApiService {
 
     private companion object {
@@ -34,9 +38,10 @@ class GoogleAuthApiService(
         const val GOOGLE_ACCOUNTS_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
         const val GOOGLE_OAUTH_URL = "https://oauth2.googleapis.com"
         const val GOOGLE_APIS_AUTH_URL  = "https://www.googleapis.com/auth"
-
-        const val CALLBACK_URI_PATH = "/auth/login/with/google/authorized"
     }
+
+    private val redirectUri =
+        gatewayUriHelper.appendString("$applicationName${ApplicationEndpoints.Auth.LoginWith.GOOGLE_AUTHORIZED}")
 
     override fun getLogger(): KLogger = log
 
@@ -48,7 +53,7 @@ class GoogleAuthApiService(
     override fun getCodeUrl(): String =
         GOOGLE_ACCOUNTS_AUTH_URL +
                 "?client_id=$clientId" +
-                "&redirect_uri=${backendUriHelper.appendString(CALLBACK_URI_PATH)}" +
+                "&redirect_uri=${redirectUri}" +
                 "&scope=$GOOGLE_APIS_AUTH_URL/userinfo.email" +
                 "&response_type=code"
 
@@ -97,7 +102,7 @@ class GoogleAuthApiService(
             add("code"         , code)
             add("client_id"    , clientId)
             add("client_secret", clientSecret)
-            add("redirect_uri" , backendUriHelper.appendString(CALLBACK_URI_PATH))
+            add("redirect_uri" , redirectUri)
             add("grant_type"   , "authorization_code")
         }
 

@@ -23,7 +23,7 @@ import java.util.UUID
 class Account: UserDetails {
 
     private companion object {
-        val log = LoggingUtils(this)
+        val log = LoggingUtils.logger {}
     }
 
     @Id
@@ -31,7 +31,6 @@ class Account: UserDetails {
     @Column(nullable = false, unique = true, updatable = false)
     var id: Long? = null
 
-    //UuidCreator.getRandomBased outperforms java.util.UUID.randomUUID concurrently
     @Column(nullable = false, unique = true, updatable = false)
     var publicId: UUID = UuidCreator.getRandomBased()
 
@@ -67,12 +66,12 @@ class Account: UserDetails {
         listOf(SimpleGrantedAuthority("ROLE_USER"))
 
     override fun getPassword(): String =
-        auth.credentials.password ?: log.logAndThrow {
+        auth.credentials.password ?: log.andThrow {
             AccountPasswordNotFoundException()
         }
 
     override fun getUsername(): String =
-        name ?: log.logAndThrow {
+        name ?: log.andThrow {
             AccountUsernameNotFoundException()
         }
 

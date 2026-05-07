@@ -37,7 +37,12 @@ class AuthChangePasswordService(
     }
 
     /**
-     * TODO
+     * Opens a password change request by identifying the account by the email given, then generating a new request
+     *  handle that is sent over by email to continue the process, verifying that the requester indeed has access to
+     *  such email.
+     *
+     * @param dto Open password change request, which includes the email used to identify the account.
+     * @see RequestHandleService.newRequestHandle
      */
     @Transactional
     fun openPasswordChange(dto: OpenPasswordChangeDto) {
@@ -55,7 +60,11 @@ class AuthChangePasswordService(
     }
 
     /**
-     * TODO
+     * Sends MIME Email with template for Change Password to the email ([email]) with url ([url]) generated that
+     *  includes the request handle.
+     *
+     * @param email
+     * @param url
      */
     fun sendOpenPasswordChangeEmail(email: String, url: String) {
         emailService.sendMimeEmailWithTemplate(
@@ -67,17 +76,21 @@ class AuthChangePasswordService(
     }
 
     /**
-     * TODO
+     * Changes the password of the account identified by the account's public UUID in [dto] to the password chosen,
+     *  which is, as well, given in the [dto].
+     *
+     * @param dto Fulfill password change request, which includes the email used to identify the account and the
+     *  password to update to.
      */
     @Transactional
     fun fulfillPasswordChange(dto: FulfillPasswordChangeDto) {
         passwordValidator.validate(dto.password)
 
-        val uuid = UUID.fromString(dto.uuid)
+        val requestHandle = UUID.fromString(dto.requestHandle)
 
         val account: Account =
             requestHandleService.getAccountAndDiscardCheckedHandle(
-                uuid,
+                requestHandle,
                 subject,
                 expirationTime = changePasswordExpiresIn
             )

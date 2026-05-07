@@ -26,6 +26,6 @@ class JwtConfiguration(
             .build()
 
     @Bean
-    fun jwtAlgorithm(): Algorithm = algorithm
+    fun algorithm(): Algorithm = algorithm
 
 }

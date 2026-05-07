@@ -21,7 +21,7 @@ class AccessToChatFilter(
 ): OncePerRequestFilter() {
 
     private companion object {
-        val log = LoggingUtils(this)
+        val log = LoggingUtils.logger {}
 
         const val GROUP_OF_UUID_CHARACTERS = "([-A-Fa-f0-9]+)"
 
@@ -45,7 +45,7 @@ class AccessToChatFilter(
                 val publicChatId = UUID.fromString(publicChatIdString)
 
                 val accountId = securityContext.getPrincipal()
-                    ?: log.logAndThrow {
+                    ?: log.andThrow {
                         UnauthorizedException(
                             "Null account ID",
                             level = Level.ERROR,

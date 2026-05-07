@@ -1,6 +1,5 @@
 package com.chatpg.amqp
 
-import org.springframework.amqp.core.FanoutExchange
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory
 import org.springframework.amqp.rabbit.connection.ConnectionFactory
 import org.springframework.amqp.rabbit.core.RabbitAdmin
@@ -21,15 +20,9 @@ class ChatpgAmqpConfiguration(
 ) {
 
     companion object {
-        const val EMAIL_SEND_EX = "email.send.ex"
+        const val EMAIL_SEND_Q = "email.send.queue"
+        const val EMAIL_SEND_EX = "email.send.exchange"
     }
-
-    // FIXME: add routing key
-    // New version of amqp does not accept blank routing key given.
-    // It must be configured.
-
-    @Bean
-    fun fanoutExchange() = FanoutExchange(EMAIL_SEND_EX)
 
     @Bean
     fun rabbitAdmin(connectionFactory: ConnectionFactory): RabbitAdmin =

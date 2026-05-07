@@ -11,12 +11,12 @@ class NullSafePasswordEncoder(
 ) {
 
     private companion object {
-        val log = LoggingUtils(this)
+        val log = LoggingUtils.logger {}
     }
 
     fun encode(rawPassword: String): String =
         passwordEncoder.encode(rawPassword)
-            ?: log.logAndThrow {
+            ?: log.andThrow {
                 PasswordEncoderException(
                     message = "An error occurred while processing password.",
                     internalMessage = "Password encoder returned null for non-null Raw Password given"

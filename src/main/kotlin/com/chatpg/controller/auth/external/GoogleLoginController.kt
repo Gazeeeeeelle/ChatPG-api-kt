@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping(ApplicationEndpoints.ExternalLogin.GOOGLE)
+@RequestMapping(ApplicationEndpoints.Auth.LoginWith.GOOGLE)
 class GoogleLoginController(
     log: KLogger = KotlinLogging.logger {},
     googleLoginService: GoogleLoginService,

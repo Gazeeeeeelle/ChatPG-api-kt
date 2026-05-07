@@ -38,6 +38,7 @@ class FiltersConfiguration(
         }
         addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter::class.java)
         addFilterAfter(accessToChatFilter, UsernamePasswordAuthenticationFilter::class.java)
+        anonymous { it.disable() }
         build()
     }
 

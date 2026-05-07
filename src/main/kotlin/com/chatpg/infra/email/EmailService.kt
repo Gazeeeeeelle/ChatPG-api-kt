@@ -1,50 +1,18 @@
 package com.chatpg.infra.email
 
-import jakarta.mail.internet.MimeMessage
-import org.springframework.mail.SimpleMailMessage
-import org.springframework.mail.javamail.JavaMailSender
-import org.springframework.mail.javamail.MimeMessageHelper
+import com.chatpg.amqp.ChatpgAmqpConfiguration
+import com.chatpg.dto.microservices.email.EmailDto
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Service
 
 @Service
 class EmailService(
-    private val mailSender: JavaMailSender,
-    private val mimeHelper: MimeHelper,
+    private val rabbitTemplate: RabbitTemplate
 ) {
 
-    /**
-     * Sends e-mail to [to] with subject [subject] and contents [text].
-     *
-     * @param subject Email subject
-     * @param to Email recipient
-     * @param text Email content
-     */
-    fun sendEmail(subject: String, to: String, text: String) {
-        val message = SimpleMailMessage().apply {
-            setTo(to)
-            this.subject = subject
-            this.text = text
-        }
-
-        mailSender.send(message)
-    }
-
-    /**
-     * Sends MIME e-mail to [to] with subject [subject] and with HTML contents [html].
-     *
-     * @param subject Email subject
-     * @param to Email recipient
-     * @param html Email content
-     */
-    fun sendMimeEmail(subject: String, to: String, html: String) {
-        val message: MimeMessage = mailSender.createMimeMessage()
-        MimeMessageHelper(message, true, "UTF-8").apply {
-            setTo(to)
-            setSubject(subject)
-            setText(html, true)
-        }
-
-        mailSender.send(message)
+    private companion object {
+        val log = KotlinLogging.logger {}
     }
 
     /**
@@ -62,17 +30,15 @@ class EmailService(
         templateName: String,
         vararg variables: Pair<String, String>
     ) {
-        val html = mimeHelper.getTemplate(templateName, *variables)
+        val dto = EmailDto(subject, to, templateName, variables.toMap())
 
-        val message: MimeMessage = mailSender.createMimeMessage()
+        rabbitTemplate.convertAndSend(
+            ChatpgAmqpConfiguration.EMAIL_SEND_EX,
+            "",
+            dto
+        )
 
-        MimeMessageHelper(message, true, "UTF-8").apply {
-            setTo(to)
-            setSubject(subject)
-            setText(html, true)
-        }
-
-        mailSender.send(message)
+        log.info { "Email sent to queue." }
     }
 
 }

@@ -1,12 +1,13 @@
 server:
-  port: 8080
+  port: 0
   error:
     include-stacktrace: never
   servlet:
     context-path: /api
 
 frontend:
-  address: "http://127.0.0.1:5500"
+  address: "127.0.0.1"
+  port: 5500
   paths:
     authorized: "/login/authorized"
     activate-account: "/login/activate-account"
@@ -43,9 +44,15 @@ spring:
     username: guest
     password: guest
 
+gateway:
+  address: "127.0.0.1"
+  port: 8080
+
 eureka:
   client.serviceUrl.defaultZone: http://localhost:8081/eureka/
-  instance.instance-id: ${spring.application.name}:${random.value}
+  instance:
+    instance-id: ${spring.application.name}:${random.value}
+    prefer-ip-address: true
   metadata-map:
     context-path: ${server.servlet.context-path}
 
@@ -69,6 +76,7 @@ logging.level.org:
       ExceptionHandlerExceptionResolver: ERROR
 
 security:
+  protocol: "http"
   http.cookie.secure: false
   bcrypt-password-strength: 10
   token:

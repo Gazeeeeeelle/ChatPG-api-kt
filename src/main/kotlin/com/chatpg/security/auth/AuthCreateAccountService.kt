@@ -45,7 +45,7 @@ class AuthCreateAccountService(
 ) {
 
     private companion object {
-        val log = LoggingUtils(this)
+        val log = LoggingUtils.logger {}
 
         val subject = RequestHandleSubject.ACTIVATE_ACCOUNT
     }
@@ -104,7 +104,7 @@ class AuthCreateAccountService(
     }
 
     internal fun throwAndLogConflictException(message: String): Nothing =
-        log.logAndThrow {
+        log.andThrow {
             ConflictException(message)
         }
 

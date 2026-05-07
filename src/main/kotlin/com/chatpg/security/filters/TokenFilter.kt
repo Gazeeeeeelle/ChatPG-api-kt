@@ -26,7 +26,7 @@ class TokenFilter(
 ): OncePerRequestFilter() {
 
      private companion object {
-         val log = LoggingUtils(this)
+         val log = LoggingUtils.logger {}
      }
 
     override fun doFilterInternal(
@@ -51,7 +51,7 @@ class TokenFilter(
 
             val account = accountService.getByPublicId(publicId)
             val accountId = account.id
-                ?: log.logAndThrow {
+                ?: log.andThrow {
                     AccountIdNotFoundException()
                 }
 

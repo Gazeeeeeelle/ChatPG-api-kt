@@ -2,14 +2,17 @@ package com.chatpg.security.token
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.InvalidClaimException
+import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.Claim
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.chatpg.domain.account.Account
 import com.chatpg.exception.http.sc4xx.UnauthorizedException
 import com.chatpg.exception.security.InvalidTokenException
+import com.chatpg.security.config.JwtConfiguration
 import jakarta.servlet.http.HttpServletRequest
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -24,165 +27,178 @@ import java.time.ZoneId
 @ExtendWith(MockitoExtension::class)
 class TokenServiceTest {
 
-    private lateinit var service: TokenService
+    private val secret = "test-secret"
 
-    private val secret = "secret"
+    private val jwtConfiguration = JwtConfiguration(secret)
 
-    private val clock = Clock.fixed(Instant.now(), ZoneId.of("UTC"))
+    private val clock       = Clock.fixed(Instant.now(), ZoneId.of("UTC"))
+    private val algorithm   = jwtConfiguration.algorithm()
+    private val jwtVerifier = jwtConfiguration.jwtVerifier()
 
-    @BeforeEach
-    fun setup() {
-        service = TokenService(secret, clock)
-    }
+    private val service = TokenService(clock, algorithm, jwtVerifier)
 
-    @Test
-    fun `signTokenWithLifetime - success`() {
-        //ARRANGE
-        val account = Account("username_test", "email@email.com", "password")
+    @Nested
+    inner class Success {
 
-        //ACT
-        val token = service.signTokenWithLifetime(Duration.ofMinutes(10L), account)
+        @Test
+        fun `signTokenWithLifetime - success`() {
+            //ARRANGE
+            val account = Account("username_test", "email@email.com", "password")
 
-        //ASSERT
-        assertEquals(account.publicId.toString(), getIdClaim(token).asString())
+            //ACT
+            val token = service.signTokenWithLifetime(Duration.ofMinutes(10L), account)
 
-        assertEquals(account.username, getSubject(token))
+            //ASSERT
+            assertEquals(account.publicId.toString(), getIdClaim(token).asString())
 
-    }
+            assertEquals(account.username, getSubject(token))
 
-    @Test
-    fun `signTokenWithLifetime - expired`() {
-        //ARRANGE
-        val account = Account("username_test", "email@email.com", "password")
-
-        //ACT
-        val token = service.signTokenWithLifetime(Duration.ofSeconds(0L), account)
-
-        //ASSERT
-        assertThrows<InvalidTokenException> {
-            getIdClaim(token)
         }
-    }
 
-    @Test
-    fun `getClaim - success`() {
-        //ARRANGE
-        val account = Account("username_test", "email@email.com", "password")
+        @Test
+        fun `getClaim - success`() {
+            //ARRANGE
+            val account = Account("username_test", "email@email.com", "password")
 
-        val token = service.signTokenWithLifetime(Duration.ofSeconds(10L), account)
+            val token = service.signTokenWithLifetime(Duration.ofSeconds(10L), account)
 
-        //ACT
-        val claim = service.getClaim(token, "id")
+            //ACT
+            val claim = service.getClaim(token, "id")
 
-        //ASSERT
-        assertEquals(account.publicId.toString(), claim?.asString())
-    }
+            //ASSERT
+            assertEquals(account.publicId.toString(), claim?.asString())
+        }
 
-    @Test
-    fun `getClaim - failure`() {
-        //ARRANGE
-        val account = Account("username_test", "email@email.com", "password")
+        @Test
+        fun `getAccessToken - success`() {
+            //ARRANGE
+            val request = mock(HttpServletRequest::class.java)
+            val token = "tokenTest"
 
-        val token = service.signTokenWithLifetime(Duration.ofSeconds(10L), account)
-        val claim = "some_other_claim"
+            given(request.getHeader("Authorization"))
+                .willReturn(token)
 
-        //ACT + ASSERT
-        val responseClaim = service.getClaim(token, claim)
+            //ACT
+            val response = service.getAccessToken(request)
 
-        //ASSERT
-        assertEquals(null, responseClaim)
-    }
+            //ASSERT
+            assertEquals(token, response)
+        }
 
-    @Test
-    fun `getAccessToken - success`() {
-        //ARRANGE
-        val request = mock(HttpServletRequest::class.java)
-        val token = "tokenTest"
+        @Test
+        fun `getAccessToke - 'Bearer' included`() {
+            //ARRANGE
+            val request = mock(HttpServletRequest::class.java)
+            val token = "tokenTest"
 
-        given(request.getHeader("Authorization"))
-            .willReturn(token)
+            given(request.getHeader("Authorization"))
+                .willReturn("Bearer $token")
 
-        //ACT
-        val response = service.getAccessToken(request)
+            //ACT
+            val response = service.getAccessToken(request)
 
-        //ASSERT
-        assertEquals(token, response)
+            //ASSERT
+            assertEquals(token, response)
+        }
 
-    }
+        @Test
+        fun verify() {
+            //ARRANGE
+            val username = "username_test"
+            val account = Account(username, "email@email.com", "password")
 
-    @Test
-    fun `getAccessToken - success - 'Bearer' included`() {
-        //ARRANGE
-        val request = mock(HttpServletRequest::class.java)
-        val token = "tokenTest"
+            val token = service.signTokenWithLifetime(Duration.ofSeconds(10L), account)
 
-        given(request.getHeader("Authorization"))
-            .willReturn("Bearer $token")
+            //ACT
+            val decoded = service.verify(token)
 
-        //ACT
-        val response = service.getAccessToken(request)
-
-        //ASSERT
-        assertEquals(token, response)
-
-    }
-
-    @Test
-    fun `getAccessToken - failure - no Authorization header`() {
-        //ARRANGE
-        val request = mock(HttpServletRequest::class.java)
-
-        given(request.getHeader("Authorization"))
-            .willReturn(null)
-
-        //ACT + ASSERT
-        assertThrows<UnauthorizedException> {
-            service.getAccessToken(request)
+            //ASSERT
+            assertEquals(account.publicId.toString(), decoded.claims["id"]?.asString())
+            assertEquals(username                   , decoded.subject)
+            assertEquals(JwtConfiguration.ISSUER    , decoded.issuer)
         }
 
     }
 
-    @Test
-    fun `verify - success`() {
-        //ARRANGE
-        val username = "username_test"
-        val account = Account(username, "email@email.com", "password")
+    @Nested
+    inner class Failure {
 
-        val token = service.signTokenWithLifetime(Duration.ofSeconds(10L), account)
+        @Test
+        fun `signTokenWithLifetime - expired`() {
+            //ARRANGE
+            val account = Account("username_test", "email@email.com", "password")
 
-        //ACT
-        val decoded = service.verify(token)
+            //ACT
+            val token = service.signTokenWithLifetime(Duration.ofSeconds(0L), account)
 
-        //ASSERT
-        assertEquals(account.publicId.toString(), decoded.claims["id"]?.asString())
+            //ASSERT
+            assertThrows<InvalidTokenException> {
+                getIdClaim(token)
+            }
+        }
 
-        assertEquals(username, decoded.subject)
+        @Test
+        fun getClaim() {
+            //ARRANGE
+            val account = Account("username_test", "email@email.com", "password")
 
-        assertEquals(service.issuer, decoded.issuer)
+            val token = service.signTokenWithLifetime(Duration.ofSeconds(10L), account)
+            val claim = "some_other_claim"
 
-    }
+            //ACT + ASSERT
+            val responseClaim = service.getClaim(token, claim)
 
-    @Test
-    fun `verify - failure - expired`() {
-        //ARRANGE
-        val account = Account("username_test", "email@email.com", "password")
+            //ASSERT
+            assertEquals(null, responseClaim)
+        }
 
-        val token = service.signTokenWithLifetime(Duration.ofSeconds(0L), account)
+        @Test
+        fun `getAccessToken - no Authorization header`() {
+            //ARRANGE
+            val request = mock(HttpServletRequest::class.java)
 
-        //ACT + ASSERT
-        assertThrows<UnauthorizedException> {
-            service.verify(token)
+            given(request.getHeader("Authorization"))
+                .willReturn(null)
+
+            //ACT + ASSERT
+            assertThrows<UnauthorizedException> {
+                service.getAccessToken(request)
+            }
+
+        }
+
+        @Test
+        fun `verify - expired`() {
+            //ARRANGE
+            val account = Account("username_test", "email@email.com", "password")
+
+            val token = service.signTokenWithLifetime(Duration.ofSeconds(0L), account)
+
+            //ACT + ASSERT
+            assertThrows<UnauthorizedException> {
+                service.verify(token)
+            }
+
         }
 
     }
 
+    /**
+     * Retrieves the claim "id" from the token given.
+     *
+     * @param token Token to extract claim from.
+     * @return "id" claim found.
+     * @throws InvalidTokenException If failed to retrieve claim "id" from token.
+     */
     private fun getIdClaim(token: String): Claim =
-        runCatching {
+        try {
             verify(token)
                 .claims["id"]
-                ?: throw InvalidTokenException("Invalid claim")
-        }.getOrElse { ex ->
-            throw InvalidTokenException(ex.message ?: "Token invalid")
+                ?: throw InvalidTokenException("Claim 'id' not found")
+        } catch (ex: JWTVerificationException) {
+            throw InvalidTokenException(ex.message ?: "Failed to verify token")
+        } catch (ex: InvalidClaimException) {
+            throw InvalidTokenException(ex.message ?: "")
         }
 
     private fun getSubject(token: String): String =
@@ -194,7 +210,7 @@ class TokenServiceTest {
 
     private fun verify(token: String): DecodedJWT =
         JWT.require(Algorithm.HMAC256(secret))
-            .withIssuer(service.issuer)
+            .withIssuer(JwtConfiguration.ISSUER)
             .build()
             .verify(token)
 

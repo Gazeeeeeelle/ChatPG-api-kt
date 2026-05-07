@@ -14,13 +14,17 @@ object ApplicationEndpoints {
         const val FULFILL_PASSWORD_CHANGE = "/fulfill-password-change"
         const val OPEN_ACCOUNT_CREATION = "/open-account-creation"
         const val FULFILL_ACCOUNT_CREATION = "/fulfill-account-creation"
-    }
 
-    object ExternalLogin {
-        const val BASE = "${Auth.BASE}${Auth.LOGIN}/with"
+        object LoginWith {
+            const val BASE = "${Auth.BASE}/$LOGIN/with"
 
-        const val GITHUB = "$BASE/github"
-        const val GOOGLE = "$BASE/google"
+            const val GOOGLE = "$BASE/google"
+            const val GOOGLE_AUTHORIZED = "$GOOGLE/authorized"
+
+            const val GITHUB = "$BASE/github"
+            const val GITHUB_AUTHORIZED = "$GITHUB/authorized"
+
+        }
     }
 
     object AuthSecure {

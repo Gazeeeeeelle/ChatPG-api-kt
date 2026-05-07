@@ -24,7 +24,7 @@ class AccountService(
 ) {
 
     private companion object {
-        val log = LoggingUtils(this)
+        val log = LoggingUtils.logger {}
     }
 
     /**
@@ -37,7 +37,7 @@ class AccountService(
      */
     fun getById(id: Long): Account =
         repository.findByIdOrNull(id)
-            ?: log.logAndThrow {
+            ?: log.andThrow {
                 AccountNotFoundException("Not found with ID given")
             }
 
@@ -62,7 +62,7 @@ class AccountService(
      */
     fun getByName(username: String): Account =
         repository.findByNameEquals(username)
-            ?: log.logAndThrow {
+            ?: log.andThrow {
                 AccountNotFoundException("Account not found with name given")
             }
 
@@ -75,7 +75,7 @@ class AccountService(
      */
     fun getByPublicId(publicId: UUID): Account =
         repository.qFindByPublicId(publicId)
-            ?: log.logAndThrow {
+            ?: log.andThrow {
                 AccountNotFoundException("Account not found with Public ID given")
             }
 
@@ -88,7 +88,7 @@ class AccountService(
      */
     fun getByEmail(email: String): Account =
         repository.qFindByEmail(email)
-            ?: log.logAndThrow {
+            ?: log.andThrow {
                 AccountNotFoundException("Not found with email given")
             }
 
@@ -101,7 +101,7 @@ class AccountService(
      */
     fun getByRefreshToken(refresh: String): Account =
         repository.qFindByRefreshToken(refresh)
-            ?: log.logAndThrow  {
+            ?: log.andThrow  {
                 AccountNotFoundException("Not found with Refresh Token given")
             }
 
@@ -128,7 +128,7 @@ class AccountService(
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun getByRequestHandleAndClear(encodedHandle: String): Account {
         val account = repository.qFindByRequestHandle(encodedHandle)
-            ?: log.logAndThrow {
+            ?: log.andThrow {
                 AccountNotFoundException("Not found with Request Handle given")
             }
 
@@ -136,12 +136,11 @@ class AccountService(
 
         account.auth.requestHandle = null
 
-        log.run {
-            repository.qRemoveHandleById(id)
-                .ifZeroInteractedLogAndThrow {
-                    AccountNotFoundException("Not found with ID given when removing Request Handle")
-                }
-        }
+        repository.qRemoveHandleById(id)
+            .takeUnless { it == 0 }
+            ?: log.andThrow {
+                AccountNotFoundException("Not found with ID given when updating Request Handle")
+            }
 
         return account
     }
@@ -158,12 +157,11 @@ class AccountService(
 
         account.auth.requestHandle = encodedHandle
 
-        log.run {
-            repository.qUpdateRequestHandle(id, encodedHandle)
-                .ifZeroInteractedLogAndThrow {
-                    AccountNotFoundException("Not found with ID given when updating Request Handle")
-                }
-        }
+        repository.qUpdateRequestHandle(id, encodedHandle)
+            .takeUnless { it == 0 }
+            ?: log.andThrow {
+                AccountNotFoundException("Not found with ID given when updating Request Handle")
+            }
     }
 
     /**
@@ -171,6 +169,7 @@ class AccountService(
      *
      * @param account account to change status of.
      * @param encodedPassword encrypted password to change replace the old one.
+     * @throws AccountNotFoundException If no deletes were made on call [AccountRepository.qUpdateRefreshToken]
      */
     @Transactional
     fun updatePassword(account: Account, encodedPassword: String) {
@@ -178,33 +177,33 @@ class AccountService(
 
         val id = requireNotNullAccountId(account)
 
-        log.run {
-            repository.qUpdateEncodedPassword(id, encodedPassword)
-                .ifZeroInteractedLogAndThrow {
-                    AccountNotFoundException("Not found with ID given when updating password")
-                }
-        }
+        repository.qUpdateEncodedPassword(id, encodedPassword)
+            .takeUnless { it == 0 }
+            ?: log.andThrow {
+                AccountNotFoundException("Not found with ID given when updating Request Handle")
+            }
     }
 
     /**
      * Hard deletes account found with id [id].
      *
      * @param id account identifier.
+     * @throws AccountNotFoundException If no deletes were made on call [AccountRepository.qUpdateRefreshToken]
      */
     @Transactional
     fun deleteById(id: Long) =
-        log.run {
-            repository.qDeleteById(id)
-                .ifZeroInteractedLogAndThrow {
-                    AccountNotFoundException("Not found with ID given when deleting")
-                }
-        }
+        repository.qDeleteById(id)
+            .takeUnless { it == 0 }
+            ?: log.andThrow {
+                AccountNotFoundException("Not found with ID given when updating Request Handle")
+            }
 
     /**
      * Updates [AccountStatus] of the given [Account], [account], with [status].
      *
      * @param account account to change status of.
      * @param status which of the statuses change the account's status to.
+     * @throws AccountNotFoundException If no updates were made on call [AccountRepository.qUpdateRefreshToken]
      */
     @Transactional
     fun updateStatus(account: Account, status: AccountStatus) {
@@ -212,12 +211,11 @@ class AccountService(
 
         account.status = status
 
-        log.run {
-            repository.qUpdateStatus(id, status)
-                .ifZeroInteractedLogAndThrow {
-                    AccountNotFoundException("Not found with ID given when updating Account Status")
-                }
-        }
+        repository.qUpdateStatus(id, status)
+            .takeUnless { it == 0 }
+            ?: log.andThrow {
+                AccountNotFoundException("Not found with ID given when updating Request Handle")
+            }
     }
 
     /**
@@ -226,23 +224,30 @@ class AccountService(
      *
      * @param account account to change refreshToken of.
      * @param refreshToken which token to replace with.
+     * @throws AccountNotFoundException If no updates were made on call [AccountRepository.qUpdateRefreshToken]
      */
     @Transactional
     fun updateRefreshToken(account: Account, refreshToken: String?) {
         account.auth.refreshToken = refreshToken
 
         val id = requireNotNullAccountId(account)
-        log.run {
-            repository.qUpdateRefreshToken(id, refreshToken)
-                .ifZeroInteractedLogAndThrow {
-                    AccountNotFoundException("Not found with ID given when updating Refresh Token")
-                }
-        }
+        repository.qUpdateRefreshToken(id, refreshToken)
+            .takeUnless { it == 0 }
+            ?: log.andThrow {
+                AccountNotFoundException("Not found with ID given when updating Request Handle")
+            }
     }
 
+    /**
+     * Returns account's non-null asserted ID, or else, trows [AccountIdNotFoundException].
+     *
+     * @param account Account that will have its ID null checked.
+     * @return [account]'s non-null ID.
+     * @throws AccountIdNotFoundException if [account]'s ID was null.
+     */
     internal fun requireNotNullAccountId(account: Account): Long =
         account.id
-            ?: log.logAndThrow {
+            ?: log.andThrow {
                 AccountIdNotFoundException()
             }
 

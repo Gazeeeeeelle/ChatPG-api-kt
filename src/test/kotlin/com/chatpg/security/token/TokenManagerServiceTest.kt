@@ -7,11 +7,13 @@ import com.chatpg.exception.security.InvalidTokenException
 import com.chatpg.service.account.AccountService
 import helper.NullSafeMatchers.any
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.BDDMockito.given
 import org.mockito.Mock
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
@@ -23,8 +25,8 @@ class TokenManagerServiceTest {
 
     private lateinit var service: TokenManagerService
 
-    @Mock private lateinit var tokenService: TokenService
-    @Mock private lateinit var accountService: AccountService
+    private val tokenService = mock<TokenService>()
+    private val accountService = mock<AccountService>()
 
     private val accessTokenExpiresIn = Duration.ofMinutes(10L)
     private val refreshTokenExpiresIn = Duration.ofDays(7L)
@@ -34,112 +36,178 @@ class TokenManagerServiceTest {
         service = TokenManagerService(tokenService, accountService, accessTokenExpiresIn, refreshTokenExpiresIn)
     }
 
-    @Mock
-    private lateinit var account: Account
+    private val account = mock<Account>()
 
-    @Test
-    fun signAccessToken() {
-        //ACT
-        service.signAccessToken(account)
+    @Nested
+    inner class Success {
 
-        //ASSERT
-        verify(tokenService)
-            .signTokenWithLifetime(Duration.ofMinutes(10L), account)
-    }
+        @Test
+        fun signAccessToken() {
+            //ACT
+            service.signAccessToken(account)
 
-    @Test
-    fun `refreshTokens - success`() {
-        //ARRANGE
-        val oldRefreshToken = "oldRefreshTokenTest"
-        val newRefreshToken = "newRefreshTokenTest"
-        val newAccessToken  = "newAccessTokenTest"
-
-        given(accountService.getByRefreshToken(oldRefreshToken))
-            .willReturn(account)
-
-        given(tokenService.signTokenWithLifetime(accessTokenExpiresIn, account))
-            .willReturn(newAccessToken)
-
-        given(tokenService.signTokenWithLifetime(refreshTokenExpiresIn, account))
-            .willReturn(newRefreshToken)
-
-        //ACT
-        val (responseAccessToken, responseRefreshToken) = service.refreshTokens(oldRefreshToken)
-
-        //ASSERT
-        assertEquals(newAccessToken, responseAccessToken.token)
-        assertEquals(newRefreshToken, responseRefreshToken)
-
-        verify(tokenService)
-            .verify(oldRefreshToken)
-
-        verify(accountService)
-            .getByRefreshToken(oldRefreshToken)
-
-        verify(tokenService)
-            .signTokenWithLifetime(refreshTokenExpiresIn, account)
-
-    }
-
-    @Test
-    fun `refreshTokens - failure - verification failed`() {
-        //ARRANGE
-        val oldRefreshToken = "oldRefreshTokenTest"
-
-        given(tokenService.verify(oldRefreshToken))
-            .willThrow(InvalidTokenException("Invalid token"))
-
-        //ACT + ASSERT
-        assertThrows<InvalidTokenException> {
-            service.refreshTokens(oldRefreshToken)
+            //ASSERT
+            verify(tokenService)
+                .signTokenWithLifetime(Duration.ofMinutes(10L), account)
         }
 
-        verify(tokenService)
-            .verify(oldRefreshToken)
+        @Test
+        fun refreshTokens() {
+            //ARRANGE
+            val oldRefreshToken = "oldRefreshTokenTest"
+            val newRefreshToken = "newRefreshTokenTest"
+            val newAccessToken  = "newAccessTokenTest"
 
-        verify(tokenService, never())
-            .signTokenWithLifetime(Duration.ZERO.any(), account.any())
+            given(accountService.getByRefreshToken(oldRefreshToken))
+                .willReturn(account)
 
-    }
+            given(tokenService.signTokenWithLifetime(accessTokenExpiresIn, account))
+                .willReturn(newAccessToken)
 
-    @Test
-    fun `refreshTokens - failure - account with oldRefreshToken not found`() {
-        //ARRANGE
-        val oldRefreshToken = "oldRefreshTokenTest"
+            given(tokenService.signTokenWithLifetime(refreshTokenExpiresIn, account))
+                .willReturn(newRefreshToken)
 
-        given(accountService.getByRefreshToken(oldRefreshToken))
-            .willThrow(AccountNotFoundException("test"))
+            //ACT
+            val (responseAccessToken, responseRefreshToken) = service.refreshTokens(oldRefreshToken)
 
-        //ACT + ASSERT
-        assertThrows<UnauthorizedException> {
-            service.refreshTokens(oldRefreshToken)
+            //ASSERT
+            assertEquals(newAccessToken, responseAccessToken.token)
+            assertEquals(newRefreshToken, responseRefreshToken)
+
+            verify(tokenService)
+                .verify(oldRefreshToken)
+
+            verify(accountService)
+                .getByRefreshToken(oldRefreshToken)
+
+            verify(tokenService)
+                .signTokenWithLifetime(refreshTokenExpiresIn, account)
+
         }
 
-        verify(tokenService)
-            .verify(oldRefreshToken)
 
-        verify(tokenService, never())
-            .signTokenWithLifetime(Duration.ZERO.any(), account.any())
+        @Test
+        fun signRefreshToken() {
+            //ARRANGE
+            val token = "tokenTest"
+
+            given(tokenService.signTokenWithLifetime(Duration.ofDays(7L), account))
+                .willReturn(token)
+
+            //ACT
+            service.signRefreshToken(account)
+
+            //ASSERT
+            verify(tokenService)
+                .signTokenWithLifetime(refreshTokenExpiresIn, account)
+
+            verify(accountService)
+                .updateRefreshToken(account, token)
+
+        }
 
     }
 
-    @Test
-    fun signRefreshToken() {
-        //ARRANGE
-        val token = "tokenTest"
+    @Nested
+    inner class Failure {
 
-        given(tokenService.signTokenWithLifetime(Duration.ofDays(7L), account))
-            .willReturn(token)
+        @Test
+        fun refreshTokens() {
+            //ARRANGE
+            val oldRefreshToken = "oldRefreshTokenTest"
+            val newRefreshToken = "newRefreshTokenTest"
+            val newAccessToken  = "newAccessTokenTest"
 
-        //ACT
-        service.signRefreshToken(account)
+            given(accountService.getByRefreshToken(oldRefreshToken))
+                .willReturn(account)
 
-        //ASSERT
-        verify(tokenService)
-            .signTokenWithLifetime(refreshTokenExpiresIn, account)
+            given(tokenService.signTokenWithLifetime(accessTokenExpiresIn, account))
+                .willReturn(newAccessToken)
 
-        verify(accountService)
-            .updateRefreshToken(account, token)
+            given(tokenService.signTokenWithLifetime(refreshTokenExpiresIn, account))
+                .willReturn(newRefreshToken)
+
+            //ACT
+            val (responseAccessToken, responseRefreshToken) = service.refreshTokens(oldRefreshToken)
+
+            //ASSERT
+            assertEquals(newAccessToken, responseAccessToken.token)
+            assertEquals(newRefreshToken, responseRefreshToken)
+
+            verify(tokenService)
+                .verify(oldRefreshToken)
+
+            verify(accountService)
+                .getByRefreshToken(oldRefreshToken)
+
+            verify(tokenService)
+                .signTokenWithLifetime(refreshTokenExpiresIn, account)
+
+        }
+
+        @Test
+        fun `refreshTokens - verification failed`() {
+            //ARRANGE
+            val oldRefreshToken = "oldRefreshTokenTest"
+
+            given(tokenService.verify(oldRefreshToken))
+                .willThrow(InvalidTokenException("Invalid token"))
+
+            //ACT + ASSERT
+            assertThrows<InvalidTokenException> {
+                service.refreshTokens(oldRefreshToken)
+            }
+
+            verify(tokenService)
+                .verify(oldRefreshToken)
+
+            verify(tokenService, never())
+                .signTokenWithLifetime(Duration.ZERO.any(), account.any())
+
+        }
+
+        @Test
+        fun `refreshTokens - account with oldRefreshToken not found`() {
+            //ARRANGE
+            val oldRefreshToken = "oldRefreshTokenTest"
+
+            given(accountService.getByRefreshToken(oldRefreshToken))
+                .willThrow(AccountNotFoundException("test"))
+
+            //ACT + ASSERT
+            assertThrows<UnauthorizedException> {
+                service.refreshTokens(oldRefreshToken)
+            }
+
+            verify(tokenService)
+                .verify(oldRefreshToken)
+
+            verify(tokenService, never())
+                .signTokenWithLifetime(Duration.ZERO.any(), account.any())
+
+        }
+
+        @Test
+        fun signRefreshToken() {
+            //ARRANGE
+            val token = "tokenTest"
+
+            given(tokenService.signTokenWithLifetime(Duration.ofDays(7L), account))
+                .willReturn(token)
+
+            //ACT
+            val response = service.signRefreshToken(account)
+
+            //ASSERT
+            verify(tokenService)
+                .signTokenWithLifetime(refreshTokenExpiresIn, account)
+
+            verify(accountService)
+                .updateRefreshToken(account, token)
+
+            assertEquals(token, response)
+
+        }
 
     }
 
