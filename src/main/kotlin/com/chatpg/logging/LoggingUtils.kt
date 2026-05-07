@@ -5,25 +5,29 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.slf4j.event.Level
 
-class LoggingUtils<S : Any>(
-    singletonInstance: S
-) {
+class LoggingUtils {
 
-    private val log: KLogger = KotlinLogging.logger(
-        name = getName(singletonInstance)
-    )
+    private var name: String
 
-    private fun getName(singletonInstance: S): String =
-        singletonInstance::class
-            .java
-            .enclosingClass
-            .name
+    private var log: KLogger
 
-    fun (Int).ifZeroInteractedLogAndThrow(exceptionSupplier: () -> LoggableException) {
-        if (this == 0) logAndThrow(exceptionSupplier)
+    companion object {
+        fun logger(emptyLambda: () -> Unit): LoggingUtils {
+            val name = emptyLambda::class
+                .qualifiedName
+                ?.replaceAfter("$$", "")
+                ?.removeSuffix("$$")
+
+            return LoggingUtils(name ?: "null")
+        }
     }
 
-    fun <T : LoggableException> logAndThrow(exceptionSupplier: () -> T): Nothing {
+    private constructor(name: String) {
+        this.name = name
+        this.log  = KotlinLogging.logger(name)
+    }
+
+    fun <T : LoggableException> andThrow(exceptionSupplier: () -> T): Nothing {
         val ex = exceptionSupplier()
 
         at(ex.level) { ex.message }
@@ -52,12 +56,12 @@ class LoggingUtils<S : Any>(
     fun at(level: Level, messageSupplier: () -> String?) =
         at(level, messageSupplier())
 
-    internal fun logAndThrowAt(level: Level, throwable: Throwable): Nothing {
+    internal fun andThrowAt(level: Level, throwable: Throwable): Nothing {
         at(level) { throwable.message }
         throw throwable
     }
 
-    fun logAndThrowAt(level: Level, throwableSupplier: () -> Throwable): Nothing =
-        logAndThrowAt(level, throwableSupplier())
+    fun andThrowAt(level: Level, throwableSupplier: () -> Throwable): Nothing =
+        andThrowAt(level, throwableSupplier())
 
 }

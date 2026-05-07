@@ -14,6 +14,7 @@ import helper.NullSafeMatchers.any
 import helper.NullSafeMatchers.eq
 import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.DynamicTest
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.extension.ExtendWith
@@ -54,154 +55,163 @@ class TokenFilterTest: FilterTest() {
         override fun <T> `as`(clazz: Class<T?>?): T? = null
     }
 
-    @TestFactory
-    fun `valid - paths are secured`(): Stream<DynamicTest> {
-        //ARRANGE
-        val token = "access-token-test"
-        val publicId = UUID.fromString(publicIdString)
+    @Nested
+    inner class Success {
+        @TestFactory
+        fun `paths are secured`(): Stream<DynamicTest> {
+            //ARRANGE
+            val token = "access-token-test"
+            val publicId = UUID.fromString(publicIdString)
 
-        val account = mock(Account::class.java)
+            val account = mock(Account::class.java)
 
-        return Stream.of(
-            "/auth/secure/logout", "/notAuthRelatedAndCheckedByTokenFilter"
-        ).map { path ->
-            DynamicTest.dynamicTest("path: $path") {
-                //ARRANGE
-                given(request.servletPath)
-                    .willReturn(path)
+            return Stream.of(
+                "/auth/secure/logout", "/notAuthRelatedAndCheckedByTokenFilter"
+            ).map { path ->
+                DynamicTest.dynamicTest("path: $path") {
+                    //ARRANGE
+                    given(request.servletPath)
+                        .willReturn(path)
 
-                given(tokenService.getAccessToken(request))
-                    .willReturn(token)
+                    given(tokenService.getAccessToken(request))
+                        .willReturn(token)
 
-                given(tokenService.getClaim(token, "id"))
-                    .willReturn(claim)
+                    given(tokenService.getClaim(token, "id"))
+                        .willReturn(claim)
 
-                given(accountService.getByPublicId(publicId))
-                    .willReturn(account)
+                    given(accountService.getByPublicId(publicId))
+                        .willReturn(account)
 
-                //ACT
-                filter.doFilter(request, response, filterChain)
+                    //ACT
+                    filter.doFilter(request, response, filterChain)
 
-                //ASSERT
-                verify(tokenService).apply {
-                    getAccessToken(request)
-                    getClaim(token, "id")
+                    //ASSERT
+                    verify(tokenService).apply {
+                        getAccessToken(request)
+                        getClaim(token, "id")
+                    }
+
+                    verify(accountService).getByPublicId(publicId)
+                    verify(securityContext).setPrincipal(0L, account.authorities)
+
+                    reset(request, tokenService, accountService, securityContext)
                 }
-
-                verify(accountService).getByPublicId(publicId)
-                verify(securityContext).setPrincipal(0L, account.authorities)
-
-                reset(request, tokenService, accountService, securityContext)
-            }
-        }
-    }
-
-    @TestFactory
-    fun `valid - paths are not filtered`(): Stream<DynamicTest> =
-        Stream.of(
-            "/auth/login", "/auth/refreshToken"
-        ).map { path ->
-            DynamicTest.dynamicTest("path: $path") {
-                //ARRANGE
-                given(request.servletPath)
-                    .willReturn(path)
-
-                //ACT
-                filter.doFilter(request, response, filterChain)
-
-                //ASSERT
-                verify(securityContext, never())
-                    .setPrincipal(LONG_TYPE.any(), listOf<GrantedAuthority>().any())
-
-                verify(filterChain)
-                    .doFilter(request, response)
-
-                reset(filterChain)
             }
         }
 
-    @Test
-    fun `valid - Swagger Documentation paths are not filtered`() {
-        //ARRANGE
-        val docPath = "/doc/swagger-ui.html"
+        @TestFactory
+        fun `paths are not filtered`(): Stream<DynamicTest> =
+            Stream.of(
+                "/auth/login", "/auth/refreshToken"
+            ).map { path ->
+                DynamicTest.dynamicTest("path: $path") {
+                    //ARRANGE
+                    given(request.servletPath)
+                        .willReturn(path)
 
-        given(request.servletPath)
-            .willReturn(docPath)
+                    //ACT
+                    filter.doFilter(request, response, filterChain)
 
-        given(swaggerDocSecurityConfigurer.isPathSwaggerRelated(docPath))
-            .willReturn(true)
+                    //ASSERT
+                    verify(securityContext, never())
+                        .setPrincipal(LONG_TYPE.any(), listOf<GrantedAuthority>().any())
 
-        //ACT
-        filter.doFilter(request, response, filterChain)
+                    verify(filterChain)
+                        .doFilter(request, response)
 
-        //ASSERT
-        verify(securityContext, never())
-            .setPrincipal(LONG_TYPE.any(), listOf<GrantedAuthority>().any())
+                    reset(filterChain)
+                }
+            }
 
-        verify(filterChain)
-            .doFilter(request, response)
+        @Test
+        fun `Swagger Documentation paths are not filtered`() {
+            //ARRANGE
+            val docPath = "/doc/swagger-ui.html"
+
+            given(request.servletPath)
+                .willReturn(docPath)
+
+            given(swaggerDocSecurityConfigurer.isPathSwaggerRelated(docPath))
+                .willReturn(true)
+
+            //ACT
+            filter.doFilter(request, response, filterChain)
+
+            //ASSERT
+            verify(securityContext, never())
+                .setPrincipal(LONG_TYPE.any(), listOf<GrantedAuthority>().any())
+
+            verify(filterChain)
+                .doFilter(request, response)
+        }
+
     }
 
-    @Test
-    fun `invalid - Authorization header is missing`() {
-        //ARRANGE
-        given(request.servletPath)
-            .willReturn("/somethingElse")
+    @Nested
+    inner class Failure {
 
-        given(tokenService.getAccessToken(request))
-            .willThrow(UnauthorizedException())
+        @Test
+        fun `Authorization header is missing`() {
+            //ARRANGE
+            given(request.servletPath)
+                .willReturn("/somethingElse")
 
-        //ACT
-        filter.doFilter(request, response, filterChain)
+            given(tokenService.getAccessToken(request))
+                .willThrow(UnauthorizedException())
 
-        //ASSERT
-        verify(response)
-            .sendError(HttpServletResponse.SC_UNAUTHORIZED.eq(), STRING_TYPE.any())
-    }
+            //ACT
+            filter.doFilter(request, response, filterChain)
 
-    @Test
-    fun `invalid - account not found`() {
-        //ARRANGE
-        val token = "tokenTest"
-        val publicId = UUID.fromString(publicIdString)
+            //ASSERT
+            verify(response)
+                .sendError(HttpServletResponse.SC_UNAUTHORIZED.eq(), STRING_TYPE.any())
+        }
 
-        given(request.servletPath)
-            .willReturn("/somethingElse")
+        @Test
+        fun `account not found`() {
+            //ARRANGE
+            val token = "tokenTest"
+            val publicId = UUID.fromString(publicIdString)
 
-        given(tokenService.getAccessToken(request))
-            .willReturn(token)
+            given(request.servletPath)
+                .willReturn("/somethingElse")
 
-        given(tokenService.getClaim(token, "id"))
-            .willReturn(claim)
+            given(tokenService.getAccessToken(request))
+                .willReturn(token)
 
-        given(accountService.getByPublicId(publicId))
-            .willThrow(AccountNotFoundException("account not found"))
+            given(tokenService.getClaim(token, "id"))
+                .willReturn(claim)
 
-        //ACT
-        filter.doFilter(request, response, filterChain)
+            given(accountService.getByPublicId(publicId))
+                .willThrow(AccountNotFoundException("account not found"))
 
-        //ASSERT
-        verify(response)
-            .sendError(HttpServletResponse.SC_UNAUTHORIZED.eq(), STRING_TYPE.any())
-    }
+            //ACT
+            filter.doFilter(request, response, filterChain)
 
-    @Test
-    fun `invalid - absent claim`() {
-        //ARRANGE
-        val token = "tokenTest"
+            //ASSERT
+            verify(response)
+                .sendError(HttpServletResponse.SC_UNAUTHORIZED.eq(), STRING_TYPE.any())
+        }
 
-        given(request.servletPath)
-            .willReturn("/somethingElse")
+        @Test
+        fun `absent claim`() {
+            //ARRANGE
+            val token = "tokenTest"
 
-        given(tokenService.getAccessToken(request))
-            .willReturn(token)
+            given(request.servletPath)
+                .willReturn("/somethingElse")
 
-        //ACT
-        filter.doFilter(request, response, filterChain)
+            given(tokenService.getAccessToken(request))
+                .willReturn(token)
 
-        //ASSERT
-        verify(response)
-            .sendError(HttpServletResponse.SC_UNAUTHORIZED.eq(), STRING_TYPE.any())
+            //ACT
+            filter.doFilter(request, response, filterChain)
+
+            //ASSERT
+            verify(response)
+                .sendError(HttpServletResponse.SC_UNAUTHORIZED.eq(), STRING_TYPE.any())
+
+        }
 
     }
 

@@ -1,5 +1,6 @@
 package com.chatpg.infra.uuid
 
+import com.github.f4b6a3.uuid.UuidCreator
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
@@ -12,6 +13,11 @@ import java.util.UUID
 class UuidHelper(
     private val clock: Clock
 ) {
+
+    companion object {
+        const val DUMMY_UUID_STRING = "880be27f-655e-467f-a548-8b141bbed1fb"
+        val DUMMY_UUID: UUID = UUID.fromString(DUMMY_UUID_STRING)
+    }
 
     /**
      * Using the given UUIDv7's mostSignificantBits, i.e. its leftmost 8 bytes, it is possible to extract the UNIX time
@@ -34,5 +40,8 @@ class UuidHelper(
      */
     fun isNotExpired(uuidV7: UUID, expirationTime: Duration): Boolean =
         getMillis(uuidV7) > clock.millis() - expirationTime.toMillis()
+
+    fun generateUuidV7(): UUID =
+        UuidCreator.getTimeOrderedEpoch(clock.instant())
 
 }

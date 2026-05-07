@@ -22,7 +22,7 @@ class ChatService(
 ) {
 
     private companion object {
-        val log = LoggingUtils(this)
+        val log = LoggingUtils.logger {}
     }
 
     /**
@@ -66,7 +66,7 @@ class ChatService(
     fun getByPublicId(publicId: UUID): Chat =
         repository.qFindByPublicId(publicId)
             ?: log.run {
-                logAndThrow { ChatNotFoundException("Chat not found with Public ID given") }
+                andThrow { ChatNotFoundException("Chat not found with Public ID given") }
             }
 
     /**
@@ -79,7 +79,7 @@ class ChatService(
     fun getByChatName(chatName: String): Chat =
         repository.qFindByName(chatName)
             ?: log.run {
-                logAndThrow { ChatNotFoundException("Chat not found with Public ID given") }
+                andThrow { ChatNotFoundException("Chat not found with Public ID given") }
             }
 
     /**

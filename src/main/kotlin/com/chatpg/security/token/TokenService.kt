@@ -12,23 +12,21 @@ import com.chatpg.domain.account.Account
 import com.chatpg.exception.account.AccountNotFoundException
 import com.chatpg.exception.http.sc4xx.UnauthorizedException
 import com.chatpg.exception.security.InvalidTokenException
+import com.chatpg.security.config.JwtConfiguration
 import jakarta.servlet.http.HttpServletRequest
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.Duration
 
 @Service
 class TokenService(
-    @param:Value($$"${security.token.secret}")
-    private val secret: String,
+    private val clock: Clock = Clock.systemUTC(),
 
-    private val clock: Clock = Clock.systemUTC()
+    private val algorithm: Algorithm,
+
+    private val jwtVerifier: JWTVerifier
 ) {
 
-    private val algorithm: Algorithm = Algorithm.HMAC256(secret)
-
-    val issuer: String = "API ChatPG"
 
     /**
      * Generates JWT token owned by [account] that expires in [duration].
@@ -58,7 +56,7 @@ class TokenService(
             val now = clock.instant()
             val expiresAt = now.plus(duration)
 
-            withIssuer(issuer)
+            withIssuer(JwtConfiguration.ISSUER)
             withIssuedAt(now)
             withExpiresAt(expiresAt)
         }
@@ -83,17 +81,12 @@ class TokenService(
      */
     fun verify(token: String): DecodedJWT =
         try {
-            buildJWTVerifier().verify(token)
+            jwtVerifier.verify(token)
         } catch (_: TokenExpiredException) {
-            throw UnauthorizedException("Token expired",)
+            throw UnauthorizedException("Token expired")
         } catch (_: JWTVerificationException) {
             throw InvalidTokenException("Malformed token")
         }
-
-    fun buildJWTVerifier(): JWTVerifier =
-        JWT.require(algorithm)
-            .withIssuer(issuer)
-            .build()
 
     /**
      * Gets and returns the *Bearer Token* from the [HttpServletRequest] given.
@@ -105,6 +98,6 @@ class TokenService(
     fun getAccessToken(request: HttpServletRequest): String =
         request.getHeader("Authorization")
             ?.replace("Bearer ", "")
-            ?: throw UnauthorizedException("Authorization header is missing",)
+            ?: throw UnauthorizedException("Authorization header is missing")
 
 }

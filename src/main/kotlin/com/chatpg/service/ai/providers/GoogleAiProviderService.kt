@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 class GoogleAiProviderService: IAiProviderService {
 
     private companion object {
-        val log = LoggingUtils(this)
+        val log = LoggingUtils.logger {}
 
         const val GENERIC_FAILURE_EXTERNAL_MESSAGE = "Something went wrong. Try again later."
     }
@@ -38,7 +38,7 @@ class GoogleAiProviderService: IAiProviderService {
                 )
                 .text()
         } catch (ex: NonTransientAiException) {
-            log.logAndThrow {
+            log.andThrow {
                 HttpException(
                     503,
                     GENERIC_FAILURE_EXTERNAL_MESSAGE,
@@ -47,7 +47,7 @@ class GoogleAiProviderService: IAiProviderService {
                 )
             }
         } catch (ex: TransientAiException) {
-            log.logAndThrow {
+            log.andThrow {
                 HttpException(
                     503,
                     GENERIC_FAILURE_EXTERNAL_MESSAGE,

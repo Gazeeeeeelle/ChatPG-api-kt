@@ -8,7 +8,6 @@ import com.chatpg.exception.auth.AccountActivationException
 import com.chatpg.exception.http.sc4xx.ConflictException
 import com.chatpg.exception.requesthandle.ExpiredRequestHandleException
 import com.chatpg.infra.email.EmailService
-import com.chatpg.infra.email.MimeHelper
 import com.chatpg.infra.uri.FrontendUriHelper
 import com.chatpg.logging.LoggingUtils
 import com.chatpg.mapper.AccountMapper
@@ -46,7 +45,7 @@ class AuthCreateAccountService(
 ) {
 
     private companion object {
-        val log = LoggingUtils(this)
+        val log = LoggingUtils.logger {}
 
         val subject = RequestHandleSubject.ACTIVATE_ACCOUNT
     }
@@ -105,7 +104,7 @@ class AuthCreateAccountService(
     }
 
     internal fun throwAndLogConflictException(message: String): Nothing =
-        log.logAndThrow {
+        log.andThrow {
             ConflictException(message)
         }
 

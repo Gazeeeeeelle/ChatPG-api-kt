@@ -19,18 +19,18 @@ class ChutesLlmApiService(
     private val apiKey: String,
 
     @param:Value($$"${spring.ai.chutes.llm.url}")
-    private val llmUrl: String,
+    private val chutesLlmUrl: String,
 
     private val restClient: RestClient
 ) {
 
     private companion object {
-        val log = LoggingUtils(this)
+        val log = LoggingUtils.logger {}
     }
 
     fun askAi(model: AiModel, prompt: String): String {
         val responseSpec = restClient.post()
-            .uri(llmUrl)
+            .uri(chutesLlmUrl)
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .header("Authorization", "Bearer $apiKey")
@@ -40,14 +40,14 @@ class ChutesLlmApiService(
         val responseBody: ChutesResponse = responseSpec
             .onStatus({ it.isError }) { _, response -> llmResponseHandler(response, model) }
             .body(ChutesResponse::class.java)
-            ?: log.logAndThrowAt(Level.ERROR) {
+            ?: log.andThrowAt(Level.ERROR) {
                 ServiceUnavailableException("Response from Chutes had invalid body")
             }
 
         val firstChoice: ChutesChoice = responseBody
             .choices
             .firstOrNull()
-            ?: log.logAndThrowAt(Level.ERROR) {
+            ?: log.andThrowAt(Level.ERROR) {
                 ServiceUnavailableException("No choices available")
             }
 
@@ -79,17 +79,16 @@ class ChutesLlmApiService(
 
     fun llmResponseHandler(response: ClientHttpResponse, model: AiModel) {
         val code = response.statusCode
-        var codeValue = code.value()
+        val codeValue = code.value()
 
         val level =
-            if (arrayOf(400, 401, 403, 404).contains(codeValue)) {
+            if (code.is4xxClientError) {
                 Level.WARN
             } else {
-                codeValue = 500
                 Level.ERROR
             }
 
-        log.logAndThrow {
+        log.andThrow {
             HttpException(
                 codeValue,
                 "Chutes LLM(${model.nickname}): $code",

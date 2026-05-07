@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping(ApplicationEndpoints.ExternalLogin.GITHUB)
+@RequestMapping(ApplicationEndpoints.Auth.LoginWith.GITHUB)
 class GithubLoginController(
     log: KLogger = KotlinLogging.logger {},
     githubLoginService: GithubLoginService,

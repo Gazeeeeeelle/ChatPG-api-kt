@@ -14,14 +14,12 @@ class ApplicationConfiguration {
 
     @Bean
     fun restClient(): RestClient {
-        val builder = RestClient.builder()
-
         val factory = SimpleClientHttpRequestFactory().apply {
             setConnectTimeout(5000)
             setReadTimeout(5000)
         }
 
-        return builder
+        return RestClient.builder()
             .requestFactory(factory)
             .build()
     }

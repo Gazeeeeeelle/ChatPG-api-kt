@@ -11,9 +11,7 @@ import org.springframework.stereotype.Component
 class SecurityContextHelper {
 
     fun getPrincipal(): Long? =
-        getContextAuth()
-            ?.principal
-            ?.let { it as Long }
+        getContextAuth()?.principal as? Long
 
     fun setPrincipal(id: Long, authorities: Collection<GrantedAuthority>) {
         getContext().authentication =

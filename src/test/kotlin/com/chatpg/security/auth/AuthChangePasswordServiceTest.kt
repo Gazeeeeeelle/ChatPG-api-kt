@@ -111,10 +111,11 @@ class AuthChangePasswordServiceTest {
         }
 
         verify(emailService, never())
-            .sendMimeEmail(
-                subject = STRING_TYPE.any(),
-                to      = STRING_TYPE.any(),
-                html    = STRING_TYPE.any()
+            .sendMimeEmailWithTemplate(
+                subject      = STRING_TYPE.any(),
+                to           = STRING_TYPE.any(),
+                templateName = STRING_TYPE.any(),
+                (STRING_TYPE to STRING_TYPE).any()
             )
     }
 
